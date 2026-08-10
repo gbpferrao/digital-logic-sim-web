@@ -160,8 +160,8 @@ h2 { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
 
 /* Sebastian Lague-style shell: one unobstructed world view with the chip
    strip and command surface anchored to the bottom edge. */
-body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; background: #424245; }
-#app { position: relative; min-height: 100vh; background: #424245; }
+body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; background: #202124; }
+#app { position: relative; min-height: 100vh; background: #202124; }
 .topbar { position: fixed; top: 9px; left: 50%; z-index: 5; width: min(420px, calc(100vw - 32px)); height: 34px; padding: 0 8px; border: 0; background: rgb(0 0 0 / 48%); box-shadow: 0 3px 10px rgb(0 0 0 / 16%); transform: translateX(-50%); pointer-events: none; }
 .brand, .top-actions { display: none; }
 .project-title { width: 100%; max-width: none; align-items: center; pointer-events: auto; }
@@ -171,7 +171,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 .save-state { color: var(--ui-muted); }
 .save-state.dirty { color: #ffce68; }
 .workspace { position: relative; display: block; height: 100vh; }
-.canvas-panel { width: 100%; height: 100vh; background: #424245; }
+.canvas-panel { width: 100%; height: 100vh; background: #202124; }
 .canvas-toolbar { position: absolute; top: 48px; left: 12px; z-index: 3; min-height: 0; padding: 0; border: 0; background: transparent; opacity: .72; }
 .canvas-toolbar:hover { opacity: 1; }
 .tool-button, .run-button { border-color: #5a5a5d; border-radius: 2px; background: #2d2d30; font-family: inherit; }
@@ -180,7 +180,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 .run-button { border-color: var(--sim-run-border); border-radius: 2px; background: var(--sim-run-surface); }
 .run-button.running { border-color: var(--sim-pause-border); background: var(--sim-pause-surface); }
 .speed-control { color: #d0d0d0; }
-.canvas-wrap { background: #424245; }
+.canvas-wrap { background: #202124; }
 #world { cursor: crosshair; }
 .canvas-wrap.resizing #world { cursor: nwse-resize; }
 .canvas-status { position: absolute; right: 0; bottom: 55px; left: 0; z-index: 2; min-height: 23px; border-top: 0; color: #c3c3c3; background: transparent; }
@@ -255,7 +255,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
    layouts. These rules keep the reference-style shell restrained while making
    the small alignment decisions consistent. */
 :root {
-  --world: #424245;
+  --world: #202124;
   --surface: #1d1d1f;
   --surface-raised: #29292c;
   --surface-hover: #38383b;

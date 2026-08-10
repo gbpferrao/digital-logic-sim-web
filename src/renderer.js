@@ -15,9 +15,9 @@ import { disconnected, isHigh, stateLabel } from "./simulation.js";
 
 const TAU = Math.PI * 2;
 const GRID_COLOURS = Object.freeze({
-  background: "#424245",
-  line: "#2f2f32",
-  highlight: "#4a4a4d"
+  background: "#202124",
+  line: "#2b2e33",
+  highlight: "#353940"
 });
 
 function rgba(hex, alpha = 1) {
@@ -556,7 +556,7 @@ export class WorldRenderer {
     }
     if (["not", "nand", "nor", "xnor"].includes(gate)) {
       const bubble = Math.min(w, h) * .13;
-      ctx.fillStyle = "#424245";
+      ctx.fillStyle = GRID_COLOURS.background;
       ctx.beginPath(); ctx.arc(w * .88, 0, bubble, 0, TAU); ctx.fill(); ctx.stroke();
     }
   }

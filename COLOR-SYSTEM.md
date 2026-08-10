@@ -10,7 +10,7 @@ The shared tokens live in the final `:root` block in `src/styles.css`.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--world` | `#424245` | Unobstructed canvas/world background |
+| `--world` | `#202124` | Dark unobstructed canvas/world background |
 | `--surface` | `#1d1d1f` | Shell and dark surface |
 | `--surface-raised` | `#29292c` | Cards, drawers, and dialogs |
 | `--surface-hover` | `#38383b` | Neutral hover surface |
@@ -29,7 +29,7 @@ The shared tokens live in the final `:root` block in `src/styles.css`.
 | `--ui-control-border` | `#66666a` | Normal control border |
 | `--ui-control-border-hover` | `#919196` | Hover/focus border |
 
-The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the recessed `#2f2f32`, while every fifth grid line uses the subtle highlight `#4a4a4d`. This keeps the working grid visible without letting it compete with circuit elements.
+The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the subdued `#2b2e33`, while every fifth grid line uses the slightly brighter `#353940`. Both remain restrained and lighter than the dark world fill, so the grid is readable without becoming a second background.
 
 Light popup surfaces use the same grayscale scale in a separate set of tokens:
 
