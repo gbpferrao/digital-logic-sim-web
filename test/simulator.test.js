@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { BUILTINS, TYPE, createProject, customFromRoot, instanceFor } from "../src/model.js";
-import { Simulator } from "../src/simulation.js";
+import { Simulator, simulationScopeKey } from "../src/simulation.js";
 
 function addNandCircuit(aValue, bValue) {
   const project = createProject("test");
@@ -157,6 +157,17 @@ test("custom chip descriptions execute recursively", () => {
   const simulator = new Simulator(nested);
   simulator.step();
   assert.equal(simulator.snapshot.instances[output.id].signals["0"].bits, 1);
+  const scopePath = [chip.id];
+  const scope = simulator.snapshot.scopes[simulationScopeKey(scopePath)];
+  const internalGate = custom.instances.find((instance) => instance.name === TYPE.NAND);
+  assert.ok(scope, "nested composite scope should be captured");
+  assert.equal(simulator.stateFor({ owner: internalGate.id, pin: "2" }, scopePath).bits, 1);
+  const firstSnapshot = simulator.snapshot;
+  nested.inputValues[b.id] = 1;
+  simulator.step();
+  assert.equal(simulator.stateFor({ owner: internalGate.id, pin: "2" }, scopePath).bits, 0);
+  simulator.restore(firstSnapshot, 1);
+  assert.equal(simulator.stateFor({ owner: internalGate.id, pin: "2" }, scopePath).bits, 1);
 });
 
 test("wire junctions propagate a signal to multiple branches", () => {

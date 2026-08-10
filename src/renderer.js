@@ -43,6 +43,11 @@ function darken(hex, factor = .72) {
   return `#${channel(16)}${channel(8)}${channel(0)}`;
 }
 
+function signalColour(signal, { high = "#7df2a8", low = "#7b858f", floating = "#687279" } = {}) {
+  if (signal?.tri === 0) return isHigh(signal) ? high : low;
+  return floating;
+}
+
 function chipCaptionAnchor(description, width, height = description?.size?.y ?? 0) {
   if (description?.kind === "input") return { x: -width / 6, y: 0 };
   if (description?.special === "sevenSegment") return { x: 0, y: -height / 2 + 14 };
@@ -487,11 +492,11 @@ export class WorldRenderer {
     const selected = editorState.selectedIds?.has(String(instance.id));
     const hovered = editorState.hover?.kind === "instance" && editorState.hover.id === String(instance.id);
     const invalid = Boolean(editorState.drag?.invalid && selected);
-    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator, editorState.xray ? XRAY_MAX_DEPTH : 0);
+    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator, editorState.xray ? XRAY_MAX_DEPTH : 0, []);
     this.drawPins(ctx, project, instance, description, simulator, editorState);
   }
 
-  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0) {
+  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0, signalScope = []) {
     const box = chipBoundingBox(project, instance);
     const rotation = (instance.rotation ?? 0) * Math.PI / 2;
     ctx.save();
@@ -507,17 +512,17 @@ export class WorldRenderer {
     ctx.lineCap = "round";
     if (description.kind === "input") {
       const inputPin = description.outputPins?.[0];
-      const inputSignal = simulator?.stateFor({ owner: instance.id, pin: inputPin?.id }) ?? project._simSnapshot?.instances?.[instance.id]?.signals?.[String(inputPin?.id)] ?? disconnected();
-      const active = description.kind === "input"
-        ? Number(project.inputValues?.[instance.id] ?? 0) !== 0
-        : inputSignal.tri === 0 && isHigh(inputSignal);
+      const inputSignal = simulator?.stateFor({ owner: instance.id, pin: inputPin?.id }, signalScope) ?? project._simSnapshot?.instances?.[instance.id]?.signals?.[String(inputPin?.id)] ?? disconnected();
+      const active = simulator
+        ? inputSignal.tri === 0 && isHigh(inputSignal)
+        : Number(project.inputValues?.[instance.id] ?? 0) !== 0;
       ctx.fillStyle = active ? "#2f7d54" : "#3a444b";
       ctx.beginPath(); ctx.moveTo(-w / 2, -h / 2); ctx.lineTo(w / 2, 0); ctx.lineTo(-w / 2, h / 2); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = invalid ? "#f47883" : selected ? "#d8f5e2" : hovered ? "#b8e6c8" : active ? "#5bc783" : "#687279";
       ctx.lineWidth = (selected ? 2.2 : 1.8) / this.camera.zoom; ctx.stroke();
     } else if (description.kind === "output") {
       const outputPin = description.inputPins?.[0];
-      const outputSignal = simulator?.stateFor({ owner: instance.id, pin: outputPin?.id }) ?? project._simSnapshot?.instances?.[instance.id]?.signals?.[String(outputPin?.id)] ?? disconnected();
+      const outputSignal = simulator?.stateFor({ owner: instance.id, pin: outputPin?.id }, signalScope) ?? project._simSnapshot?.instances?.[instance.id]?.signals?.[String(outputPin?.id)] ?? disconnected();
       const active = outputSignal.tri === 0 && isHigh(outputSignal);
       ctx.fillStyle = "#3a444b";
       ctx.strokeStyle = invalid ? "#f47883" : selected ? "#d8f5e2" : hovered ? "#b8e6c8" : "#687279";
@@ -532,11 +537,11 @@ export class WorldRenderer {
       if (description.special === "logicGate") this.drawLogicGate(ctx, description.gate, w, h);
       else {
         ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 4); ctx.fill(); ctx.stroke();
-        this.drawSpecialDisplay(ctx, project, instance, description);
+        this.drawSpecialDisplay(ctx, project, instance, description, simulator, signalScope);
       }
     }
     if (xrayDepth > 0 && description.kind === "custom" && (description.instances ?? []).length) {
-      this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")]);
+      this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")], [...signalScope, String(instance.id)]);
     }
     const captionAnchor = chipCaptionAnchor(description, w, h);
     this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered, captionAnchor);
@@ -549,7 +554,7 @@ export class WorldRenderer {
     }
   }
 
-  drawXrayComposite(ctx, project, description, simulator, depth, path = []) {
+  drawXrayComposite(ctx, project, description, simulator, depth, path = [], scopePath = []) {
     if (depth <= 0 || !(description.instances ?? []).length) return;
     const visualSize = chipVisualSize(description);
     const fit = reusableFitBounds(description);
@@ -572,10 +577,10 @@ export class WorldRenderer {
     ctx.translate(frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale, frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale);
     ctx.scale(scale, scale);
     ctx.globalAlpha = .86;
-    this.drawXrayWires(ctx, scopedProject, description);
+    this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath);
     const visibleInstances = (description.instances ?? []).slice(0, XRAY_MAX_INSTANCES);
-    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child, simulator, depth - 1, path);
-    this.drawXrayRootPins(ctx, description);
+    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child, simulator, depth - 1, path, scopePath);
+    this.drawXrayRootPins(ctx, description, simulator, scopePath);
     ctx.restore();
 
     ctx.save();
@@ -591,16 +596,17 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawXrayWires(ctx, project, description) {
+  drawXrayWires(ctx, project, description, simulator = null, scopePath = []) {
     ctx.save();
     ctx.lineCap = "butt";
     ctx.lineJoin = "round";
     ctx.lineWidth = 1.6;
-    ctx.strokeStyle = "#9aa8b4";
-    ctx.globalAlpha = .74;
     for (const wire of (description.wires ?? []).slice(0, XRAY_MAX_WIRES)) {
       const points = this.wirePoints(project, wire, null, null, { rawDescriptionPins: true });
       if (points.length < 2) continue;
+      const signal = simulator?.stateFor(wire.source, scopePath) ?? disconnected();
+      ctx.strokeStyle = signalColour(signal);
+      ctx.globalAlpha = signal.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48;
       ctx.beginPath();
       points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
       ctx.stroke();
@@ -613,11 +619,11 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawXrayInstance(ctx, project, instance, simulator, depth, path) {
+  drawXrayInstance(ctx, project, instance, simulator, depth, path, scopePath = []) {
     const description = descriptorForInstance(project, instance);
     if (!description) return;
-    this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0);
-    this.drawXrayPins(ctx, project, instance, description);
+    this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0, scopePath);
+    this.drawXrayPins(ctx, project, instance, description, simulator, scopePath);
     if (description.kind !== "custom" || depth <= 0) return;
     const identity = String(description.name || description.id || instance.name || "custom");
     if (path.includes(identity)) {
@@ -627,24 +633,34 @@ export class WorldRenderer {
     ctx.save();
     ctx.translate(instance.position.x, instance.position.y);
     ctx.rotate((instance.rotation ?? 0) * Math.PI / 2);
-    this.drawXrayComposite(ctx, project, description, simulator, depth, [...path, identity]);
+    this.drawXrayComposite(ctx, project, description, simulator, depth, [...path, identity], [...scopePath, String(instance.id)]);
     ctx.restore();
   }
 
-  drawXrayPins(ctx, project, instance, description) {
+  drawXrayPins(ctx, project, instance, description, simulator = null, scopePath = []) {
     for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
       const position = instancePinPosition(project, instance, pin.id);
-      ctx.fillStyle = pin.direction === "output" ? "#9cdab3" : "#c0c8cf";
+      const signal = simulator?.stateFor({ owner: instance.id, pin: pin.id }, scopePath) ?? disconnected();
+      ctx.fillStyle = signalColour(signal, {
+        high: "#7df2a8",
+        low: pin.direction === "output" ? "#9cdab3" : "#c0c8cf",
+        floating: "#687279"
+      });
       ctx.beginPath(); ctx.arc(position.x, position.y, 2.4, 0, TAU); ctx.fill();
     }
   }
 
-  drawXrayRootPins(ctx, description) {
+  drawXrayRootPins(ctx, description, simulator = null, scopePath = []) {
     if (interfaceBindingsFor(description).length) return;
     for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
       const x = Number(pin.x);
       const position = { x: Number.isFinite(x) ? x : (pin.direction === "input" ? -description.size.x / 2 : description.size.x / 2), y: Number(pin.y) || 0 };
-      ctx.fillStyle = pin.direction === "output" ? "#9cdab3" : "#c0c8cf";
+      const signal = simulator?.stateFor({ owner: "root", pin: pin.id }, scopePath) ?? disconnected();
+      ctx.fillStyle = signalColour(signal, {
+        high: "#7df2a8",
+        low: pin.direction === "output" ? "#9cdab3" : "#c0c8cf",
+        floating: "#687279"
+      });
       ctx.beginPath(); ctx.arc(position.x, position.y, 2.6, 0, TAU); ctx.fill();
     }
   }
@@ -724,8 +740,10 @@ export class WorldRenderer {
     }
   }
 
-  drawSpecialDisplay(ctx, project, instance, description) {
-    const snapshot = project._simSnapshot?.instances?.[instance.id];
+  drawSpecialDisplay(ctx, project, instance, description, simulator = null, scopePath = []) {
+    const scopedSnapshot = simulator?.snapshotForScope?.(scopePath);
+    const snapshot = scopedSnapshot?.instances?.[String(instance.id)]
+      ?? project._simSnapshot?.instances?.[instance.id];
     const internal = snapshot?.internal ?? instance.internalData ?? {};
     if (description.special === "led") {
       const input = snapshot?.signals?.["0"] ?? disconnected();

@@ -30,6 +30,33 @@ export function stateEqual(a, b) { return Boolean(a && b && a.bits === b.bits &&
 export function isHigh(value, bit = 0) { return Boolean(value && ((value.bits >> bit) & 1)); }
 export function valueOf(value, bits = 16) { return (value?.bits ?? 0) & maskForBits(bits); }
 export const SIMULATION_SNAPSHOT_VERSION = 1;
+export const SIMULATION_SCOPE_ROOT = "root";
+
+export function simulationScopeKey(path = []) {
+  const parts = Array.isArray(path) ? path : path == null ? [] : [path];
+  return parts.length
+    ? `${SIMULATION_SCOPE_ROOT}/${parts.map((part) => encodeURIComponent(String(part))).join("/")}`
+    : SIMULATION_SCOPE_ROOT;
+}
+
+function emptySnapshotScope() {
+  return { endpoints: {}, instances: {} };
+}
+
+function cloneSnapshotInstance(item) {
+  return {
+    ...item,
+    signals: Object.fromEntries(Object.entries(item?.signals ?? {}).map(([key, value]) => [key, copyState(value)])),
+    internal: clone(item?.internal ?? {})
+  };
+}
+
+function cloneSnapshotScope(scope) {
+  return {
+    endpoints: Object.fromEntries(Object.entries(scope?.endpoints ?? {}).map(([key, value]) => [key, copyState(value)])),
+    instances: Object.fromEntries(Object.entries(scope?.instances ?? {}).map(([id, item]) => [id, cloneSnapshotInstance(item)]))
+  };
+}
 
 export function emptySnapshot(step = 0, outputs = new Map()) {
   return {
@@ -37,6 +64,7 @@ export function emptySnapshot(step = 0, outputs = new Map()) {
     step: Math.max(0, Number(step) || 0),
     endpoints: {},
     instances: {},
+    scopes: { [SIMULATION_SCOPE_ROOT]: emptySnapshotScope() },
     outputs
   };
 }
@@ -46,19 +74,20 @@ export function cloneSnapshot(snapshot) {
   const outputs = source.outputs instanceof Map
     ? new Map([...source.outputs].map(([key, value]) => [key, copyState(value)]))
     : Object.fromEntries(Object.entries(source.outputs ?? {}).map(([key, value]) => [key, copyState(value)]));
-  const instances = Object.fromEntries(Object.entries(source.instances ?? {}).map(([id, item]) => [
-    id,
-    {
-      ...item,
-      signals: Object.fromEntries(Object.entries(item?.signals ?? {}).map(([key, value]) => [key, copyState(value)])),
-      internal: clone(item?.internal ?? {})
-    }
-  ]));
+  const instances = Object.fromEntries(Object.entries(source.instances ?? {}).map(([id, item]) => [id, cloneSnapshotInstance(item)]));
+  const scopes = Object.fromEntries(Object.entries(source.scopes ?? {}).map(([key, scope]) => [key, cloneSnapshotScope(scope)]));
+  if (!Object.keys(scopes).length) {
+    scopes[SIMULATION_SCOPE_ROOT] = {
+      endpoints: Object.fromEntries(Object.entries(source.endpoints ?? {}).map(([key, value]) => [key, copyState(value)])),
+      instances: Object.fromEntries(Object.entries(instances).map(([id, item]) => [id, cloneSnapshotInstance(item)]))
+    };
+  } else if (!scopes[SIMULATION_SCOPE_ROOT]) scopes[SIMULATION_SCOPE_ROOT] = emptySnapshotScope();
   return {
     version: Number(source.version) || SIMULATION_SNAPSHOT_VERSION,
     step: Math.max(0, Number(source.step) || 0),
     endpoints: Object.fromEntries(Object.entries(source.endpoints ?? {}).map(([key, value]) => [key, copyState(value)])),
     instances,
+    scopes,
     outputs
   };
 }
@@ -395,17 +424,38 @@ function snapshotRuntimeSignals(runtime) {
   return values.join("|");
 }
 
-function collectSnapshot(runtime, result = emptySnapshot()) {
+function collectSnapshot(runtime, result = emptySnapshot(), scopePath = []) {
+  result.scopes ??= {};
+  const scopeKey = simulationScopeKey(scopePath);
+  const scope = result.scopes[scopeKey] ?? (result.scopes[scopeKey] = emptySnapshotScope());
   for (const [id, item] of runtime.instances) {
     const signals = {};
     for (const [pin, value] of [...item.inputs, ...item.outputs]) signals[pin] = copyState(value);
-    result.instances[id] = { signals, internal: clone(item.internal), type: item.description.type };
-    for (const [pin, value] of item.inputs) result.endpoints[`${id}:${pin}`] = copyState(value);
-    for (const [pin, value] of item.outputs) result.endpoints[`${id}:${pin}`] = copyState(value);
-    if (item.child) collectSnapshot(item.child, result);
+    const itemSnapshot = { signals, internal: clone(item.internal), type: item.description.type };
+    scope.instances[id] = itemSnapshot;
+    result.instances[id] = itemSnapshot;
+    for (const [pin, value] of item.inputs) {
+      scope.endpoints[`${id}:${pin}`] = copyState(value);
+      if (!scopePath.length) result.endpoints[`${id}:${pin}`] = copyState(value);
+    }
+    for (const [pin, value] of item.outputs) {
+      scope.endpoints[`${id}:${pin}`] = copyState(value);
+      if (!scopePath.length) result.endpoints[`${id}:${pin}`] = copyState(value);
+    }
+    if (item.child) collectSnapshot(item.child, result, [...scopePath, id]);
   }
-  for (const [pin, value] of runtime.rootInputs) result.endpoints[`root:${pin}`] = copyState(value);
-  for (const [pin, value] of runtime.rootOutputs) result.endpoints[`root:${pin}`] = copyState(value);
+  for (const [id, value] of runtime.junctions) {
+    scope.endpoints[`junction:${id}`] = copyState(value);
+    if (!scopePath.length) result.endpoints[`junction:${id}`] = copyState(value);
+  }
+  for (const [pin, value] of runtime.rootInputs) {
+    scope.endpoints[`root:${pin}`] = copyState(value);
+    if (!scopePath.length) result.endpoints[`root:${pin}`] = copyState(value);
+  }
+  for (const [pin, value] of runtime.rootOutputs) {
+    scope.endpoints[`root:${pin}`] = copyState(value);
+    if (!scopePath.length) result.endpoints[`root:${pin}`] = copyState(value);
+  }
   return result;
 }
 
@@ -459,24 +509,27 @@ export class Simulator {
     this.stepCount = Math.max(0, Number(stepCount) || 0);
     this.audioNotes = [];
     const saved = cloneSnapshot(snapshot);
-    const restoreRuntime = (runtime, root = false) => {
+    const restoreRuntime = (runtime, scopePath = []) => {
+      const scope = saved.scopes?.[simulationScopeKey(scopePath)];
       for (const [id, item] of runtime.instances) {
-        const itemSnapshot = saved.instances?.[id];
+        const itemSnapshot = scope?.instances?.[id] ?? saved.instances?.[id];
         if (itemSnapshot) {
           item.internal = clone(itemSnapshot.internal ?? {});
           for (const pin of item.inputs.keys()) item.inputs.set(pin, copyState(itemSnapshot.signals?.[pin]));
           for (const pin of item.outputs.keys()) item.outputs.set(pin, copyState(itemSnapshot.signals?.[pin]));
         }
         item.lastTick = this.stepCount;
-        if (item.child) restoreRuntime(item.child);
+        if (item.child) restoreRuntime(item.child, [...scopePath, id]);
       }
-      if (root) {
-        for (const pin of runtime.rootInputs.keys()) runtime.rootInputs.set(pin, copyState(saved.endpoints?.[`root:${pin}`]));
-        for (const pin of runtime.rootOutputs.keys()) runtime.rootOutputs.set(pin, copyState(saved.endpoints?.[`root:${pin}`]));
+      for (const [id] of runtime.junctions) runtime.junctions.set(id, copyState(scope?.endpoints?.[`junction:${id}`]));
+      const endpoints = scope?.endpoints ?? (scopePath.length ? null : saved.endpoints);
+      if (endpoints) {
+        for (const pin of runtime.rootInputs.keys()) runtime.rootInputs.set(pin, copyState(endpoints[`root:${pin}`]));
+        for (const pin of runtime.rootOutputs.keys()) runtime.rootOutputs.set(pin, copyState(endpoints[`root:${pin}`]));
       }
       runtime.lastTick = this.stepCount;
     };
-    restoreRuntime(this.runtime, true);
+    restoreRuntime(this.runtime);
     this.snapshot = { ...saved, step: this.stepCount };
     return this.snapshot;
   }
@@ -490,8 +543,16 @@ export class Simulator {
     return this.snapshot;
   }
 
-  stateFor(endpoint) {
-    return this.snapshot.endpoints[`${endpoint.owner}:${endpoint.pin}`] ?? disconnected();
+  snapshotForScope(scopePath = []) {
+    return this.snapshot.scopes?.[simulationScopeKey(scopePath)] ?? null;
+  }
+
+  stateFor(endpoint, scopePath = []) {
+    const key = `${endpoint.owner}:${endpoint.pin}`;
+    const scoped = this.snapshotForScope(scopePath);
+    return scoped?.endpoints?.[key]
+      ?? (!scoped || !scopePath?.length ? this.snapshot.endpoints[key] : null)
+      ?? disconnected();
   }
 
   outputFor(instanceId) {

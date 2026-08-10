@@ -439,8 +439,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
   letter-spacing: .05em;
   pointer-events: auto;
 }
-.toolbar-menu-button:hover, .toolbar-menu-button.active { border-color: var(--ui-control-border-hover); color: var(--ui-accent-strong); background: var(--ui-control-active); }
-.toolbar-back-button:hover { border-color: var(--ui-control-border-hover); color: var(--ui-accent-strong); background: var(--ui-control-active); }
+.toolbar-menu-button:hover, .toolbar-menu-button.active { color: var(--ui-accent-strong); background: var(--ui-control-active); }
+.toolbar-menu-button.active { border-color: var(--ui-control-border-hover); }
+.toolbar-back-button:hover { color: var(--ui-accent-strong); background: var(--ui-control-active); }
 .toolbar-back-button + .toolbar-menu-button,
 .toolbar-menu-button + .toolbar-project-title { margin-left: -1px; }
 .toolbar-back-button.hidden + .toolbar-menu-button { margin-left: 0; border-radius: 3px 0 0 3px; }
@@ -503,20 +504,59 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
   border-radius: 2px;
 }
 .canvas-toolbar #run-sim { width: 82px; min-width: 82px; flex: 0 0 82px; }
-.canvas-toolbar #bake-sim { width: 72px; min-width: 72px; flex: 0 0 72px; color: var(--sim-pause-text); border-color: var(--sim-pause-border); background: var(--sim-pause-surface); }
-.canvas-toolbar #bake-sim.active { color: var(--sim-pause-text); border-color: var(--sim-pause-border); background: var(--sim-pause-surface); }
-.canvas-toolbar #clear-bake { width: 72px; min-width: 72px; flex: 0 0 72px; }
-.canvas-toolbar .sim-controls > #bake-sim,
-.canvas-toolbar .sim-controls > #clear-bake { border-radius: 0; }
+.canvas-toolbar .speed-control {
+  width: 86px;
+  min-width: 86px;
+  flex: 0 0 86px;
+  height: var(--toolbar-button-height);
+  border: 1px solid var(--sim-run-border);
+  border-radius: 0;
+  color: var(--sim-run-text);
+  background: var(--sim-run-surface);
+}
+.canvas-toolbar .speed-input-shell { width: 100%; height: 100%; flex: 1 1 auto; }
+.canvas-toolbar .speed-control input {
+  border-color: transparent;
+  border-radius: 0;
+  color: var(--sim-run-text);
+  background: transparent;
+}
+.canvas-toolbar .speed-control input:focus { border-color: var(--sim-run-border); }
+.canvas-toolbar .speed-label, .canvas-toolbar .speed-unit { color: var(--sim-run-text); }
+.canvas-toolbar #run-sim.running + .speed-control {
+  border-color: var(--sim-pause-border);
+  color: var(--sim-pause-text);
+  background: var(--sim-pause-surface);
+}
+.canvas-toolbar #run-sim.running + .speed-control input,
+.canvas-toolbar #run-sim.running + .speed-control .speed-label,
+.canvas-toolbar #run-sim.running + .speed-control .speed-unit { color: var(--sim-pause-text); }
+.canvas-toolbar #run-sim.running + .speed-control input:focus { border-color: var(--sim-pause-border); }
+.canvas-toolbar #bake-sim, .canvas-toolbar #clear-bake {
+  width: 72px;
+  min-width: 72px;
+  flex: 0 0 72px;
+  color: var(--sim-pause-text);
+  border-color: var(--sim-pause-border);
+  background: var(--sim-pause-surface);
+}
+.canvas-toolbar #bake-sim:hover, .canvas-toolbar #clear-bake:hover,
+.canvas-toolbar #bake-sim.active {
+  color: var(--sim-pause-text);
+  border-color: var(--sim-pause-border);
+  background: var(--sim-pause-surface);
+}
+.canvas-toolbar .sim-controls > #bake-sim { border-radius: 0; }
+.canvas-toolbar .sim-controls > #clear-bake { border-radius: 0 2px 2px 0; }
 .canvas-toolbar #bake-sim:disabled, .canvas-toolbar #clear-bake:disabled, .canvas-toolbar #step-sim:disabled { cursor: default; opacity: .36; }
-.canvas-toolbar #bake-sim:disabled:hover, .canvas-toolbar #clear-bake:disabled:hover { border-color: #5a5a5d; background: #2d2d30; }
+.canvas-toolbar #bake-sim:disabled:hover, .canvas-toolbar #clear-bake:disabled:hover { border-color: var(--sim-pause-border); background: var(--sim-pause-surface); }
 .canvas-toolbar .sim-controls > * + * { margin-left: -1px; }
 .canvas-toolbar .sim-controls > :first-child { border-radius: 2px 0 0 2px; }
 .canvas-toolbar .sim-controls > .speed-control { margin-right: 0; }
-.canvas-toolbar .sim-controls > .step-control-group { border-radius: 0 2px 2px 0; }
+.canvas-toolbar .sim-controls > .step-control-group { margin-left: 8px; border-radius: 0 2px 2px 0; }
 .canvas-toolbar .step-control-group { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 0; }
 .canvas-toolbar .step-control-group > * + * { margin-left: -1px; }
-.canvas-toolbar .step-control-group > :first-child { border-radius: 0; }
+.canvas-toolbar .step-control-group > :first-child { border-radius: 2px 0 0 2px; }
 .canvas-toolbar .step-control-group > :last-child { border-radius: 0 2px 2px 0; }
 .canvas-toolbar .step-jump-button { width: 26px; min-width: 26px; flex: 0 0 26px; padding: 0; }
 .canvas-toolbar .step-jump-button .icon-glyph { width: 13px; height: 13px; }

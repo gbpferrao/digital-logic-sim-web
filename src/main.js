@@ -479,19 +479,30 @@ function syncSimulationBakeCursor() {
 }
 
 function simulationVisualSignature(snapshot) {
+  const scopedSignals = Object.entries(snapshot?.scopes ?? {}).flatMap(([scope, scoped]) => Object.entries(scoped?.endpoints ?? {})
+    .filter(([, value]) => (value?.tri ?? PIN_MASK) !== PIN_MASK)
+    .map(([key, value]) => [`${scope}:${key}`, value.bits ?? 0, value.tri ?? PIN_MASK]));
   const rootOwners = new Set(["root", ...(project.root.instances ?? []).map((instance) => String(instance.id))]);
-  const signals = Object.entries(snapshot?.endpoints ?? {})
+  const signals = (scopedSignals.length ? scopedSignals : Object.entries(snapshot?.endpoints ?? {})
     .filter(([key]) => rootOwners.has(key.split(":", 1)[0]))
     .filter(([, value]) => (value?.tri ?? PIN_MASK) !== PIN_MASK)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => [key, value.bits ?? 0, value.tri ?? PIN_MASK]);
+    .map(([key, value]) => [key, value.bits ?? 0, value.tri ?? PIN_MASK]))
+    .sort(([left], [right]) => left.localeCompare(right));
   const displays = {};
-  for (const instance of project.root.instances ?? []) {
-    const descriptor = descriptorForInstance(project, instance);
-    if (!descriptor?.special) continue;
-    const runtime = snapshot?.instances?.[String(instance.id)];
-    const display = runtime?.internal?.display ?? instance.internalData?.display;
-    if (display !== undefined) displays[String(instance.id)] = Array.isArray(display) ? [...display] : display;
+  const scopedDisplays = Object.entries(snapshot?.scopes ?? {}).flatMap(([scope, scoped]) => Object.entries(scoped?.instances ?? {}).flatMap(([id, runtime]) => {
+    const display = runtime?.internal?.display;
+    return display === undefined ? [] : [[`${scope}:${id}`, Array.isArray(display) ? [...display] : display]];
+  }));
+  if (scopedDisplays.length) {
+    for (const [key, display] of scopedDisplays) displays[key] = display;
+  } else {
+    for (const instance of project.root.instances ?? []) {
+      const descriptor = descriptorForInstance(project, instance);
+      if (!descriptor?.special) continue;
+      const runtime = snapshot?.instances?.[String(instance.id)];
+      const display = runtime?.internal?.display ?? instance.internalData?.display;
+      if (display !== undefined) displays[String(instance.id)] = Array.isArray(display) ? [...display] : display;
+    }
   }
   return JSON.stringify({ signals, displays });
 }

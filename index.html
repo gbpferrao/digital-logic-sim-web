@@ -58,8 +58,6 @@
             <div class="sim-control-stack">
               <div class="sim-controls">
                 <button id="run-sim" class="run-button button-with-icon" title="Run simulation" aria-pressed="false"><i class="icon-glyph" data-lucide="play" aria-hidden="true"></i><span id="run-sim-label">RUN</span></button>
-                <button id="bake-sim" class="tool-button button-with-icon simulation-bake-button" type="button" title="Register the current simulation as a bake" disabled><i class="icon-glyph" data-lucide="layers-2" aria-hidden="true"></i><span id="bake-sim-label">BAKE</span></button>
-                <button id="clear-bake" class="tool-button button-with-icon clear-bake-button" type="button" title="Clear the current simulation bake" disabled><i class="icon-glyph" data-lucide="eraser" aria-hidden="true"></i><span>CLEAR</span></button>
                 <label class="speed-control" title="Simulation steps per second">
                   <span class="speed-input-shell">
                     <span class="speed-label" aria-hidden="true">speed</span>
@@ -67,6 +65,8 @@
                     <span class="speed-unit" aria-hidden="true">/s</span>
                   </span>
                 </label>
+                <button id="bake-sim" class="tool-button button-with-icon simulation-bake-button" type="button" title="Register the current simulation as a bake" disabled><i class="icon-glyph" data-lucide="layers-2" aria-hidden="true"></i><span id="bake-sim-label">BAKE</span></button>
+                <button id="clear-bake" class="tool-button button-with-icon clear-bake-button" type="button" title="Clear the current simulation bake" disabled><i class="icon-glyph" data-lucide="eraser" aria-hidden="true"></i><span>CLEAR</span></button>
                 <div class="step-control-group" aria-label="Simulation stepping">
                   <button id="start-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Jump to simulation start" aria-label="Jump to simulation start"><i class="icon-glyph" data-lucide="chevrons-left" aria-hidden="true"></i></button>
                   <button id="macro-prev-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Previous canvas-visible simulation step" aria-label="Previous canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-back" aria-hidden="true"></i></button>
