@@ -71,6 +71,9 @@ h2 { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
 .run-button.running { border-color: var(--sim-pause-border); color: var(--sim-pause-text); background: var(--sim-pause-surface); }
 .speed-control { display: flex; align-items: center; gap: 5px; margin-left: 8px; color: var(--ui-subtle); font-size: 9px; }
 .speed-control input { width: 42px; height: 22px; padding: 0 4px; border: 1px solid var(--ui-control-border); border-radius: 2px; outline: 0; color: var(--ui-text); background: var(--ui-control); font: 9px "JetBrains Mono", monospace; text-align: right; }
+.speed-control input[type="number"] { appearance: textfield; }
+.speed-control input[type="number"]::-webkit-inner-spin-button,
+.speed-control input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; }
 .speed-control input:focus { border-color: var(--ui-control-border-hover); }
 .speed-control > span:last-child { color: #b0b0b4; font: 9px "JetBrains Mono", monospace; }
 .step-scrubber { display: flex; width: 100%; min-width: 230px; height: 23px; align-items: center; gap: 7px; padding: 2px 6px; border: 1px solid var(--toolbar-border); border-radius: 3px; color: var(--ui-subtle); background: rgb(29 29 31 / 84%); font: 8px "JetBrains Mono", monospace; pointer-events: auto; }
@@ -371,7 +374,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
   border-radius: 2px;
 }
 .canvas-toolbar #run-sim { width: 82px; min-width: 82px; flex: 0 0 82px; }
-.canvas-toolbar #step-sim { width: 78px; min-width: 78px; flex: 0 0 78px; }
+.canvas-toolbar #step-sim { width: 124px; min-width: 124px; flex: 0 0 124px; white-space: nowrap; }
+.canvas-toolbar #step-sim-label { min-width: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .canvas-toolbar #reset-sim { width: 58px; min-width: 58px; flex: 0 0 58px; }
 .sim-control-stack { pointer-events: auto; }
 .speed-control { height: var(--toolbar-button-height); margin-left: 0; padding: 0 5px; border-left: 1px solid var(--toolbar-border); }
