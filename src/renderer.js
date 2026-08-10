@@ -6,6 +6,7 @@ import {
   chipBoundingBox,
   descriptorForInstance,
   getPin,
+  interfaceBindingsFor,
   instancePinPosition,
   annotationBoundingBox,
   chipBoundsSize,
@@ -142,7 +143,9 @@ export class WorldRenderer {
 
   fit(project, margin = 80) {
     const instances = project.root.instances ?? [];
-    const interfacePoints = [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])].map((pin) => rootPinPosition(project.root, pin));
+    const interfacePoints = interfaceBindingsFor(project.root).length
+      ? []
+      : [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])].map((pin) => rootPinPosition(project.root, pin));
     const annotationBoxes = (project.root.annotations ?? []).map(annotationBoundingBox);
     if (!instances.length && !interfacePoints.length && !annotationBoxes.length) {
       this.camera = { x: 0, y: 0, zoom: 1 };
@@ -253,6 +256,7 @@ export class WorldRenderer {
   }
 
   drawRootPins(ctx, project, simulator, editorState = {}) {
+    if (interfaceBindingsFor(project.root).length) return;
     for (const pin of [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])]) {
       const position = rootPinPosition(project.root, pin);
       const signal = simulator?.stateFor({ owner: "root", pin: pin.id }) ?? disconnected();
@@ -636,6 +640,7 @@ export class WorldRenderer {
   }
 
   drawXrayRootPins(ctx, description) {
+    if (interfaceBindingsFor(description).length) return;
     for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
       const x = Number(pin.x);
       const position = { x: Number.isFinite(x) ? x : (pin.direction === "input" ? -description.size.x / 2 : description.size.x / 2), y: Number(pin.y) || 0 };
@@ -806,9 +811,11 @@ export class WorldRenderer {
   }
 
   findPin(project, world, radius = 9) {
-    for (const pin of [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])]) {
-      const position = rootPinPosition(project.root, pin);
-      if (Math.hypot(position.x - world.x, position.y - world.y) <= radius / this.camera.zoom) return { owner: "root", pin: String(pin.id), root: true, pinDescription: pin };
+    if (!interfaceBindingsFor(project.root).length) {
+      for (const pin of [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])]) {
+        const position = rootPinPosition(project.root, pin);
+        if (Math.hypot(position.x - world.x, position.y - world.y) <= radius / this.camera.zoom) return { owner: "root", pin: String(pin.id), root: true, pinDescription: pin };
+      }
     }
     for (const instance of [...(project.root.instances ?? [])].reverse()) {
       const desc = descriptorForInstance(project, instance);

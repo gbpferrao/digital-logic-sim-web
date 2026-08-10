@@ -6,6 +6,7 @@ import {
   getDescription,
   getInputPin,
   getOutputPin,
+  interfaceBindingsFor,
   isInputType,
   isOutputType,
   isBusOrigin,
@@ -87,12 +88,16 @@ function pinStateMap(description) {
 }
 
 function runtimeFor(description, project) {
+  const interfaceInputs = new Map(interfaceBindingsFor(description, "input").map((binding) => [String(binding.instanceId), binding]));
+  const interfaceOutputs = new Map(interfaceBindingsFor(description, "output").map((binding) => [String(binding.instanceId), binding]));
   const runtime = {
     description,
     instances: new Map(),
     junctions: new Map((description.junctions ?? []).map((junction) => [String(junction.id), disconnected()])),
     rootInputs: pinStateMap({ inputPins: description.inputPins ?? [], outputPins: [] }),
     rootOutputs: pinStateMap({ inputPins: [], outputPins: description.outputPins ?? [] }),
+    interfaceInputs,
+    interfaceOutputs,
     lastTick: -1
   };
   for (const instance of description.instances ?? []) {
@@ -104,6 +109,9 @@ function runtimeFor(description, project) {
       inputs: pinStateMap({ inputPins: desc.inputPins, outputPins: [] }),
       outputs: pinStateMap({ inputPins: [], outputPins: desc.outputPins }),
       child: desc.kind === "custom" ? runtimeFor(desc, project) : null,
+      interfaceInput: interfaceInputs.get(String(instance.id)) ?? null,
+      interfaceOutput: interfaceOutputs.get(String(instance.id)) ?? null,
+      interfaceInputValue: null,
       internal: clone(instance.internalData ?? {}),
       lastTick: -1
     });
@@ -169,9 +177,14 @@ function processBuiltin(item, simulator, tickId, commitState = false) {
   if (commitState && firstTickPass) item.lastTick = tickId;
 
   if (isInputType(type)) {
-    const raw = simulator.project.inputValues[item.instance.id] ?? 0;
     const bits = desc.outputPins[0]?.bits ?? 1;
-    setOutput(item, desc.outputPins[0]?.id ?? 0, driven(Number(raw) & maskForBits(bits)));
+    if (item.interfaceInput) {
+      const value = item.interfaceInputValue ?? disconnected();
+      setOutput(item, desc.outputPins[0]?.id ?? 0, state(value.bits & maskForBits(bits), value.tri & maskForBits(bits)));
+    } else {
+      const raw = simulator.project.inputValues[item.instance.id] ?? 0;
+      setOutput(item, desc.outputPins[0]?.id ?? 0, driven(Number(raw) & maskForBits(bits)));
+    }
     return;
   }
   if (isOutputType(type)) return;
@@ -345,6 +358,11 @@ function settleNetwork(runtime, simulator, tickId) {
 function evaluateNetwork(runtime, simulator, tickId, externalInputs = new Map(), commitState = true) {
   runtime.lastTick = tickId;
   for (const pin of runtime.description.inputPins ?? []) runtime.rootInputs.set(String(pin.id), copyState(externalInputs.get(String(pin.id)) ?? disconnected()));
+  for (const item of runtime.instances.values()) {
+    item.interfaceInputValue = item.interfaceInput
+      ? copyState(externalInputs.get(String(item.interfaceInput.publicId)) ?? disconnected())
+      : null;
+  }
 
   // First settle the combinational network using the current input values.
   // Stateful devices commit once after their inputs are settled, then a final
@@ -353,6 +371,12 @@ function evaluateNetwork(runtime, simulator, tickId, externalInputs = new Map(),
   if (commitState) {
     for (const item of runtime.instances.values()) processInstance(item, simulator, tickId, true);
     settleNetwork(runtime, simulator, tickId);
+  }
+
+  for (const binding of interfaceBindingsFor(runtime.description, "output")) {
+    const item = runtime.instances.get(String(binding.instanceId));
+    if (!item) continue;
+    runtime.rootOutputs.set(String(binding.publicId), copyState(item.inputs.get(String(binding.pinId)) ?? disconnected()));
   }
 
   const outputs = new Map();

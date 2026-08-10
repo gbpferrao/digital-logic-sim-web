@@ -80,17 +80,21 @@ normalizeProject is the compatibility boundary. It fills defaults, normalizes ID
 A chip description contains:
 
 - identity and presentation: id, name, type, kind, size, colour, nameLocation, special
-- interface: inputPins and outputPins
+- interface: movable `IN-*`/`OUT-*` instances plus a derived `interfaceBindings` contract and compatibility `inputPins`/`outputPins` projection
 - internal circuit: instances, wires, junctions
 - optional displays and annotations
 
 A custom description uses the same shape as a built-in description. Its instances can reference built-ins or other custom chips, so the simulator recursively builds child runtimes.
 
+For custom chips, the terminal instances are the persisted authoring source of truth. An `IN-*` instance exposes its output pin as a public input; an `OUT-*` instance exposes its input pin as a public output. Their positions, labels, and IDs survive saving, internal inspection, X-ray rendering, and reuse. `interfaceBindings` maps stable public IDs to those instance pins. `inputPins` and `outputPins` remain derived compatibility projections for parent wires, renderer geometry, and the existing simulator boundary; they are refreshed from the terminal nodes after edits.
+
+Legacy custom descriptions that only contain fixed `inputPins`/`outputPins` are normalized into this representation. Normalization creates terminal instances at the old interface positions, preserves public IDs and widths, and rewrites internal `{ owner: "root", pin }` wire endpoints to the new instance endpoints. Top-level project input/output devices remain ordinary devices; interface binding discovery is only active for reusable custom-chip descriptions.
+
 Reusable custom descriptions may also carry `fit: { version, bounds }`. The fit is the annotation-free canvas footprint used when a chip is reused: it includes child geometry, interface pins, wires, and junctions, while the description's `size` remains the internal editing canvas. Normalization derives this field for legacy chips, and custom-chip save/edit paths refresh it before persistence.
 
 ### Circuit primitives
 
-- Instance: id, name, position, rotation, label, internalData, linkedBusPairId, outputPinColours
+- Instance: id, name, position, rotation, label, internalData, linkedBusPairId, optional `interfaceId`, and outputPinColours
 - Pin: id, name, bits, direction, x, y, valueDisplay, colour
 - Endpoint: owner and pin; owner can be an instance ID, root, junction, or wire during an in-progress wire split
 - Wire: id, source, target, route points, and optional colour
@@ -114,6 +118,8 @@ Simulator accepts a project and exposes:
 Every constructed or synchronized simulator has an evaluated step-zero snapshot; an empty snapshot is only a fallback shape, never the normal startup state. Structural project/root changes rebuild the runtime and return to step zero. cloneSnapshot(snapshot) is the boundary for restoring data without sharing mutable runtime state.
 
 Signal states are two bitmasks: bits for values and tri for driven/disconnected bits. PIN_MASK represents disconnected bits. Built-in processing is currently a type switch inside simulation.js.
+
+For a custom runtime, the parent still supplies a map keyed by public input IDs and receives a map keyed by public output IDs. The runtime resolves those IDs through `interfaceBindings`: input values are injected into the bound `IN-*` instance outputs before settling the child network, and bound `OUT-*` instance inputs are projected back into the public output map afterward. This keeps nested composite flow compatible with the existing bake and scrub snapshots.
 
 SimulationBake accepts frames shaped as { version, step, snapshot, signature } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and boundary restoration. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. SimulationTimeline remains as a compatibility export for older tests/integrations.
 

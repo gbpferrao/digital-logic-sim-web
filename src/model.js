@@ -77,6 +77,25 @@ export function getPin(description, pinId) {
 }
 export function getInputPin(description, pinId) { return (description?.inputPins ?? []).find((item) => String(item.id) === String(pinId)) ?? null; }
 export function getOutputPin(description, pinId) { return (description?.outputPins ?? []).find((item) => String(item.id) === String(pinId)) ?? null; }
+export function isInterfaceNode(instance) { return Boolean(instance && (isInputType(instance.name) || isOutputType(instance.name))); }
+export function interfaceDirectionForInstance(instance) {
+  if (isInputType(instance?.name)) return "input";
+  if (isOutputType(instance?.name)) return "output";
+  return null;
+}
+export function interfaceBindingsFor(description, direction = null) {
+  const bindings = description?.interfaceBindings ?? {};
+  const lists = direction ? [direction === "input" ? bindings.inputs : bindings.outputs] : [bindings.inputs, bindings.outputs];
+  return lists.flatMap((list) => Array.isArray(list) ? list : []).map((item) => ({
+    publicId: String(item.publicId ?? item.id ?? ""),
+    instanceId: String(item.instanceId ?? ""),
+    pinId: String(item.pinId ?? ""),
+    direction: item.direction === "output" ? "output" : "input"
+  })).filter((item) => item.publicId && item.instanceId && item.pinId);
+}
+export function interfaceBindingFor(description, publicId, direction = null) {
+  return interfaceBindingsFor(description, direction).find((item) => item.publicId === String(publicId)) ?? null;
+}
 
 export function instanceFor(name, position = { x: 0, y: 0 }) {
   const desc = BUILTINS[name];
@@ -88,6 +107,7 @@ export function instanceFor(name, position = { x: 0, y: 0 }) {
     label: "",
     internalData: defaultInternalData(desc),
     linkedBusPairId: null,
+    interfaceId: null,
     outputPinColours: {}
   };
 }
@@ -164,14 +184,17 @@ export function normalizeProject(raw) {
   const base = createProject(raw?.name || "Untitled project");
   const project = { ...base, ...(raw ?? {}) };
   project.storageId = raw?.storageId || base.storageId;
-  project.root = normalizeDescription({ ...base.root, ...(raw?.root ?? {}) });
+  project.root = normalizeDescription({ ...base.root, ...(raw?.root ?? {}) }, { isRoot: true });
   project.customChips = {};
-  for (const [name, value] of Object.entries(raw?.customChips ?? {})) project.customChips[name] = normalizeDescription(value);
+  for (const [name, value] of Object.entries(raw?.customChips ?? {})) project.customChips[name] = normalizeDescription(value, { isRoot: false });
   // Older chip records did not persist a reusable canvas fit. Derive it after
   // all custom descriptions exist so nested custom chips can use their own
   // saved geometry when it is available.
   const missingFits = new Set(Object.entries(project.customChips).filter(([, description]) => !description.fit).map(([name]) => name));
-  for (const name of missingFits) project.customChips[name].fit = deriveReusableFit(project, project.customChips[name], { ignoreReusableChildFits: missingFits });
+  for (const name of missingFits) {
+    project.customChips[name].fit = deriveReusableFit(project, project.customChips[name], { ignoreReusableChildFits: missingFits });
+    refreshInterfacePorts(project, project.customChips[name]);
+  }
   project.settings = { ...base.settings, ...(raw?.settings ?? {}) };
   project.collections = raw?.collections?.length ? raw.collections : clone(COLLECTIONS);
   project.collectionOrder = collectionOrderFor(raw?.collectionOrder, project.collections);
@@ -181,7 +204,7 @@ export function normalizeProject(raw) {
   return project;
 }
 
-function normalizeDescription(raw) {
+function normalizeDescription(raw, options = {}) {
   const description = { ...raw };
   if (!description.kind && description.type === TYPE.CUSTOM) description.kind = TYPE.CUSTOM;
   const rawSize = raw?.size ?? {};
@@ -191,6 +214,7 @@ function normalizeDescription(raw) {
     x: Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : MIN_CHIP_SIZE.x,
     y: Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : MIN_CHIP_SIZE.y
   };
+  description.interfaceBindings = normalizeInterfaceBindings(raw?.interfaceBindings);
   description.fit = normalizeReusableFit(raw?.fit);
   const normalizePin = (item, direction) => ({
     ...item,
@@ -203,7 +227,7 @@ function normalizeDescription(raw) {
   description.outputPins = (raw?.outputPins ?? []).map((item) => normalizePin(item, "output"));
   description.instances = (raw?.instances ?? []).map((item) => ({
     id: String(item.id ?? uid("element")), name: item.name, position: { x: 0, y: 0, ...(item.position ?? {}) }, rotation: item.rotation ?? 0,
-    label: item.label ?? "", internalData: item.internalData ?? {}, linkedBusPairId: item.linkedBusPairId ?? null, outputPinColours: item.outputPinColours ?? {}
+    label: item.label ?? "", internalData: item.internalData ?? {}, linkedBusPairId: item.linkedBusPairId ?? null, interfaceId: item.interfaceId == null ? null : String(item.interfaceId), outputPinColours: item.outputPinColours ?? {}
   }));
   description.wires = (raw?.wires ?? []).map((wire) => ({
     id: String(wire.id ?? uid("wire")), source: { ...wire.source }, target: { ...wire.target }, points: (wire.points ?? []).map((point) => ({ x: point.x, y: point.y })), colour: wire.colour ?? null
@@ -228,6 +252,178 @@ function normalizeDescription(raw) {
       background: palette.background
     };
   });
+  if (!options.isRoot && description.kind === TYPE.CUSTOM) normalizeCompositeInterface(description);
+  return description;
+}
+
+function normalizeInterfaceBindings(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const normalize = (list, direction) => (Array.isArray(list) ? list : []).map((item) => ({
+    publicId: String(item?.publicId ?? item?.id ?? ""),
+    instanceId: String(item?.instanceId ?? ""),
+    pinId: String(item?.pinId ?? ""),
+    direction
+  })).filter((item) => item.publicId && item.instanceId && item.pinId);
+  return { inputs: normalize(source.inputs, "input"), outputs: normalize(source.outputs, "output") };
+}
+
+function terminalTypeFor(direction, bits = 1) {
+  const prefix = direction === "input" ? "IN-" : "OUT-";
+  const available = [1, 4, 8];
+  const requested = Number(bits) || 1;
+  const width = available.includes(requested) ? requested : available.reduce((best, value) => Math.abs(value - requested) < Math.abs(best - requested) ? value : best, available[0]);
+  return `${prefix}${width}`;
+}
+
+function interfacePinDescriptor(instance, direction) {
+  const description = BUILTINS[instance?.name];
+  if (!description) return null;
+  return direction === "input" ? description.outputPins?.[0] ?? null : description.inputPins?.[0] ?? null;
+}
+
+function interfaceEndpoint(description, instance, direction) {
+  const pin = interfacePinDescriptor(instance, direction);
+  if (!pin) return { x: Number(instance?.position?.x) || 0, y: Number(instance?.position?.y) || 0 };
+  const local = rotatePoint({ x: Number(pin.x) || 0, y: Number(pin.y) || 0 }, Number(instance.rotation) || 0);
+  return { x: (Number(instance.position?.x) || 0) + local.x, y: (Number(instance.position?.y) || 0) + local.y };
+}
+
+function nextInterfaceId(direction, used, index = 0) {
+  const prefix = direction === "input" ? "in" : "out";
+  let candidate = `${prefix}-${index}`;
+  let next = index;
+  while (used.has(candidate)) candidate = `${prefix}-${++next}`;
+  used.add(candidate);
+  return candidate;
+}
+
+function legacyInterfaceInstance(description, pin, direction, publicId, index) {
+  const name = terminalTypeFor(direction, pin.bits);
+  const instance = instanceFor(name, { x: 0, y: Number(pin.y) || 0 });
+  const terminalPin = interfacePinDescriptor(instance, direction);
+  const boundaryX = direction === "input" ? -description.size.x / 2 : description.size.x / 2;
+  instance.id = `interface-${direction}-${publicId}`;
+  instance.interfaceId = String(publicId);
+  instance.label = String(pin.name || "").trim();
+  instance.position.x = boundaryX - (Number(terminalPin?.x) || 0);
+  instance.position.y = Number(pin.y) || (index * 18 - 18);
+  return instance;
+}
+
+function normalizeCompositeInterface(description) {
+  const publicPins = {
+    input: [...(description.inputPins ?? [])],
+    output: [...(description.outputPins ?? [])]
+  };
+  const requested = normalizeInterfaceBindings(description.interfaceBindings);
+  const bindings = { inputs: [], outputs: [] };
+  const endpointMap = new Map();
+
+  for (const direction of ["input", "output"]) {
+    const key = direction === "input" ? "inputs" : "outputs";
+    let terminalInstances = description.instances.filter((instance) => interfaceDirectionForInstance(instance) === direction);
+    const oldPins = publicPins[direction];
+    const usedPublicIds = new Set(requested[key].map((item) => item.publicId));
+    if (!terminalInstances.length && oldPins.length) {
+      terminalInstances = oldPins.map((pin, index) => {
+        const publicId = String(pin.id || nextInterfaceId(direction, usedPublicIds, index));
+        const instance = legacyInterfaceInstance(description, pin, direction, publicId, index);
+        description.instances.push(instance);
+        return instance;
+      });
+    }
+
+    const validRequested = requested[key].filter((binding) => {
+      const instance = description.instances.find((item) => String(item.id) === binding.instanceId);
+      return instance && interfaceDirectionForInstance(instance) === direction && interfacePinDescriptor(instance, direction);
+    });
+    const boundInstances = new Set(validRequested.map((binding) => binding.instanceId));
+    const bindingList = [...validRequested];
+    const publicById = new Map(oldPins.map((pin) => [String(pin.id), pin]));
+    let oldPinIndex = 0;
+    for (const instance of terminalInstances) {
+      const instanceId = String(instance.id);
+      if (boundInstances.has(instanceId)) continue;
+      const matchingByIdentity = instance.interfaceId && publicById.has(String(instance.interfaceId)) ? publicById.get(String(instance.interfaceId)) : null;
+      const matchingByOrder = oldPins.find((pin) => !usedPublicIds.has(String(pin.id)) && String(pin.id) === String(matchingByIdentity?.id ?? ""))
+        ?? oldPins.find((pin) => !usedPublicIds.has(String(pin.id)) && String(pin.id) === String(oldPins[oldPinIndex]?.id ?? ""));
+      const publicId = String(instance.interfaceId || matchingByIdentity?.id || matchingByOrder?.id || nextInterfaceId(direction, usedPublicIds, oldPinIndex));
+      usedPublicIds.add(publicId);
+      instance.interfaceId = publicId;
+      if (!instance.label && matchingByIdentity?.name) instance.label = matchingByIdentity.name;
+      bindingList.push({ publicId, instanceId, pinId: String(interfacePinDescriptor(instance, direction).id), direction });
+      oldPinIndex += 1;
+    }
+
+    for (const binding of bindingList) endpointMap.set(`${direction}:${binding.publicId}`, { owner: binding.instanceId, pin: binding.pinId });
+    bindings[key] = bindingList;
+  }
+
+  const rewrite = (endpoint) => {
+    if (String(endpoint?.owner) !== "root") return endpoint;
+    const input = endpointMap.get(`input:${String(endpoint.pin)}`);
+    const output = endpointMap.get(`output:${String(endpoint.pin)}`);
+    return input ?? output ?? endpoint;
+  };
+  description.wires = (description.wires ?? []).map((wire) => ({ ...wire, source: rewrite(wire.source), target: rewrite(wire.target) }));
+  description.interfaceBindings = bindings;
+  refreshInterfacePorts(null, description);
+  return description;
+}
+
+export function refreshInterfacePorts(project, description) {
+  if (!description || description.kind !== TYPE.CUSTOM) return description;
+  const bindings = normalizeInterfaceBindings(description.interfaceBindings);
+  const nextBindings = { inputs: [], outputs: [] };
+  const nextPins = { inputs: [], outputs: [] };
+  const oldPins = {
+    input: new Map((description.inputPins ?? []).map((pin) => [String(pin.id), pin])),
+    output: new Map((description.outputPins ?? []).map((pin) => [String(pin.id), pin]))
+  };
+  for (const direction of ["input", "output"]) {
+    const key = direction === "input" ? "inputs" : "outputs";
+    const bindingList = bindings[key].filter((binding) => description.instances?.some((item) => String(item.id) === binding.instanceId));
+    const boundInstances = new Set(bindingList.map((binding) => binding.instanceId));
+    const usedPublicIds = new Set(bindingList.map((binding) => binding.publicId));
+    for (const instance of description.instances ?? []) {
+      if (interfaceDirectionForInstance(instance) !== direction || boundInstances.has(String(instance.id))) continue;
+      const publicId = String(instance.interfaceId || nextInterfaceId(direction, usedPublicIds, bindingList.length));
+      instance.interfaceId = publicId;
+      const terminalPin = interfacePinDescriptor(instance, direction);
+      if (!terminalPin) continue;
+      bindingList.push({ publicId, instanceId: String(instance.id), pinId: String(terminalPin.id), direction });
+      boundInstances.add(String(instance.id));
+    }
+    for (const binding of bindingList) {
+      const instance = description.instances?.find((item) => String(item.id) === binding.instanceId);
+      const terminalPin = interfacePinDescriptor(instance, direction);
+      if (!instance || !terminalPin) continue;
+      const existing = oldPins[direction].get(binding.publicId) ?? {};
+      const endpoint = interfaceEndpoint(description, instance, direction);
+      const fit = description.fit?.bounds;
+      const edgeX = Number.isFinite(Number(fit?.x)) && Number.isFinite(Number(fit?.w))
+        ? (direction === "input" ? Number(fit.x) : Number(fit.x) + Number(fit.w))
+        : (direction === "input" ? -description.size.x / 2 : description.size.x / 2);
+      instance.interfaceId = binding.publicId;
+      nextPins[key].push({
+        ...terminalPin,
+        ...existing,
+        id: binding.publicId,
+        name: String(instance.label || existing.name || instance.name),
+        bits: Number(existing.bits) || Number(terminalPin.bits) || 1,
+        direction,
+        x: edgeX,
+        y: endpoint.y,
+        valueDisplay: existing.valueDisplay || terminalPin.valueDisplay || "off",
+        colour: direction === "output" ? "green" : "gray"
+      });
+    }
+    nextBindings[key] = bindingList;
+    nextPins[key] = nextPins[key].filter((pin) => pin && pin.id);
+  }
+  description.interfaceBindings = nextBindings;
+  description.inputPins = nextPins.inputs;
+  description.outputPins = nextPins.outputs;
   return description;
 }
 
@@ -367,7 +563,9 @@ export function deriveReusableFit(project, description, options = {}) {
     const y = Number(instance.position?.y) || 0;
     addBox({ x: x - width / 2, y: y - height / 2, w: width, h: height });
   }
-  for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) addPoint(descriptionPinPosition(description, pin));
+  if (!interfaceBindingsFor(description).length) {
+    for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) addPoint(descriptionPinPosition(description, pin));
+  }
   for (const junction of description.junctions ?? []) addPoint(junction.position);
   for (const wire of description.wires ?? []) {
     addPoint(descriptionEndpointPosition(project, description, wire.source, options));
@@ -398,6 +596,7 @@ export function deriveReusableFit(project, description, options = {}) {
 export function refreshReusableFit(project, description) {
   if (!description || description.kind !== TYPE.CUSTOM) return description;
   description.fit = deriveReusableFit(project, description);
+  refreshInterfacePorts(project, description);
   return description;
 }
 
@@ -414,43 +613,15 @@ function normalizeReusableFit(raw) {
 
 export function customFromRoot(project, name) {
   const root = clone(project.root);
-  const inputPins = [];
-  const outputPins = [];
-  const removed = new Map();
-  const instances = [];
-  let inputIndex = 0;
-  let outputIndex = 0;
-
-  for (const instance of root.instances) {
-    const desc = getDescription(project, instance.name);
-    if (isInputType(instance.name)) {
-      const sourcePin = desc.outputPins[0];
-      const id = `in-${inputIndex++}`;
-      inputPins.push({ ...sourcePin, id, name: instance.label || `${instance.name} input`, direction: "input", colour: "gray", x: -GRID * 16, y: (inputIndex - 1) * 18 - 18 });
-      removed.set(`${instance.id}:${sourcePin.id}`, pinRef("root", id));
-    } else if (isOutputType(instance.name)) {
-      const targetPin = desc.inputPins[0];
-      const id = `out-${outputIndex++}`;
-      outputPins.push({ ...targetPin, id, name: instance.label || `${instance.name} output`, direction: "output", colour: "green", x: GRID * 16, y: (outputIndex - 1) * 18 - 18 });
-      removed.set(`${instance.id}:${targetPin.id}`, pinRef("root", id));
-    } else {
-      instances.push(instance);
-    }
-  }
-
-  const rewrite = (endpoint) => removed.get(`${endpoint.owner}:${endpoint.pin}`) ?? endpoint;
-  root.instances = instances;
-  root.wires = root.wires.map((wire) => ({ ...wire, source: rewrite(wire.source), target: rewrite(wire.target) }));
   root.id = uid("chip");
   root.name = name;
   root.type = TYPE.CUSTOM;
   root.kind = "custom";
-  root.inputPins = inputPins;
-  root.outputPins = outputPins;
   root.colour = COLORS.custom;
   root.size = { x: GRID * 32, y: GRID * 22 };
   root.fit = null;
-  const description = normalizeDescription(root);
+  const description = normalizeDescription(root, { isRoot: false });
+  refreshInterfacePorts(project, description);
   refreshReusableFit(project, description);
   return description;
 }

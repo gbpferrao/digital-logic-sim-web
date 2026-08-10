@@ -16,12 +16,16 @@ import {
   getInputPin,
   getOutputPin,
   getPin,
+  interfaceBindingsFor,
+  interfaceDirectionForInstance,
+  isInterfaceNode,
   instanceFor,
   isBusOrigin,
   isBusTerminus,
   isInputType,
   isOutputType,
   normalizeProject,
+  refreshInterfacePorts,
   refreshReusableFit,
   uid
 } from "./model.js";
@@ -514,6 +518,7 @@ function restoreSimulationFrame(index, message = null) {
 }
 
 function touch(message = null, structural = true, resetSimulation = true) {
+  if (state.viewStack.length && project.root?.kind === TYPE.CUSTOM) refreshInterfacePorts(project, project.root);
   if (structural) {
     project._revision += 1;
     if (resetSimulation) resetSimulationBake();
@@ -544,6 +549,24 @@ function setStatus(message) {
 
 function notify(message, error = false) {
   return notifications.notify(message, { tone: error ? "error" : "info" });
+}
+
+function isCompositeInterfaceInstance(instance) {
+  if (!state.viewStack.length || !isInterfaceNode(instance)) return false;
+  const direction = interfaceDirectionForInstance(instance);
+  return interfaceBindingsFor(project.root, direction).some((binding) => String(binding.instanceId) === String(instance.id));
+}
+
+function interfaceNodeIsReferenced(instance) {
+  if (!isCompositeInterfaceInstance(instance) || !instance.interfaceId) return false;
+  const customName = state.viewStack.at(-1)?.customName;
+  if (!customName) return false;
+  const descriptions = [project.root, ...state.viewStack.map((frame) => frame.root), ...Object.values(project.customChips ?? {})];
+  return descriptions.some((description) => (description.instances ?? [])
+    .filter((candidate) => String(candidate.name) === String(customName))
+    .some((parent) => (description.wires ?? []).some((wire) =>
+      (String(wire.source.owner) === String(parent.id) && String(wire.source.pin) === String(instance.interfaceId))
+      || (String(wire.target.owner) === String(parent.id) && String(wire.target.pin) === String(instance.interfaceId)))));
 }
 
 function makeInstance(name, position) {
@@ -1160,6 +1183,14 @@ function deleteSelection() {
   }
   if (!state.selectedIds.size) return;
   const selected = new Set([...state.selectedIds].map(String));
+  const protectedInterface = project.root.instances.find((item) => selected.has(String(item.id)) && interfaceNodeIsReferenced(item));
+  if (protectedInterface) {
+    const message = `Cannot delete ${protectedInterface.label || protectedInterface.name}: a parent chip is still connected to this port.`;
+    notify(message, true);
+    setStatus(message);
+    render();
+    return;
+  }
   for (const item of project.root.instances) if (selected.has(String(item.id)) && item.linkedBusPairId) selected.add(String(item.linkedBusPairId));
   mutate(`${selected.size} element${selected.size === 1 ? "" : "s"} deleted.`, () => {
     project.root.instances = project.root.instances.filter((item) => !selected.has(String(item.id)));
@@ -1230,6 +1261,7 @@ function beginDuplicatePlacement(placedItems = null) {
     const copy = clone(item);
     const oldId = String(copy.id);
     copy.id = uid("element");
+    if (isInterfaceNode(copy)) copy.interfaceId = null;
     idMap.set(oldId, String(copy.id));
     return copy;
   });
@@ -1558,6 +1590,7 @@ function exitCustomView() {
     return;
   }
   rememberCamera();
+  refreshInterfacePorts(project, project.root);
   project.customChips[frame.customName] = refreshReusableFit(project, project.root);
  project.root = frame.root;
  project.name = frame.name;
@@ -1784,9 +1817,13 @@ function saveTargetForNewProject() {
 
 function refreshActiveCustomFits() {
   if (!state.viewStack.length) return;
+  refreshInterfacePorts(project, project.root);
   refreshReusableFit(project, project.root);
   for (const frame of [...state.viewStack].reverse()) {
-    if (frame.root?.kind === TYPE.CUSTOM) refreshReusableFit(project, frame.root);
+    if (frame.root?.kind === TYPE.CUSTOM) {
+      refreshInterfacePorts(project, frame.root);
+      refreshReusableFit(project, frame.root);
+    }
   }
 }
 
@@ -1954,7 +1991,7 @@ function renderInspector() {
     root.innerHTML = state.selectedIds.size > 1
       ? `<div class="empty-inspector">${state.selectedIds.size} elements selected.</div>`
       : state.viewStack.length
-        ? `<div class="empty-inspector">Chip interface.</div><button class="inspector-control" data-action="add-root-input">${actionLabel("plus", "Add input pin")}<span>IN</span></button><button class="inspector-control" data-action="add-root-output">${actionLabel("plus", "Add output pin")}<span>OUT</span></button>`
+        ? `<div class="empty-inspector">Chip interface nodes.</div><button class="inspector-control" data-action="add-root-input">${actionLabel("plus", "Add input node")}<span>IN</span></button><button class="inspector-control" data-action="add-root-output">${actionLabel("plus", "Add output node")}<span>OUT</span></button>`
         : `<div class="empty-inspector">No selection.</div>`;
     return;
   }
@@ -1962,8 +1999,9 @@ function renderInspector() {
   const instance = project.root.instances.find((item) => String(item.id) === id);
   const desc = instance && descriptorForInstance(project, instance);
   if (!instance || !desc) return;
+  const interfaceNode = isCompositeInterfaceInstance(instance);
   const signal = isInputType(instance.name) ? (project.inputValues[instance.id] ?? 0) : null;
-  const inputToggle = isInputType(instance.name) ? `<button class="inspector-control ${signal ? "high" : ""}" data-action="toggle-input"><span class="action-label"><span class="signal-dot ${signal ? "high" : "low"}"></span><span>Toggle input</span></span><strong>${signal ? "HIGH" : "LOW"}</strong></button>` : "";
+  const inputToggle = isInputType(instance.name) && !interfaceNode ? `<button class="inspector-control ${signal ? "high" : ""}" data-action="toggle-input"><span class="action-label"><span class="signal-dot ${signal ? "high" : "low"}"></span><span>Toggle input</span></span><strong>${signal ? "HIGH" : "LOW"}</strong></button>` : "";
   const specialEditor = desc.special === "key"
     ? `<div class="inspector-row"><span>key</span><input class="inspector-input" data-field="key" value="${escapeHtml(instance.internalData.key || "Space")}" /></div>`
     : desc.special === "pulse"
@@ -1980,7 +2018,8 @@ function renderInspector() {
     ? `<button class="inspector-control" data-action="open-custom">${actionLabel("arrow-up-right", "Open internals")}</button>`
     : "";
   const selectionActions = `<div class="inspector-actions" aria-label="Chip actions">${inspectorAction("rotate", "rotate-cw", "Rotate", "Rotate clockwise (R)")}${inspectorAction("duplicate", "copy", "Duplicate", "Duplicate selection (Ctrl/Cmd+D)")}${inspectorAction("delete", "trash-2", "Delete", "Delete selection")}</div>`;
-  root.innerHTML = `<div class="selected-card"><div class="selected-title"><span class="chip-swatch" style="background:${desc.colour}"></span><div><strong>${desc.name}</strong><div class="selected-kind">${desc.kind === "custom" ? "custom chip" : "built-in component"}</div></div></div><div class="inspector-row"><span>label</span><input class="inspector-input" data-field="label" value="${escapeHtml(instance.label || "")}" placeholder="optional" /></div><div class="inspector-row"><span>position</span><span class="inspector-value">${Math.round(instance.position.x)}, ${Math.round(instance.position.y)}</span></div><div class="inspector-row"><span>rotation</span><span class="inspector-value">${instance.rotation * 90}°</span></div><div class="inspector-row"><span>pins</span><span class="inspector-value">${desc.inputPins.length} in / ${desc.outputPins.length} out</span></div>${specialEditor}${inputToggle}${busEditor}${customEditor}${selectionActions}</div>`;
+  const kindLabel = interfaceNode ? `${isInputType(instance.name) ? "interface input" : "interface output"} node` : desc.kind === "custom" ? "custom chip" : "built-in component";
+  root.innerHTML = `<div class="selected-card"><div class="selected-title"><span class="chip-swatch" style="background:${desc.colour}"></span><div><strong>${desc.name}</strong><div class="selected-kind">${kindLabel}</div></div></div><div class="inspector-row"><span>label</span><input class="inspector-input" data-field="label" value="${escapeHtml(instance.label || "")}" placeholder="optional" /></div><div class="inspector-row"><span>position</span><span class="inspector-value">${Math.round(instance.position.x)}, ${Math.round(instance.position.y)}</span></div><div class="inspector-row"><span>rotation</span><span class="inspector-value">${instance.rotation * 90}°</span></div><div class="inspector-row"><span>pins</span><span class="inspector-value">${desc.inputPins.length} in / ${desc.outputPins.length} out</span></div>${interfaceNode ? `<div class="inspector-row"><span>public port</span><span class="inspector-value">${escapeHtml(interfaceDirectionForInstance(instance) === "input" ? "input" : "output")}</span></div>` : ""}${specialEditor}${inputToggle}${busEditor}${customEditor}${selectionActions}</div>`;
 }
 
 function openInstanceInspector(instance) {
@@ -2189,7 +2228,7 @@ function showContextMenu(event) {
     { action: "delete-annotation", label: "Delete annotation" }
   ] : instance ? [
     ...(description?.kind === "custom" ? [{ action: "open-custom", label: "Open internals" }] : []),
-    ...(isInputType(instance.name) ? [{ action: "toggle-input", label: "Toggle input" }] : []),
+    ...(isInputType(instance.name) && !isCompositeInterfaceInstance(instance) ? [{ action: "toggle-input", label: "Toggle input" }] : []),
     ...((isBusOrigin(instance.name) || isBusTerminus(instance.name)) ? [{ action: "flip-bus", label: "Flip bus" }] : []),
     ...(description?.special === "key" ? [{ action: "edit-key", label: "Rebind key" }] : []),
     ...(description?.special === "rom" ? [{ action: "edit-rom", label: "Edit ROM" }] : []),
@@ -2607,7 +2646,7 @@ function handlePointerUp(event) {
   }
   if (session.kind === "instance-press") {
     const clicked = project.root.instances.find((item) => String(item.id) === String(session.target?.id));
-    if (clicked && isInputType(clicked.name)) scheduleInputToggle(clicked);
+    if (clicked && isInputType(clicked.name) && !isCompositeInterfaceInstance(clicked)) scheduleInputToggle(clicked);
     finishPointer();
     render();
     return;
@@ -2813,11 +2852,25 @@ $("#inspector").addEventListener("click", (event) => {
 
 function addRootPin(direction) {
   if (!state.viewStack.length) return;
-  const target = direction === "input" ? project.root.inputPins : project.root.outputPins;
-  const id = uid(direction === "input" ? "input" : "output");
-  target.push({ id, name: direction === "input" ? `IN ${target.length + 1}` : `OUT ${target.length + 1}`, bits: 1, direction, x: direction === "input" ? -project.root.size.x / 2 : project.root.size.x / 2, y: 0, valueDisplay: "off", colour: "red" });
-  target.forEach((pin, index) => { pin.y = (index - (target.length - 1) / 2) * 18; });
-  touch(`${direction === "input" ? "Input" : "Output"} pin added.`);
+  const type = direction === "input" ? TYPE.IN_1 : TYPE.OUT_1;
+  const description = BUILTINS[type];
+  const terminalPin = direction === "input" ? description.outputPins[0] : description.inputPins[0];
+  const existing = project.root.instances.filter((item) => interfaceDirectionForInstance(item) === direction);
+  const prefix = direction === "input" ? "in" : "out";
+  let index = existing.length;
+  let interfaceId = `${prefix}-${index}`;
+  const used = new Set((direction === "input" ? project.root.interfaceBindings?.inputs : project.root.interfaceBindings?.outputs)?.map((item) => String(item.publicId)) ?? []);
+  while (used.has(interfaceId)) interfaceId = `${prefix}-${++index}`;
+  const endpointX = direction === "input" ? -project.root.size.x / 2 : project.root.size.x / 2;
+  const instance = instanceFor(type, {
+    x: endpointX - Number(terminalPin.x || 0),
+    y: (existing.length - 1) * 18 - 18
+  });
+  instance.label = direction === "input" ? `IN ${existing.length + 1}` : `OUT ${existing.length + 1}`;
+  instance.interfaceId = interfaceId;
+  mutate(`${direction === "input" ? "Input" : "Output"} node added.`, () => { project.root.instances.push(instance); });
+  state.selectedIds = new Set([String(instance.id)]);
+  state.selectedAnnotationIds.clear();
   renderer.fit(project); render();
 }
 $("#inspector").addEventListener("change", (event) => {

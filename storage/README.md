@@ -5,7 +5,7 @@
 - `projects/*.json` stores complete projects, including their custom chips.
 - `chips/*.json` stores individual custom-chip records written during the same save operation.
 
-Project records use `digital-logic-sim-web/1`. Chip records use `digital-logic-sim-web/chip/1` and contain a `description` object. Custom descriptions may include a persisted `fit.bounds` footprint derived from chips, pins, wires, and junctions; annotations are excluded so notes do not enlarge a reused chip. The browser-only runtime fields `_revision` and `_simSnapshot` are removed before a project is saved or exported.
+Project records use `digital-logic-sim-web/1`. Chip records use `digital-logic-sim-web/chip/1` and contain a `description` object. Custom descriptions persist their movable `IN-*`/`OUT-*` interface instances and `interfaceBindings`; `inputPins`/`outputPins` are derived compatibility views used by the parent-facing connection contract. Older chip records with fixed pins are migrated during normalization, preserving public IDs, widths, and internal connections. Custom descriptions may include a persisted `fit.bounds` footprint derived from chips, pins, wires, and junctions; annotations are excluded so notes do not enlarge a reused chip. The browser-only runtime fields `_revision` and `_simSnapshot` are removed before a project is saved or exported.
 
 The local API is served at `http://127.0.0.1:5174` by default:
 
