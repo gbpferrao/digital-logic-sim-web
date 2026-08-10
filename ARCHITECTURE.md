@@ -1,6 +1,8 @@
 # Digital Logic Sim Web architecture audit
 
-Status: current-state audit and reconciled refactoring plan
+Status: current-state audit, reconciled refactoring plan, and first refactor wave
+
+Checkpoint: `dc41628` (`checkpoint: pre-refactor architecture audit`) preserves the known-good state before architectural code changes. The first wave described below is now implemented on top of that checkpoint.
 
 Scope: the standalone application in this directory, including the browser editor, canvas renderer, simulator, local JSON API, import adapters, tests, examples, and development scripts.
 
@@ -10,7 +12,7 @@ The project has a sound behavior spine:
 
 chip descriptions -> placed instances -> endpoint wires -> signal propagation -> simulation snapshot -> canvas/UI state
 
-The domain model and simulator are already useful, testable seams. The main architectural weakness is the application shell. src/main.js is a 2.7k-line module that owns domain mutations, interaction state machines, persistence orchestration, dynamic HTML templates, event registration, simulation controls, custom-chip navigation, and rendering coordination. That makes the product easy to extend initially but increasingly difficult to find, reason about, and test.
+The domain model and simulator are already useful, testable seams. The main architectural weakness remains the application shell. `src/main.js` still owns domain mutations, interaction state machines, persistence orchestration, inspector/help rendering, simulation controls, custom-chip navigation, and rendering coordination, but the library/collection feature now lives in `src/ui/library-controller.js` and shared DOM/icon helpers live in `src/ui/dom-icons.js`.
 
 The next refactor should preserve the existing vanilla JavaScript approach. It should create explicit boundaries around the application shell and I/O, not introduce a framework, global event bus, or a generalized plugin system before the product needs one.
 
@@ -21,15 +23,19 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | Path | Current responsibility | Architectural role |
 | --- | --- | --- |
 | index.html | Static shell, toolbar, drawers, bottom bar, menus, Help modal, file inputs | DOM contract and layout composition |
-| src/main.js | App state, commands, interaction handling, dynamic UI rendering, lifecycle, persistence calls | Application controller; currently too broad |
+| src/main.js | App state, commands, interaction handling, lifecycle, persistence calls, and composition of UI controllers | Application controller; still broad, but the library slice is now isolated |
 | src/renderer.js | Canvas drawing, camera transforms, hit testing, placement previews | Canvas presentation and geometric queries |
 | src/styles.css | All interface and canvas-adjacent CSS | Presentation; currently has an initial layer plus a later override layer |
+| src/ui/dom-icons.js | DOM lookup, Lucide icon snippets, escaping, and icon refresh | Shared browser UI utility |
+| src/ui/library-controller.js | Library rendering, collection tabs/popups, chip drag placement, and collection reorder | Feature UI controller |
 
 ### Domain and runtime
 
 | Path | Current responsibility | Architectural role |
 | --- | --- | --- |
-| src/model.js | Built-in catalog, project/chip schema creation and normalization, geometry helpers, annotations, custom-chip conversion | Domain model; currently combines catalog and project concerns |
+| src/model.js | Project/chip schema creation and normalization, geometry helpers, annotations, custom-chip conversion; re-exports catalog compatibility symbols | Domain project facade |
+| src/domain/core.js | IDs and deep cloning | Small domain utility boundary |
+| src/domain/catalog.js | Built-in descriptions, types, colors, collections, and catalog metadata | Built-in catalog |
 | src/simulation.js | Signal algebra, runtime graph, built-in chip execution, recursive custom-chip evaluation, snapshots | Simulation domain/runtime |
 | src/unity-compat.js | Unity-shaped project/chip conversion | Import adapter |
 
@@ -37,8 +43,11 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 
 | Path | Current responsibility | Architectural role |
 | --- | --- | --- |
-| src/storage.js | Browser cache, JSON API client, project export, project import, Unity import wiring | Client persistence and file I/O; import and storage are mixed |
-| server/api.mjs | HTTP server, routes, request parsing, filesystem paths, JSON repository operations | Local persistence service; transport and repository are mixed |
+| src/storage.js | Browser cache, export, and compatibility facade for server/import APIs | Client persistence facade |
+| src/io/storage-client.js | Local JSON API request/save/load behavior | Client transport adapter |
+| src/io/project-import.js | Web/Unity project and chip file parsing plus imported-pin exposure | File-format adapter |
+| server/api.mjs | HTTP server, routes, request parsing, response codes, and CORS | Local persistence transport |
+| server/json-repository.mjs | Storage paths, atomic JSON writes, listing, and project/chip records | Replaceable filesystem repository |
 | server/dev.mjs | Starts Vite and the local API and coordinates shutdown | Development process composition |
 | storage/projects/*.json | Complete example projects and regression fixtures | Data fixtures, not application source |
 | storage/chips/*.json | Saved custom-chip records | Persistence fixtures |
@@ -151,12 +160,12 @@ HTTP API -> JSON repository
 
 The domain must not depend on DOM, canvas, browser storage, or HTTP.
 
-Current ownership is mostly aligned except for these leaks:
+Current ownership is mostly aligned. The first refactor wave removed several leaks; the remaining broad areas are:
 
-- main.js directly constructs and mutates the project and simulator while also rendering every dynamic UI region.
-- storage.js owns both storage transport and file-format conversion.
-- server/api.mjs owns both HTTP concerns and filesystem repository behavior.
-- model.js owns both catalog construction and project normalization/geometry.
+- main.js still directly constructs and mutates the project and simulator while also rendering inspector/help and coordinating most editor interactions.
+- storage.js remains a compatibility facade around browser cache, export, import, and the extracted API client.
+- server/api.mjs now delegates filesystem behavior to json-repository.mjs.
+- model.js now delegates catalog construction to domain/catalog.js, but remains the project/schema facade until a later rename or move.
 - built-in chip presentation is split across model.js, simulation.js, renderer.js, and main.js rather than represented by one explicit chip definition contract.
 
 ## Main data and control flows
@@ -192,9 +201,9 @@ The runtime is separated well from the UI, but the UI owns history policy, timer
 
 ### Chip placement and library flow
 
-1. renderLibrary derives groups from project collections, custom chips, and collectionOrder.
+1. library-controller derives groups from project collections, custom chips, and collectionOrder through the domain helper.
 2. A click starts placement mode; a drag tracks a pointer across the library/popup and canvas.
-3. main.js owns drag capture, popup closing, placement preview, validity, and final instance insertion.
+3. library-controller owns drag capture, popup closing, placement preview, and final placement callback invocation.
 4. The same placement state is also used by duplicate placement and bus-pair placement.
 
 The shared placement concept is good. The library-specific pointer implementation is coupled to the global editor state and difficult to test without a browser.
@@ -210,7 +219,7 @@ This works, but the open view is represented by mutation of the same project obj
 
 ### Import and persistence
 
-Project import, Unity conversion, browser cache, server save/load, export, and custom-chip synchronization meet in storage.js and main.js. The behavior is functional, but the boundary is too wide: a file-format adapter should not need to know how browser cache keys work, and a project save should not be coupled to import code.
+Project import and Unity conversion now live in `io/project-import.js`; API transport lives in `io/storage-client.js`; browser cache and export remain in `storage.js` as a compatibility facade. On the server, `api.mjs` routes into `json-repository.mjs`. The behavior remains local-first while the I/O seams can now be tested and replaced independently.
 
 ## Current architectural patterns
 
@@ -258,13 +267,13 @@ Adding or changing a built-in can require edits in:
 
 This is a reasonable first implementation, but it will not scale to many devices or user-defined behaviors. There is no explicit capability contract saying which optional behavior, visual, inspector, and internal-data handler belong to a chip.
 
-#### 3. Persistence and import boundaries are mixed
+#### 3. Persistence and import boundaries were mixed (addressed in the first wave)
 
-storage.js is both a cache/API client and a project importer. server/api.mjs is both an HTTP router and a JSON filesystem repository. This makes it hard to test each part in isolation and makes future persistence changes more expensive than necessary.
+The original issue was that storage.js was both a cache/API client and a project importer, while server/api.mjs was both an HTTP router and a JSON filesystem repository. `io/project-import.js`, `io/storage-client.js`, and `server/json-repository.mjs` now separate those responsibilities. `storage.js` intentionally remains as a compatibility facade until callers can migrate without a broad import change.
 
-#### 4. UI contracts are stringly typed and scattered
+#### 4. UI contracts are stringly typed and scattered (partially addressed)
 
-IDs, dynamic data attributes, action names, and template fragments are distributed across index.html and main.js. The inspector and context menu are effectively small command protocols without a central action registry.
+IDs, dynamic data attributes, action names, and template fragments remain distributed across index.html, main.js, and library-controller.js. Shared DOM/icon/escaping behavior is now centralized, but the inspector and context menu are still small command protocols without a central action registry.
 
 ### Medium-priority issues
 
@@ -352,6 +361,10 @@ Decision: defer. The current renderer is still a coherent canvas adapter, and CS
 
 The following plan removes contradictions and keeps the refactor incremental.
 
+### First-wave result
+
+The required checkpoint was created before architectural code changes. Steps P0.2 through P0.4 and P1.5 through P1.8 are now implemented: focused contract tests were added; catalog/core, DOM/icon utilities, project import, API client, JSON repository, collection derivation, and the library controller have explicit boundaries. The compatibility facades remain deliberately in place. P2 remains future work because it carries higher behavior risk.
+
 ### P0: protect behavior and establish seams
 
 1. Add this architecture document and a Git checkpoint of the known-good state.
@@ -394,7 +407,7 @@ The target topology is:
 - simulation/: signal algebra, runtime graph, behavior registry, snapshots
 - renderer/: WorldRenderer facade plus visual/hit-test subdomains
 - io/project-import.js: web and Unity file adapters
-- io/storage-client.js: browser cache and local API client
+- io/storage-client.js: local API client
 - ui/: DOM/icon helpers, library controller, inspector/help views
 - app/: bootstrap, editor state, commands, lifecycle orchestration
 - server/json-repository.mjs: filesystem persistence
@@ -406,4 +419,4 @@ Dependency rule:
 
 domain has no browser dependencies; simulation depends on domain only; renderer depends on domain and simulation signal contracts; app/ui depend on all client-side services; server transport depends on the repository but not browser modules.
 
-The current refactor should move toward this target without pretending every file needs to be split immediately.
+The current refactor should move toward this target without pretending every file needs to be split immediately. In the current implementation, `src/model.js` remains the compatibility facade for the future `domain/project.js` name, and `src/storage.js` remains the compatibility facade for the extracted I/O modules.
