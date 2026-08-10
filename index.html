@@ -52,6 +52,7 @@
             <div class="tool-group">
               <button id="select-tool" class="tool-button active button-with-icon" title="Select and move"><i class="icon-glyph" data-lucide="mouse-pointer-2" aria-hidden="true"></i><span>Select</span></button>
               <button id="wire-tool" class="tool-button button-with-icon" title="Create a wire"><i class="icon-glyph" data-lucide="git-branch" aria-hidden="true"></i><span>Wire</span></button>
+              <button id="xray-toggle" class="tool-button button-with-icon" type="button" title="Show composite-chip internals (X)" aria-label="Toggle X-ray composite internals" aria-pressed="false"><i class="icon-glyph" data-lucide="scan-eye" aria-hidden="true"></i><span>X-ray</span></button>
               <button id="add-note" class="tool-button button-with-icon" data-annotation-tool="text" title="Add an explanatory note"><i class="icon-glyph" data-lucide="sticky-note" aria-hidden="true"></i><span>Note</span></button>
               <button id="add-label" class="tool-button button-with-icon" data-annotation-tool="label" title="Add a short canvas label"><i class="icon-glyph" data-lucide="tag" aria-hidden="true"></i><span>Label</span></button>
             </div>
@@ -129,6 +130,8 @@
         <button id="bottom-save-as-project"><span class="menu-item-label"><i class="icon-glyph" data-lucide="folder-plus" aria-hidden="true"></i>SAVE AS PROJECT</span></button>
         <button id="bottom-save-chip"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE AS CHIP</span></button>
         <div class="menu-divider" role="separator"></div>
+        <button id="bottom-xray"><span class="menu-item-label"><i class="icon-glyph" data-lucide="scan-eye" aria-hidden="true"></i>X-RAY INTERNALS</span><span>X</span></button>
+        <div class="menu-divider" role="separator"></div>
         <button id="bottom-export"><span class="menu-item-label"><i class="icon-glyph" data-lucide="download" aria-hidden="true"></i>EXPORT JSON</span></button>
         <div class="menu-divider" role="separator"></div>
         <button id="bottom-help"><span class="menu-item-label"><i class="icon-glyph" data-lucide="circle-help" aria-hidden="true"></i>HELP</span></button>
@@ -181,6 +184,7 @@
               <div class="help-command"><kbd>FIT</kbd><span>Frame the current circuit</span></div>
               <div class="help-command"><kbd>CTRL + R</kbd><span>Reset the camera</span></div>
               <div class="help-command"><kbd>CTRL + G</kbd><span>Toggle the grid</span></div>
+              <div class="help-command"><kbd>X</kbd><span>Toggle a bounded X-ray view of composite-chip internals</span></div>
             </section>
             <section class="help-group">
               <h3>Wiring</h3>

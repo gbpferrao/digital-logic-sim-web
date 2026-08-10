@@ -9,6 +9,9 @@ import {
   instancePinPosition,
   annotationBoundingBox,
   chipBoundsSize,
+  chipVisualSize,
+  reusableFitBounds,
+  reusablePoint,
   rootPinPosition,
   rotatePoint
 } from "./model.js";
@@ -20,6 +23,9 @@ const GRID_COLOURS = Object.freeze({
   line: "#2b2e33",
   highlight: "#353940"
 });
+const XRAY_MAX_DEPTH = 3;
+const XRAY_MAX_INSTANCES = 160;
+const XRAY_MAX_WIRES = 240;
 
 function rgba(hex, alpha = 1) {
   const value = hex.replace("#", "");
@@ -378,14 +384,14 @@ export class WorldRenderer {
     }
   }
 
-  wirePoints(project, wire, instanceOverride = null, junctionOverride = null) {
-    const source = this.endpointPosition(project, wire.source, instanceOverride, junctionOverride);
-    const target = this.endpointPosition(project, wire.target, instanceOverride, junctionOverride);
+  wirePoints(project, wire, instanceOverride = null, junctionOverride = null, options = {}) {
+    const source = this.endpointPosition(project, wire.source, instanceOverride, junctionOverride, options);
+    const target = this.endpointPosition(project, wire.target, instanceOverride, junctionOverride, options);
     const points = [source, ...(wire.points ?? []), target];
     return points;
   }
 
-  endpointPosition(project, endpoint, instanceOverride = null, junctionOverride = null) {
+  endpointPosition(project, endpoint, instanceOverride = null, junctionOverride = null, options = {}) {
     if (String(endpoint.owner) === "wire") return endpoint.position ? { ...endpoint.position } : { x: 0, y: 0 };
     if (String(endpoint.owner) === "junction") {
       const junction = (junctionOverride ?? project.root.junctions ?? []).find((item) => String(item.id) === String(endpoint.pin));
@@ -393,7 +399,12 @@ export class WorldRenderer {
     }
     if (String(endpoint.owner) === "root") {
       const pin = project.root.inputPins.concat(project.root.outputPins).find((item) => String(item.id) === String(endpoint.pin));
-      return pin ? rootPinPosition(project.root, pin) : { x: 0, y: 0 };
+      if (!pin) return { x: 0, y: 0 };
+      if (options.rawDescriptionPins) {
+        const x = Number(pin.x);
+        return { x: Number.isFinite(x) ? x : (pin.direction === "input" ? -project.root.size.x / 2 : project.root.size.x / 2), y: Number(pin.y) || 0 };
+      }
+      return rootPinPosition(project.root, pin);
     }
     const instance = (instanceOverride ?? project.root.instances).find((item) => String(item.id) === String(endpoint.owner));
     return instance ? instancePinPosition(project, instance, endpoint.pin) : { x: 0, y: 0 };
@@ -472,18 +483,19 @@ export class WorldRenderer {
     const selected = editorState.selectedIds?.has(String(instance.id));
     const hovered = editorState.hover?.kind === "instance" && editorState.hover.id === String(instance.id);
     const invalid = Boolean(editorState.drag?.invalid && selected);
-    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator);
+    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator, editorState.xray ? XRAY_MAX_DEPTH : 0);
     this.drawPins(ctx, project, instance, description, simulator, editorState);
   }
 
-  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null) {
+  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0) {
     const box = chipBoundingBox(project, instance);
     const rotation = (instance.rotation ?? 0) * Math.PI / 2;
     ctx.save();
     ctx.translate(instance.position.x, instance.position.y);
     ctx.rotate(rotation);
-    const w = description.size.x;
-    const h = description.size.y;
+    const visualSize = chipVisualSize(description);
+    const w = visualSize.x;
+    const h = visualSize.y;
     const labelBounds = chipBoundsSize(description);
     const bodyColour = description.colour || "#202b3a";
     const bodyOutline = darken(bodyColour);
@@ -519,6 +531,9 @@ export class WorldRenderer {
         this.drawSpecialDisplay(ctx, project, instance, description);
       }
     }
+    if (xrayDepth > 0 && description.kind === "custom" && (description.instances ?? []).length) {
+      this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")]);
+    }
     const captionAnchor = chipCaptionAnchor(description, w, h);
     this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered, captionAnchor);
     ctx.restore();
@@ -528,6 +543,116 @@ export class WorldRenderer {
       ctx.strokeRect(box.x, box.y, box.w, box.h);
       ctx.restore();
     }
+  }
+
+  drawXrayComposite(ctx, project, description, simulator, depth, path = []) {
+    if (depth <= 0 || !(description.instances ?? []).length) return;
+    const visualSize = chipVisualSize(description);
+    const fit = reusableFitBounds(description);
+    const inset = Math.max(8, Math.min(14, Math.min(visualSize.x, visualSize.y) * .12));
+    const frame = {
+      x: -visualSize.x / 2 + inset,
+      y: -visualSize.y / 2 + inset,
+      w: Math.max(16, visualSize.x - inset * 2),
+      h: Math.max(16, visualSize.y - inset * 2)
+    };
+    const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
+    if (!Number.isFinite(scale) || scale <= 0) return;
+    const scopedProject = { ...project, root: description };
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3);
+    ctx.clip();
+    ctx.fillStyle = "rgba(6, 10, 15, .30)";
+    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
+    ctx.translate(frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale, frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = .86;
+    this.drawXrayWires(ctx, scopedProject, description);
+    const visibleInstances = (description.instances ?? []).slice(0, XRAY_MAX_INSTANCES);
+    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child, simulator, depth - 1, path);
+    this.drawXrayRootPins(ctx, description);
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(218, 232, 244, .24)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3); ctx.stroke();
+    if ((description.instances?.length ?? 0) > XRAY_MAX_INSTANCES) {
+      ctx.fillStyle = "rgba(230, 238, 246, .72)";
+      ctx.font = "600 8px JetBrains Mono, Consolas, monospace";
+      ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+      ctx.fillText(`+${description.instances.length - XRAY_MAX_INSTANCES}`, frame.x + frame.w - 5, frame.y + frame.h - 4);
+    }
+    ctx.restore();
+  }
+
+  drawXrayWires(ctx, project, description) {
+    ctx.save();
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = "#9aa8b4";
+    ctx.globalAlpha = .74;
+    for (const wire of (description.wires ?? []).slice(0, XRAY_MAX_WIRES)) {
+      const points = this.wirePoints(project, wire, null, null, { rawDescriptionPins: true });
+      if (points.length < 2) continue;
+      ctx.beginPath();
+      points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      ctx.stroke();
+    }
+    if ((description.wires?.length ?? 0) > XRAY_MAX_WIRES) {
+      ctx.fillStyle = "#d7e2eb";
+      ctx.font = "600 9px JetBrains Mono, Consolas, monospace";
+      ctx.fillText(`+${description.wires.length - XRAY_MAX_WIRES} wires`, reusableFitBounds(description).x, reusableFitBounds(description).y + 12);
+    }
+    ctx.restore();
+  }
+
+  drawXrayInstance(ctx, project, instance, simulator, depth, path) {
+    const description = descriptorForInstance(project, instance);
+    if (!description) return;
+    this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0);
+    this.drawXrayPins(ctx, project, instance, description);
+    if (description.kind !== "custom" || depth <= 0) return;
+    const identity = String(description.name || description.id || instance.name || "custom");
+    if (path.includes(identity)) {
+      this.drawXrayCycleMarker(ctx, instance, description);
+      return;
+    }
+    ctx.save();
+    ctx.translate(instance.position.x, instance.position.y);
+    ctx.rotate((instance.rotation ?? 0) * Math.PI / 2);
+    this.drawXrayComposite(ctx, project, description, simulator, depth, [...path, identity]);
+    ctx.restore();
+  }
+
+  drawXrayPins(ctx, project, instance, description) {
+    for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
+      const position = instancePinPosition(project, instance, pin.id);
+      ctx.fillStyle = pin.direction === "output" ? "#9cdab3" : "#c0c8cf";
+      ctx.beginPath(); ctx.arc(position.x, position.y, 2.4, 0, TAU); ctx.fill();
+    }
+  }
+
+  drawXrayRootPins(ctx, description) {
+    for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
+      const x = Number(pin.x);
+      const position = { x: Number.isFinite(x) ? x : (pin.direction === "input" ? -description.size.x / 2 : description.size.x / 2), y: Number(pin.y) || 0 };
+      ctx.fillStyle = pin.direction === "output" ? "#9cdab3" : "#c0c8cf";
+      ctx.beginPath(); ctx.arc(position.x, position.y, 2.6, 0, TAU); ctx.fill();
+    }
+  }
+
+  drawXrayCycleMarker(ctx, instance, description) {
+    const size = chipVisualSize(description);
+    ctx.save();
+    ctx.translate(instance.position.x, instance.position.y);
+    ctx.fillStyle = "rgba(235, 241, 246, .72)";
+    ctx.font = `700 ${Math.max(8, Math.min(12, Math.min(size.x, size.y) * .16))}px JetBrains Mono, Consolas, monospace`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("LOOP", 0, 0);
+    ctx.restore();
   }
 
   drawChipCaption(ctx, value, width, height, hovered = false, anchor = { x: 0, y: 0 }) {
@@ -644,7 +769,8 @@ export class WorldRenderer {
   drawPins(ctx, project, instance, description, simulator, editorState = {}) {
     for (const pin of [...description.inputPins, ...description.outputPins]) {
       const world = instancePinPosition(project, instance, pin.id);
-      const local = rotatePoint({ x: pin.x, y: pin.y }, instance.rotation);
+      const pinLocal = description.kind === "custom" ? reusablePoint(description, pin) : { x: pin.x, y: pin.y };
+      const local = rotatePoint(pinLocal, instance.rotation);
       const state = simulator?.stateFor({ owner: instance.id, pin: pin.id }) ?? disconnected();
       const configuredColour = pin.direction === "output" ? instance.outputPinColours?.[String(pin.id)] : null;
       const colour = configuredColour ? (state.tri === 0 ? configuredColour : rgba(configuredColour, .55)) : state.tri === 0 ? (isHigh(state) ? "#7df2a8" : "#a1a7ab") : "#687279";

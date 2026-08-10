@@ -2,7 +2,7 @@
 
 Status: current-state audit, reconciled refactoring plan, and first refactor wave
 
-Checkpoint: `dc41628` (`checkpoint: pre-refactor architecture audit`) preserves the known-good state before architectural code changes. The first wave described below is now implemented on top of that checkpoint.
+Checkpoint: `a207fe6` (`Checkpoint before X-ray mode`) preserves the known-good state immediately before the X-ray pivot. Earlier architecture work is included in that checkpoint.
 
 Scope: the standalone application in this directory, including the browser editor, canvas renderer, simulator, local JSON API, import adapters, tests, examples, and development scripts.
 
@@ -86,6 +86,8 @@ A chip description contains:
 
 A custom description uses the same shape as a built-in description. Its instances can reference built-ins or other custom chips, so the simulator recursively builds child runtimes.
 
+Reusable custom descriptions may also carry `fit: { version, bounds }`. The fit is the annotation-free canvas footprint used when a chip is reused: it includes child geometry, interface pins, wires, and junctions, while the description's `size` remains the internal editing canvas. Normalization derives this field for legacy chips, and custom-chip save/edit paths refresh it before persistence.
+
 ### Circuit primitives
 
 - Instance: id, name, position, rotation, label, internalData, linkedBusPairId, outputPinColours
@@ -124,6 +126,8 @@ WorldRenderer owns a canvas and exposes:
 - draw(project, simulator, editorState)
 - wirePoints and endpointPosition
 - findPin, findJunction, findInstance, findAnnotation, findWire, findWirePoint, and resize-handle queries
+
+When `editorState.xray` is enabled, the renderer adds a clipped, read-only recursive projection for custom instances. The projection is bounded to three levels, 160 child instances, and 240 wires per level, with a cycle guard. It does not alter hit testing, selection, simulation, or project ownership; the full rationale and flow are in [XRAY-ARCHITECTURE.md](XRAY-ARCHITECTURE.md).
 
 The renderer is intentionally imperative and canvas-based. The editor supplies project data plus an editorState snapshot; the renderer does not mutate the project.
 

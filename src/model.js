@@ -4,6 +4,8 @@ import { BUILTINS, COLLECTIONS, COLORS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, 
 export { BUILTINS, COLLECTIONS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, TYPE, clone, uid };
 
 const DEFAULT_ANNOTATION_COLOUR = "#d7eaff";
+export const REUSABLE_FIT_VERSION = 1;
+export const REUSABLE_FIT_PADDING = GRID * 2;
 
 function parseHexColour(value) {
   const raw = String(value ?? "").trim().replace(/^#/, "");
@@ -165,6 +167,11 @@ export function normalizeProject(raw) {
   project.root = normalizeDescription({ ...base.root, ...(raw?.root ?? {}) });
   project.customChips = {};
   for (const [name, value] of Object.entries(raw?.customChips ?? {})) project.customChips[name] = normalizeDescription(value);
+  // Older chip records did not persist a reusable canvas fit. Derive it after
+  // all custom descriptions exist so nested custom chips can use their own
+  // saved geometry when it is available.
+  const missingFits = new Set(Object.entries(project.customChips).filter(([, description]) => !description.fit).map(([name]) => name));
+  for (const name of missingFits) project.customChips[name].fit = deriveReusableFit(project, project.customChips[name], { ignoreReusableChildFits: missingFits });
   project.settings = { ...base.settings, ...(raw?.settings ?? {}) };
   project.collections = raw?.collections?.length ? raw.collections : clone(COLLECTIONS);
   project.collectionOrder = collectionOrderFor(raw?.collectionOrder, project.collections);
@@ -176,6 +183,7 @@ export function normalizeProject(raw) {
 
 function normalizeDescription(raw) {
   const description = { ...raw };
+  if (!description.kind && description.type === TYPE.CUSTOM) description.kind = TYPE.CUSTOM;
   const rawSize = raw?.size ?? {};
   const rawWidth = Number(rawSize.x);
   const rawHeight = Number(rawSize.y);
@@ -183,6 +191,7 @@ function normalizeDescription(raw) {
     x: Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : MIN_CHIP_SIZE.x,
     y: Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : MIN_CHIP_SIZE.y
   };
+  description.fit = normalizeReusableFit(raw?.fit);
   const normalizePin = (item, direction) => ({
     ...item,
     direction,
@@ -241,8 +250,11 @@ export function instancePinPosition(project, instance, pinId) {
   const pinDesc = getPin(desc, pinId);
   if (!desc || !pinDesc) return { x: instance.position.x, y: instance.position.y };
   const busFlipped = (isBusOrigin(instance.name) || isBusTerminus(instance.name)) && Boolean(instance.internalData?.busFlipped);
-  const pinLocal = busFlipped ? { x: -pinDesc.x, y: pinDesc.y } : { x: pinDesc.x, y: pinDesc.y };
-  const local = rotatePoint(pinLocal, instance.rotation);
+  const pinLocal = busFlipped
+    ? { x: -pinDesc.x, y: pinDesc.y }
+    : { x: pinDesc.x, y: pinDesc.y };
+  const reusableLocal = desc.kind === TYPE.CUSTOM ? reusablePoint(desc, pinLocal) : pinLocal;
+  const local = rotatePoint(reusableLocal, instance.rotation);
   return { x: instance.position.x + local.x, y: instance.position.y + local.y };
 }
 
@@ -262,12 +274,142 @@ export function chipBoundingBox(project, instance) {
 }
 
 export function chipBoundsSize(description) {
-  const width = Number(description?.size?.x);
-  const height = Number(description?.size?.y);
+  const fit = description?.kind === TYPE.CUSTOM ? description.fit?.bounds : null;
+  const width = Number(fit?.w ?? description?.size?.x);
+  const height = Number(fit?.h ?? description?.size?.y);
   return {
     x: Math.max(MIN_CHIP_SIZE.x, Number.isFinite(width) && width > 0 ? width : MIN_CHIP_SIZE.x),
     y: Math.max(MIN_CHIP_SIZE.y, Number.isFinite(height) && height > 0 ? height : MIN_CHIP_SIZE.y)
   };
+}
+
+export function chipVisualSize(description) {
+  const fit = description?.kind === TYPE.CUSTOM ? description.fit?.bounds : null;
+  const width = Number(fit?.w ?? description?.size?.x);
+  const height = Number(fit?.h ?? description?.size?.y);
+  return {
+    x: Math.max(1, Number.isFinite(width) && width > 0 ? width : MIN_CHIP_SIZE.x),
+    y: Math.max(1, Number.isFinite(height) && height > 0 ? height : MIN_CHIP_SIZE.y)
+  };
+}
+
+export function reusableFitBounds(description) {
+  const fit = description?.fit?.bounds;
+  const x = Number(fit?.x);
+  const y = Number(fit?.y);
+  const w = Number(fit?.w);
+  const h = Number(fit?.h);
+  if ([x, y, w, h].every(Number.isFinite) && w > 0 && h > 0) return { x, y, w, h };
+  const size = chipBoundsSize({ ...description, fit: null });
+  return { x: -size.x / 2, y: -size.y / 2, w: size.x, h: size.y };
+}
+
+export function reusablePoint(description, point) {
+  const fit = description?.kind === TYPE.CUSTOM ? reusableFitBounds(description) : null;
+  const x = Number(point?.x) || 0;
+  const y = Number(point?.y) || 0;
+  if (!fit) return { x, y };
+  return { x: x - (fit.x + fit.w / 2), y: y - (fit.y + fit.h / 2) };
+}
+
+function descriptionPinPosition(description, pin) {
+  const width = Number(description?.size?.x) || MIN_CHIP_SIZE.x;
+  const x = Number(pin?.x);
+  return {
+    x: Number.isFinite(x) ? x : (pin?.direction === "input" ? -width / 2 : width / 2),
+    y: Number(pin?.y) || 0
+  };
+}
+
+function descriptionEndpointPosition(project, description, endpoint, options = {}) {
+  const owner = String(endpoint?.owner);
+  if (owner === "root") {
+    const pin = [...(description.inputPins ?? []), ...(description.outputPins ?? [])].find((item) => String(item.id) === String(endpoint.pin));
+    return pin ? descriptionPinPosition(description, pin) : { x: 0, y: 0 };
+  }
+  if (owner === "junction") {
+    return description.junctions?.find((item) => String(item.id) === String(endpoint.pin))?.position ?? { x: 0, y: 0 };
+  }
+  if (owner === "wire") return endpoint.position ? { ...endpoint.position } : { x: 0, y: 0 };
+  const instance = (description.instances ?? []).find((item) => String(item.id) === owner);
+  if (!instance) return { x: 0, y: 0 };
+  if (options.ignoreReusableChildFits?.has(String(instance.name))) {
+    const child = getDescription(project, instance.name);
+    const pin = getPin(child, endpoint.pin);
+    if (pin) {
+      const local = rotatePoint({ x: Number(pin.x) || 0, y: Number(pin.y) || 0 }, instance.rotation);
+      return { x: (Number(instance.position?.x) || 0) + local.x, y: (Number(instance.position?.y) || 0) + local.y };
+    }
+  }
+  return instancePinPosition({ ...project, root: description }, instance, endpoint.pin);
+}
+
+export function deriveReusableFit(project, description, options = {}) {
+  const points = [];
+  const addPoint = (point) => {
+    if (Number.isFinite(Number(point?.x)) && Number.isFinite(Number(point?.y))) points.push({ x: Number(point.x), y: Number(point.y) });
+  };
+  const addBox = (box) => {
+    addPoint({ x: box.x, y: box.y });
+    addPoint({ x: box.x + box.w, y: box.y + box.h });
+  };
+
+  for (const instance of description.instances ?? []) {
+    const child = getDescription(project, instance.name);
+    if (!child) continue;
+    const bounds = options.ignoreReusableChildFits?.has(String(instance.name))
+      ? chipBoundsSize({ ...child, fit: null })
+      : chipBoundsSize(child);
+    const quarterTurn = Math.abs(Number(instance.rotation) || 0) % 2 === 1;
+    const width = quarterTurn ? bounds.y : bounds.x;
+    const height = quarterTurn ? bounds.x : bounds.y;
+    const x = Number(instance.position?.x) || 0;
+    const y = Number(instance.position?.y) || 0;
+    addBox({ x: x - width / 2, y: y - height / 2, w: width, h: height });
+  }
+  for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) addPoint(descriptionPinPosition(description, pin));
+  for (const junction of description.junctions ?? []) addPoint(junction.position);
+  for (const wire of description.wires ?? []) {
+    addPoint(descriptionEndpointPosition(project, description, wire.source, options));
+    addPoint(descriptionEndpointPosition(project, description, wire.target, options));
+    for (const point of wire.points ?? []) addPoint(point);
+  }
+
+  if (!points.length) {
+    const size = chipVisualSize({ ...description, fit: null });
+    return { version: REUSABLE_FIT_VERSION, bounds: { x: -size.x / 2, y: -size.y / 2, w: size.x, h: size.y } };
+  }
+  const minX = Math.min(...points.map((point) => point.x));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxY = Math.max(...points.map((point) => point.y));
+  const padding = REUSABLE_FIT_PADDING;
+  return {
+    version: REUSABLE_FIT_VERSION,
+    bounds: {
+      x: minX - padding,
+      y: minY - padding,
+      w: Math.max(MIN_CHIP_SIZE.x, maxX - minX + padding * 2),
+      h: Math.max(MIN_CHIP_SIZE.y, maxY - minY + padding * 2)
+    }
+  };
+}
+
+export function refreshReusableFit(project, description) {
+  if (!description || description.kind !== TYPE.CUSTOM) return description;
+  description.fit = deriveReusableFit(project, description);
+  return description;
+}
+
+function normalizeReusableFit(raw) {
+  if (!raw) return null;
+  const bounds = raw.bounds ?? raw;
+  const x = Number(bounds?.x);
+  const y = Number(bounds?.y);
+  const w = Number(bounds?.w ?? bounds?.width);
+  const h = Number(bounds?.h ?? bounds?.height);
+  if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) return null;
+  return { version: Number(raw.version) || REUSABLE_FIT_VERSION, bounds: { x, y, w, h } };
 }
 
 export function customFromRoot(project, name) {
@@ -307,7 +449,10 @@ export function customFromRoot(project, name) {
   root.outputPins = outputPins;
   root.colour = COLORS.custom;
   root.size = { x: GRID * 32, y: GRID * 22 };
-  return root;
+  root.fit = null;
+  const description = normalizeDescription(root);
+  refreshReusableFit(project, description);
+  return description;
 }
 
 export function allLibraryDescriptions(project) {

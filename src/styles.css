@@ -298,6 +298,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 .bottom-menu-popup { position: fixed; bottom: 60px; left: 9px; z-index: 16; display: flex; min-width: 210px; flex-direction: column; padding: 5px; border: 1px solid var(--ui-light-line); border-radius: 2px; background: var(--ui-light-surface); box-shadow: 0 8px 22px rgb(0 0 0 / 38%); }
 .bottom-menu-popup button { display: flex; justify-content: space-between; padding: 8px 10px; border: 0; color: var(--ui-light-text); background: transparent; cursor: pointer; font-size: 10px; text-align: left; }
 .bottom-menu-popup button:hover { background: var(--ui-light-surface-hover); }
+.bottom-menu-popup button.active { color: var(--ui-light-text-strong, #000); background: var(--ui-light-surface-hover); }
 .bottom-menu-popup button span { margin-left: 18px; color: var(--ui-light-muted); }
 .bottom-menu-popup .menu-item-label { display: inline-flex; align-items: center; gap: 7px; margin-left: 0; color: var(--ui-light-text); }
 .bottom-menu-popup .menu-item-label .icon-glyph { width: 14px; height: 14px; }

@@ -22,6 +22,7 @@ import {
   isInputType,
   isOutputType,
   normalizeProject,
+  refreshReusableFit,
   uid
 } from "./model.js";
 import { PIN_MASK, Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
@@ -80,6 +81,7 @@ let simulator = new Simulator(project);
 let audioContext = null;
 const state = {
   tool: "select",
+  xray: false,
   placement: null,
   annotationPlacement: null,
   selectedIds: new Set(),
@@ -1556,7 +1558,7 @@ function exitCustomView() {
     return;
   }
   rememberCamera();
-  project.customChips[frame.customName] = project.root;
+  project.customChips[frame.customName] = refreshReusableFit(project, project.root);
  project.root = frame.root;
  project.name = frame.name;
  simulator.syncProject(project);
@@ -1780,6 +1782,14 @@ function saveTargetForNewProject() {
   return null;
 }
 
+function refreshActiveCustomFits() {
+  if (!state.viewStack.length) return;
+  refreshReusableFit(project, project.root);
+  for (const frame of [...state.viewStack].reverse()) {
+    if (frame.root?.kind === TYPE.CUSTOM) refreshReusableFit(project, frame.root);
+  }
+}
+
 async function saveCurrentProject({ quiet = false, promptIfNeeded = !quiet } = {}) {
   if (!state.projectSaved && promptIfNeeded) {
     const target = saveTargetForNewProject();
@@ -1790,6 +1800,7 @@ async function saveCurrentProject({ quiet = false, promptIfNeeded = !quiet } = {
     state.saveQueued = true;
     return;
   }
+  refreshActiveCustomFits();
   const revisionAtStart = project._revision;
   state.savePending = true;
   setStatus("Saving project and custom chips...");
@@ -1829,6 +1840,12 @@ function toggleGrid() {
   render();
 }
 
+function toggleXray() {
+  state.xray = !state.xray;
+  setStatus(`X-ray ${state.xray ? "enabled" : "disabled"}.`);
+  render();
+}
+
 function resetEditorStateForProject() {
   clearInterval(state.simTimer);
   state.simTimer = null;
@@ -1841,6 +1858,7 @@ function resetEditorStateForProject() {
   resetSimulationBake();
   state.viewStack.length = 0;
   state.viewCameras = {};
+  state.xray = false;
   state.selectedIds.clear();
   state.selectedAnnotationIds.clear();
   state.selectedWirePointKeys.clear();
@@ -2082,6 +2100,17 @@ function render() {
     viewedBack.classList.toggle("hidden", !viewed);
     viewedBack.title = viewed ? "Back to " + parentName : "Return to the parent chip";
     viewedBack.setAttribute("aria-label", viewed ? "Back to " + parentName : "Return to the parent chip");
+  }
+  const xrayToggle = $("#xray-toggle");
+  if (xrayToggle) {
+    xrayToggle.classList.toggle("active", state.xray);
+    xrayToggle.setAttribute("aria-pressed", String(state.xray));
+    xrayToggle.title = state.xray ? "Hide composite-chip internals (X)" : "Show composite-chip internals (X)";
+  }
+  const bottomXray = $("#bottom-xray");
+  if (bottomXray) {
+    bottomXray.classList.toggle("active", state.xray);
+    bottomXray.setAttribute("aria-pressed", String(state.xray));
   }
   $("#canvas-empty").classList.toggle("hidden", Boolean(project.root.instances.length || project.root.annotations?.length));
   $("#zoom-readout").textContent = `${Math.round(renderer.camera.zoom * 100)}%`;
@@ -2623,6 +2652,7 @@ function handleKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && key === "l") { event.preventDefault(); $("#app").classList.add("library-open"); $("#chip-search").focus(); return; }
   if ((event.ctrlKey || event.metaKey) && key === "f") { event.preventDefault(); $("#app").classList.add("library-open"); $("#chip-search").focus(); return; }
   if (isKeyboardInteractionBlocked()) return;
+  if (key === "x" && !event.ctrlKey && !event.metaKey && !event.altKey && !state.wireEdit && !state.drag && !state.placement && !state.annotationPlacement) { toggleXray(); return; }
   if (event.key === "Delete" || event.key === "Backspace") {
     event.preventDefault();
     if (state.annotationPlacement) {
@@ -2722,10 +2752,12 @@ $("#bottom-save").addEventListener("click", () => { closeBottomMenu(); saveCurre
 $("#bottom-save-as-project").addEventListener("click", () => { closeBottomMenu(); saveAsProject(); });
 $("#bottom-help").addEventListener("click", openHelp);
 $("#bottom-save-chip").addEventListener("click", () => { closeBottomMenu(); createCustomChip(); });
+$("#bottom-xray").addEventListener("click", () => { closeBottomMenu(); toggleXray(); });
 $("#bottom-export").addEventListener("click", () => { closeBottomMenu(); downloadProject(project); notify("Project JSON exported."); });
 $("#bottom-import").addEventListener("click", () => { closeBottomMenu(); $("#import-file").click(); });
 $("#select-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("select", "Select tool active."); render(); });
 $("#wire-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("wire", "Wire tool active."); render(); });
+$("#xray-toggle").addEventListener("click", toggleXray);
 document.querySelectorAll("[data-annotation-tool]").forEach((button) => {
   button.addEventListener("pointerdown", beginAnnotationToolDrag);
   button.addEventListener("click", handleAnnotationToolClick);

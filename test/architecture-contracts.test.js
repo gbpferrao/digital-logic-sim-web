@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { createJsonRepository } from "../server/json-repository.mjs";
 import { COLORS } from "../src/domain/catalog.js";
-import { BUILTINS, MIN_CHIP_SIZE, TYPE, chipBoundingBox, chipBoundsSize, collectionGroupsFor, createProject, normalizeProject } from "../src/model.js";
+import { BUILTINS, MIN_CHIP_SIZE, TYPE, chipBoundingBox, chipBoundsSize, collectionGroupsFor, createProject, instancePinPosition, normalizeProject } from "../src/model.js";
 
 test("collection groups preserve saved order and always expose custom chips", () => {
   const project = normalizeProject({
@@ -46,6 +46,41 @@ test("minimum canvas bounds do not inflate compact chip geometry", () => {
     w: MIN_CHIP_SIZE.x,
     h: MIN_CHIP_SIZE.y
   });
+});
+
+test("custom reusable fit records canvas geometry without annotation baggage", () => {
+  const rawDescription = {
+    id: "chip-composite",
+    name: "Composite",
+    type: TYPE.CUSTOM,
+    kind: "custom",
+    size: { x: 640, y: 440 },
+    inputPins: [{ id: "in", name: "IN", direction: "input", x: -320, y: 0 }],
+    outputPins: [{ id: "out", name: "OUT", direction: "output", x: 320, y: 0 }],
+    instances: [{ id: "gate", name: TYPE.AND, position: { x: 0, y: 0 }, rotation: 0 }],
+    wires: [],
+    annotations: [{ id: "note", type: "text", text: "far away explanation", position: { x: 10000, y: 10000 }, width: 900, height: 300 }]
+  };
+  const withNote = normalizeProject({ customChips: { Composite: rawDescription } });
+  const withoutNote = normalizeProject({ customChips: { Composite: { ...rawDescription, annotations: [] } } });
+  const description = withNote.customChips.Composite;
+  assert.deepEqual(description.fit, withoutNote.customChips.Composite.fit);
+  assert.equal(description.fit.version, 1);
+  assert.equal(chipBoundsSize(description).x, description.fit.bounds.w);
+  assert.equal(chipBoundingBox(withNote, { name: "Composite", position: { x: 0, y: 0 }, rotation: 0 }).w, description.fit.bounds.w);
+  assert.equal(instancePinPosition(withNote, { name: "Composite", position: { x: 0, y: 0 }, rotation: 0 }, "in").x, -320);
+  assert.equal(instancePinPosition(withNote, { name: "Composite", position: { x: 0, y: 0 }, rotation: 0 }, "out").x, 320);
+});
+
+test("xray controls are a view contract rather than a second editing mode", async () => {
+  const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
+  const renderer = await readFile(path.join(process.cwd(), "src", "renderer.js"), "utf8");
+  assert.match(html, /id="xray-toggle"/);
+  assert.match(html, /id="bottom-xray"/);
+  assert.match(html, /<kbd>X<\/kbd>/);
+  assert.match(renderer, /const XRAY_MAX_DEPTH = 3/);
+  assert.match(renderer, /XRAY_MAX_INSTANCES/);
+  assert.match(renderer, /drawXrayComposite/);
 });
 
 test("native component colors reserve warning red for actual errors", () => {
