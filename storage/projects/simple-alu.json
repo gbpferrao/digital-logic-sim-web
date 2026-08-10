@@ -1,0 +1,1126 @@
+{
+  "schema": "digital-logic-sim-web/1",
+  "storageId": "simple-alu",
+  "name": "Simple 1-bit ALU",
+  "createdAt": "2026-08-09T21:55:31.787Z",
+  "updatedAt": "2026-08-10T01:19:04.221Z",
+  "root": {
+    "id": "root",
+    "name": "Simple ALU",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 640,
+      "y": 440
+    },
+    "colour": "#202b3a",
+    "nameLocation": "top",
+    "inputPins": [],
+    "outputPins": [],
+    "instances": [
+      {
+        "id": "in-a",
+        "name": "IN-1",
+        "position": {
+          "x": -560,
+          "y": -220
+        },
+        "rotation": 0,
+        "label": "A",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "in-b",
+        "name": "IN-1",
+        "position": {
+          "x": -560,
+          "y": -100
+        },
+        "rotation": 0,
+        "label": "B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "in-cin",
+        "name": "IN-1",
+        "position": {
+          "x": -560,
+          "y": 20
+        },
+        "rotation": 0,
+        "label": "CIN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "in-op0",
+        "name": "IN-1",
+        "position": {
+          "x": -560,
+          "y": 240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "in-op1",
+        "name": "IN-1",
+        "position": {
+          "x": -560,
+          "y": 350
+        },
+        "rotation": 0,
+        "label": "OP1",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "not-op0",
+        "name": "NOT",
+        "position": {
+          "x": -360,
+          "y": 180
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "not-op1",
+        "name": "NOT",
+        "position": {
+          "x": -360,
+          "y": 300
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-ab",
+        "name": "AND",
+        "position": {
+          "x": -340,
+          "y": -250
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-ab",
+        "name": "OR",
+        "position": {
+          "x": -340,
+          "y": -120
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "xor-ab",
+        "name": "XOR",
+        "position": {
+          "x": -340,
+          "y": 10
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "sum",
+        "name": "XOR",
+        "position": {
+          "x": -100,
+          "y": 10
+        },
+        "rotation": 0,
+        "label": "ADD SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-and-ab",
+        "name": "AND",
+        "position": {
+          "x": -100,
+          "y": -190
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-and-cin",
+        "name": "AND",
+        "position": {
+          "x": -100,
+          "y": -90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-or",
+        "name": "OR",
+        "position": {
+          "x": 120,
+          "y": -140
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "select-00",
+        "name": "AND",
+        "position": {
+          "x": -120,
+          "y": 170
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "select-01",
+        "name": "AND",
+        "position": {
+          "x": 10,
+          "y": 260
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "select-10",
+        "name": "AND",
+        "position": {
+          "x": 160,
+          "y": 280
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "select-11",
+        "name": "AND",
+        "position": {
+          "x": 260,
+          "y": 410
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "term-and",
+        "name": "AND",
+        "position": {
+          "x": 510,
+          "y": -210
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "term-or",
+        "name": "AND",
+        "position": {
+          "x": 510,
+          "y": -110
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "term-xor",
+        "name": "AND",
+        "position": {
+          "x": 510,
+          "y": -10
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "term-add",
+        "name": "AND",
+        "position": {
+          "x": 510,
+          "y": 90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "result-or-01",
+        "name": "OR",
+        "position": {
+          "x": 710,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "result-or-23",
+        "name": "OR",
+        "position": {
+          "x": 710,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "result-or",
+        "name": "OR",
+        "position": {
+          "x": 890,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "RESULT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-select",
+        "name": "AND",
+        "position": {
+          "x": 720,
+          "y": 150
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "out-result",
+        "name": "OUT-1",
+        "position": {
+          "x": 1070,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "RESULT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "out-carry",
+        "name": "OUT-1",
+        "position": {
+          "x": 1070,
+          "y": 150
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-and",
+        "source": {
+          "owner": "in-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "and-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-or",
+        "source": {
+          "owner": "in-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "or-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-xor",
+        "source": {
+          "owner": "in-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "xor-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-carry1",
+        "source": {
+          "owner": "in-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "carry-and-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-and",
+        "source": {
+          "owner": "in-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "and-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-or",
+        "source": {
+          "owner": "in-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "or-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-xor",
+        "source": {
+          "owner": "in-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "xor-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-carry1",
+        "source": {
+          "owner": "in-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "carry-and-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-sum",
+        "source": {
+          "owner": "in-cin",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "sum",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-carry2",
+        "source": {
+          "owner": "in-cin",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "carry-and-cin",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-sum",
+        "source": {
+          "owner": "xor-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "sum",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-carry2",
+        "source": {
+          "owner": "xor-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-and-cin",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op0-not",
+        "source": {
+          "owner": "in-op0",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "not-op0",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op1-not",
+        "source": {
+          "owner": "in-op1",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "not-op1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "not1-n0",
+        "source": {
+          "owner": "not-op1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "select-00",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "not0-n0",
+        "source": {
+          "owner": "not-op0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "select-00",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "not1-n1",
+        "source": {
+          "owner": "not-op1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "select-01",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op0-n1",
+        "source": {
+          "owner": "in-op0",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "select-01",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op1-n2",
+        "source": {
+          "owner": "in-op1",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "select-10",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "not0-n2",
+        "source": {
+          "owner": "not-op0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "select-10",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op1-n3",
+        "source": {
+          "owner": "in-op1",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "select-11",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "op0-n3",
+        "source": {
+          "owner": "in-op0",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "select-11",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "and-term0",
+        "source": {
+          "owner": "and-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-and",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "n0-term0",
+        "source": {
+          "owner": "select-00",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-and",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "or-term1",
+        "source": {
+          "owner": "or-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "n1-term1",
+        "source": {
+          "owner": "select-01",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-term2",
+        "source": {
+          "owner": "xor-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-xor",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "n2-term2",
+        "source": {
+          "owner": "select-10",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-xor",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum-term3",
+        "source": {
+          "owner": "sum",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-add",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "n3-term3",
+        "source": {
+          "owner": "select-11",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "term-add",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "term0-or01",
+        "source": {
+          "owner": "term-and",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or-01",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "term1-or01",
+        "source": {
+          "owner": "term-or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or-01",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "term2-or23",
+        "source": {
+          "owner": "term-xor",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or-23",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "term3-or23",
+        "source": {
+          "owner": "term-add",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or-23",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "or01-result",
+        "source": {
+          "owner": "result-or-01",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "or23-result",
+        "source": {
+          "owner": "result-or-23",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "result-or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "result-out",
+        "source": {
+          "owner": "result-or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "out-result",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry1-or",
+        "source": {
+          "owner": "carry-and-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry2-or",
+        "source": {
+          "owner": "carry-and-cin",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-or-select",
+        "source": {
+          "owner": "carry-or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-select",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "n3-carry-select",
+        "source": {
+          "owner": "select-11",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-select",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-out",
+        "source": {
+          "owner": "carry-select",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "out-carry",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "note-how-to-use",
+        "type": "text",
+        "text": "HOW TO USE\n1. Toggle A, B, and CIN.\n2. Set OP1 / OP0.\n3. Read RESULT and CARRY.",
+        "position": {
+          "x": -910,
+          "y": -460
+        },
+        "width": 360,
+        "height": 150,
+        "fontSize": 12,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      },
+      {
+        "id": "note-opcode-table",
+        "type": "text",
+        "text": "OPCODE (OP1 OP0)\n00  =  AND\n01  =  OR\n10  =  XOR\n11  =  ADD",
+        "position": {
+          "x": -1000,
+          "y": 410
+        },
+        "width": 300,
+        "height": 150,
+        "fontSize": 12,
+        "colour": "#f3d36b",
+        "background": "#352e18"
+      },
+      {
+        "id": "note-output-guide",
+        "type": "text",
+        "text": "OUTPUTS\nRESULT = selected logic result or ADD sum.\nCARRY = carry-out from ADD mode; otherwise LOW.",
+        "position": {
+          "x": 1290,
+          "y": -70
+        },
+        "width": 360,
+        "height": 150,
+        "fontSize": 12,
+        "colour": "#b8f3ca",
+        "background": "#28352c"
+      },
+      {
+        "id": "label-logic-paths",
+        "type": "label",
+        "text": "LOGIC PATHS",
+        "position": {
+          "x": -460,
+          "y": -350
+        },
+        "width": 180,
+        "height": 22,
+        "fontSize": 12,
+        "colour": "#f3d36b",
+        "background": "#352e18"
+      },
+      {
+        "id": "label-mode-selector",
+        "type": "label",
+        "text": "MODE SELECTOR: only the matching opcode path is enabled",
+        "position": {
+          "x": 120,
+          "y": 480
+        },
+        "width": 520,
+        "height": 22,
+        "fontSize": 11,
+        "colour": "#b8d7ff",
+        "background": "#282f38"
+      }
+    ]
+  },
+  "customChips": {},
+  "collections": [
+    {
+      "name": "LOGIC",
+      "chips": [
+        "AND",
+        "OR",
+        "NOT",
+        "NAND",
+        "NOR",
+        "XOR",
+        "XNOR",
+        "BUFFER"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "chips": [
+        "CLOCK",
+        "PULSE",
+        "KEY",
+        "3-STATE BUFFER"
+      ]
+    },
+    {
+      "name": "IN/OUT",
+      "chips": [
+        "IN-1",
+        "IN-4",
+        "IN-8",
+        "OUT-1",
+        "OUT-4",
+        "OUT-8"
+      ]
+    },
+    {
+      "name": "MERGE/SPLIT",
+      "chips": [
+        "1-4BIT",
+        "1-8BIT",
+        "4-8BIT",
+        "4-1BIT",
+        "8-4BIT",
+        "8-1BIT"
+      ]
+    },
+    {
+      "name": "BUS",
+      "chips": [
+        "BUS-1",
+        "BUS-4",
+        "BUS-8"
+      ]
+    },
+    {
+      "name": "DISPLAY",
+      "chips": [
+        "7-SEGMENT",
+        "DOT DISPLAY",
+        "RGB DISPLAY",
+        "LED"
+      ]
+    },
+    {
+      "name": "MEMORY",
+      "chips": [
+        "ROM 256x16",
+        "dev.RAM-8"
+      ]
+    },
+    {
+      "name": "AUDIO",
+      "chips": [
+        "BUZZER"
+      ]
+    }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
+  ],
+  "starred": [
+    "LOGIC",
+    "IN-1",
+    "OUT-1"
+  ],
+  "settings": {
+    "snapping": true,
+    "straightWires": false,
+    "grid": true,
+    "simulationPaused": false,
+    "stepsPerSecond": 13,
+    "stepsPerClock": 8
+  },
+  "inputValues": {
+    "in-op0": 0
+  },
+  "keyValues": {
+    "ControlLeft": true,
+    "Control": true,
+    "Escape": false,
+    "KeyZ": false,
+    "z": false,
+    "ShiftRight": false,
+    "Shift": false,
+    "IntlRo": false,
+    "?": true,
+    "/": false,
+    "Delete": false
+  }
+}

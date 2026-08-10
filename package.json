@@ -1,0 +1,17 @@
+{
+  "name": "digital-logic-sim-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/dev.mjs",
+    "dev:web": "vite",
+    "dev:api": "node server/api.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}

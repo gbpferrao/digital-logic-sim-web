@@ -1,0 +1,2906 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "HEX TO 7SEG",
+  "updatedAt": "2026-08-09T22:20:09.302Z",
+  "description": {
+    "id": "chip-hex-to-7seg",
+    "name": "HEX TO 7SEG",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 280,
+      "y": 360
+    },
+    "colour": "#7358ad",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "direction": "input",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "d3",
+        "name": "D3",
+        "bits": 1,
+        "x": -140,
+        "y": -90
+      },
+      {
+        "direction": "input",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "d2",
+        "name": "D2",
+        "bits": 1,
+        "x": -140,
+        "y": -30
+      },
+      {
+        "direction": "input",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "d1",
+        "name": "D1",
+        "bits": 1,
+        "x": -140,
+        "y": 30
+      },
+      {
+        "direction": "input",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "d0",
+        "name": "D0",
+        "bits": 1,
+        "x": -140,
+        "y": 90
+      }
+    ],
+    "outputPins": [
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-a",
+        "name": "A",
+        "bits": 1,
+        "x": 140,
+        "y": 56.875
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-b",
+        "name": "B",
+        "bits": 1,
+        "x": 140,
+        "y": 40.625
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-c",
+        "name": "C",
+        "bits": 1,
+        "x": 140,
+        "y": 24.375
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-d",
+        "name": "D",
+        "bits": 1,
+        "x": 140,
+        "y": 8.125
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-e",
+        "name": "E",
+        "bits": 1,
+        "x": 140,
+        "y": -8.125
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-f",
+        "name": "F",
+        "bits": 1,
+        "x": 140,
+        "y": -24.375
+      },
+      {
+        "direction": "output",
+        "valueDisplay": "off",
+        "colour": "red",
+        "id": "seg-g",
+        "name": "G",
+        "bits": 1,
+        "x": 140,
+        "y": -40.625
+      }
+    ],
+    "instances": [
+      {
+        "id": "not-d3",
+        "name": "NOT",
+        "position": {
+          "x": -500,
+          "y": -90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "not-d2",
+        "name": "NOT",
+        "position": {
+          "x": -500,
+          "y": -30
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "not-d1",
+        "name": "NOT",
+        "position": {
+          "x": -500,
+          "y": 30
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "not-d0",
+        "name": "NOT",
+        "position": {
+          "x": -500,
+          "y": 90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-100x-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": -382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-100x-2",
+        "name": "AND",
+        "position": {
+          "x": -280,
+          "y": -382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-01x1-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": -297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-01x1-2",
+        "name": "AND",
+        "position": {
+          "x": -280,
+          "y": -297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x0x0-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": -212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1xx0-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": -127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x1x-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": -42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x11x-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": 42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x00-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": 127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x00-2",
+        "name": "AND",
+        "position": {
+          "x": -280,
+          "y": 127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x11-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": 212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x11-2",
+        "name": "AND",
+        "position": {
+          "x": -280,
+          "y": 212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1x01-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": 297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1x01-2",
+        "name": "AND",
+        "position": {
+          "x": -280,
+          "y": 297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-00xx-1",
+        "name": "AND",
+        "position": {
+          "x": -360,
+          "y": 382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0x0x-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": -382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-0xx1-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": -297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-01xx-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": -212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-xx01-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": -127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-10xx-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": -42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-00x0-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": 42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-00x0-2",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x101-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": 127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x101-2",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x110-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": 212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x110-2",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x011-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": 297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x011-2",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1x0x-1",
+        "name": "AND",
+        "position": {
+          "x": -80,
+          "y": 382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-xx10-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": -382.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1x1x-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": -297.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-11xx-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": -212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-010x-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": -127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-010x-2",
+        "name": "AND",
+        "position": {
+          "x": 280,
+          "y": -127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-xx00-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": -42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x1x0-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": 42.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-x01x-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": 127.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-1xx1-1",
+        "name": "AND",
+        "position": {
+          "x": 200,
+          "y": 212.5
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-a-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": -240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-a-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": -240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-a-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": -240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-a-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": -240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-a-5",
+        "name": "OR",
+        "position": {
+          "x": 940,
+          "y": -240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-b-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-b-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-b-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-b-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-c-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-c-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-c-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-c-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-d-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-d-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-d-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-d-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-e-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": 80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-e-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": 80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-e-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": 80
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-f-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": 160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-f-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": 160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-f-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": 160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-f-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": 160
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-g-1",
+        "name": "OR",
+        "position": {
+          "x": 620,
+          "y": 240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-g-2",
+        "name": "OR",
+        "position": {
+          "x": 700,
+          "y": 240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-g-3",
+        "name": "OR",
+        "position": {
+          "x": 780,
+          "y": 240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-g-4",
+        "name": "OR",
+        "position": {
+          "x": 860,
+          "y": 240
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "wire-not-d3-in",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "not-d3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-not-d2-in",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "not-d2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-not-d1-in",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "not-d1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-not-d0-in",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "not-d0",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-100x-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-100x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-100x-1-right",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-100x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-100x-2-left",
+        "source": {
+          "owner": "and-100x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-100x-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-100x-2-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-100x-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01x1-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-01x1-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01x1-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-01x1-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01x1-2-left",
+        "source": {
+          "owner": "and-01x1-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-01x1-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01x1-2-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-01x1-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x0x0-1-left",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x0x0-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x0x0-1-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x0x0-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1xx0-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-1xx0-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1xx0-1-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-1xx0-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x1x-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x1x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x1x-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-0x1x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x11x-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-x11x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x11x-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-x11x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x00-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x00-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x00-1-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x00-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x00-2-left",
+        "source": {
+          "owner": "and-0x00-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-0x00-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x00-2-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x00-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x11-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x11-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x11-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-0x11-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x11-2-left",
+        "source": {
+          "owner": "and-0x11-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-0x11-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x11-2-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-0x11-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x01-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-1x01-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x01-1-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-1x01-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x01-2-left",
+        "source": {
+          "owner": "and-1x01-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-1x01-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x01-2-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-1x01-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00xx-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-00xx-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00xx-1-right",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-00xx-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x0x-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x0x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0x0x-1-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0x0x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0xx1-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-0xx1-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-0xx1-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-0xx1-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01xx-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-01xx-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-01xx-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-01xx-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx01-1-left",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-xx01-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx01-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-xx01-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-10xx-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-10xx-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-10xx-1-right",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-10xx-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00x0-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-00x0-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00x0-1-right",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-00x0-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00x0-2-left",
+        "source": {
+          "owner": "and-00x0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-00x0-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-00x0-2-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-00x0-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x101-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-x101-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x101-1-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x101-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x101-2-left",
+        "source": {
+          "owner": "and-x101-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-x101-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x101-2-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-x101-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x110-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-x110-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x110-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-x110-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x110-2-left",
+        "source": {
+          "owner": "and-x110-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-x110-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x110-2-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x110-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x011-1-left",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x011-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x011-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-x011-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x011-2-left",
+        "source": {
+          "owner": "and-x011-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-x011-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x011-2-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-x011-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x0x-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-1x0x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x0x-1-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-1x0x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx10-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-xx10-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx10-1-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-xx10-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x1x-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-1x1x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1x1x-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-1x1x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-11xx-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-11xx-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-11xx-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-11xx-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-010x-1-left",
+        "source": {
+          "owner": "not-d3",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-010x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-010x-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-010x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-010x-2-left",
+        "source": {
+          "owner": "and-010x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-010x-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-010x-2-right",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-010x-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx00-1-left",
+        "source": {
+          "owner": "not-d1",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-xx00-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-xx00-1-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-xx00-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x1x0-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d2"
+        },
+        "target": {
+          "owner": "and-x1x0-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x1x0-1-right",
+        "source": {
+          "owner": "not-d0",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x1x0-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x01x-1-left",
+        "source": {
+          "owner": "not-d2",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "and-x01x-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-x01x-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d1"
+        },
+        "target": {
+          "owner": "and-x01x-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1xx1-1-left",
+        "source": {
+          "owner": "root",
+          "pin": "d3"
+        },
+        "target": {
+          "owner": "and-1xx1-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-and-1xx1-1-right",
+        "source": {
+          "owner": "root",
+          "pin": "d0"
+        },
+        "target": {
+          "owner": "and-1xx1-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-1-left",
+        "source": {
+          "owner": "and-100x-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-1-right",
+        "source": {
+          "owner": "and-01x1-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-2-left",
+        "source": {
+          "owner": "or-a-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-2-right",
+        "source": {
+          "owner": "and-x0x0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-3-left",
+        "source": {
+          "owner": "or-a-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-3-right",
+        "source": {
+          "owner": "and-1xx0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-4-left",
+        "source": {
+          "owner": "or-a-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-4-right",
+        "source": {
+          "owner": "and-0x1x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-5-left",
+        "source": {
+          "owner": "or-a-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-5",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-a-5-right",
+        "source": {
+          "owner": "and-x11x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-a-5",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-a",
+        "source": {
+          "owner": "or-a-5",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-1-left",
+        "source": {
+          "owner": "and-0x00-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-1-right",
+        "source": {
+          "owner": "and-0x11-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-2-left",
+        "source": {
+          "owner": "or-b-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-2-right",
+        "source": {
+          "owner": "and-1x01-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-3-left",
+        "source": {
+          "owner": "or-b-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-3-right",
+        "source": {
+          "owner": "and-00xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-4-left",
+        "source": {
+          "owner": "or-b-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-b-4-right",
+        "source": {
+          "owner": "and-x0x0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-b-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-b",
+        "source": {
+          "owner": "or-b-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-1-left",
+        "source": {
+          "owner": "and-0x0x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-1-right",
+        "source": {
+          "owner": "and-0xx1-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-2-left",
+        "source": {
+          "owner": "or-c-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-2-right",
+        "source": {
+          "owner": "and-01xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-3-left",
+        "source": {
+          "owner": "or-c-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-3-right",
+        "source": {
+          "owner": "and-xx01-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-4-left",
+        "source": {
+          "owner": "or-c-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-c-4-right",
+        "source": {
+          "owner": "and-10xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-c-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-c",
+        "source": {
+          "owner": "or-c-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-c"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-1-left",
+        "source": {
+          "owner": "and-00x0-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-1-right",
+        "source": {
+          "owner": "and-x101-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-2-left",
+        "source": {
+          "owner": "or-d-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-2-right",
+        "source": {
+          "owner": "and-x110-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-3-left",
+        "source": {
+          "owner": "or-d-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-3-right",
+        "source": {
+          "owner": "and-x011-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-4-left",
+        "source": {
+          "owner": "or-d-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-d-4-right",
+        "source": {
+          "owner": "and-1x0x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-d-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-d",
+        "source": {
+          "owner": "or-d-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-d"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-1-left",
+        "source": {
+          "owner": "and-x0x0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-1-right",
+        "source": {
+          "owner": "and-xx10-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-2-left",
+        "source": {
+          "owner": "or-e-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-2-right",
+        "source": {
+          "owner": "and-1x1x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-3-left",
+        "source": {
+          "owner": "or-e-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-e-3-right",
+        "source": {
+          "owner": "and-11xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-e-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-e",
+        "source": {
+          "owner": "or-e-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-e"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-1-left",
+        "source": {
+          "owner": "and-010x-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-1-right",
+        "source": {
+          "owner": "and-xx00-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-2-left",
+        "source": {
+          "owner": "or-f-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-2-right",
+        "source": {
+          "owner": "and-x1x0-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-3-left",
+        "source": {
+          "owner": "or-f-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-3-right",
+        "source": {
+          "owner": "and-10xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-4-left",
+        "source": {
+          "owner": "or-f-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-f-4-right",
+        "source": {
+          "owner": "and-1x1x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-f-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-f",
+        "source": {
+          "owner": "or-f-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-f"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-1-left",
+        "source": {
+          "owner": "and-010x-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-1-right",
+        "source": {
+          "owner": "and-xx10-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-2-left",
+        "source": {
+          "owner": "or-g-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-2-right",
+        "source": {
+          "owner": "and-10xx-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-3-left",
+        "source": {
+          "owner": "or-g-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-3-right",
+        "source": {
+          "owner": "and-x01x-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-4-left",
+        "source": {
+          "owner": "or-g-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-or-g-4-right",
+        "source": {
+          "owner": "and-1xx1-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-g-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "wire-segment-g",
+        "source": {
+          "owner": "or-g-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "seg-g"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": []
+  }
+}

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#424245" />
+    <title>Digital Logic Sim Web</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">01</span>
+          <div>
+            <strong>Digital Logic Sim</strong>
+            <span class="brand-subtitle">web reimplementation</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="new-project" class="button subtle button-with-icon" title="Create a new project"><i class="icon-glyph" data-lucide="file-plus-2" aria-hidden="true"></i><span>New</span></button>
+          <button id="save-project" class="button subtle button-with-icon" title="Save to this browser"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+          <button id="export-project" class="button subtle button-with-icon" title="Export project JSON"><i class="icon-glyph" data-lucide="download" aria-hidden="true"></i><span>Export</span></button>
+          <button id="import-project" class="button subtle button-with-icon" title="Import project JSON"><i class="icon-glyph" data-lucide="upload" aria-hidden="true"></i><span>Import</span></button>
+          <button id="import-folder" class="button subtle button-with-icon" title="Import a Unity project folder"><i class="icon-glyph" data-lucide="folder-open" aria-hidden="true"></i><span>Unity folder</span></button>
+          <input id="import-file" type="file" accept="application/json,.json" hidden />
+          <input id="import-folder-file" type="file" webkitdirectory multiple hidden />
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside id="library-panel" class="panel library-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Chip library</h2>
+            </div>
+            <div class="panel-actions"><button id="save-chip" class="icon-button" type="button" title="Save the current circuit as a custom chip" aria-label="Save the current circuit as a custom chip"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i></button><button id="close-library" class="icon-button close-drawer" type="button" title="Close library" aria-label="Close library"><i class="icon-glyph" data-lucide="x" aria-hidden="true"></i></button></div>
+          </div>
+          <label class="search-field">
+            <i class="search-icon icon-glyph" data-lucide="search" aria-hidden="true"></i>
+            <input id="chip-search" aria-label="Search chips" placeholder="Search chips" autocomplete="off" />
+          </label>
+          <div id="chip-library" class="chip-library"></div>
+        </aside>
+
+        <section class="canvas-panel">
+          <div class="canvas-toolbar">
+            <button id="bottom-menu" class="toolbar-menu-button button-with-icon" type="button" aria-label="Open project menu"><i class="icon-glyph" data-lucide="menu" aria-hidden="true"></i><span>MENU</span></button>
+            <div class="project-title toolbar-project-title">
+              <span class="eyebrow">PROJECT</span>
+              <div class="project-name-row"><input id="project-name" value="Untitled project" aria-label="Project name" /><span id="save-state" class="save-state">SAVED</span></div>
+            </div>
+            <div class="tool-group">
+              <button id="select-tool" class="tool-button active button-with-icon" title="Select and move"><i class="icon-glyph" data-lucide="mouse-pointer-2" aria-hidden="true"></i><span>Select</span></button>
+              <button id="wire-tool" class="tool-button button-with-icon" title="Create a wire"><i class="icon-glyph" data-lucide="git-branch" aria-hidden="true"></i><span>Wire</span></button>
+              <button id="add-note" class="tool-button button-with-icon" title="Add an explanatory note"><i class="icon-glyph" data-lucide="sticky-note" aria-hidden="true"></i><span>Note</span></button>
+              <button id="add-label" class="tool-button button-with-icon" title="Add a short canvas label"><i class="icon-glyph" data-lucide="tag" aria-hidden="true"></i><span>Label</span></button>
+            </div>
+            <div class="sim-control-stack">
+              <div class="sim-controls">
+                <button id="run-sim" class="run-button button-with-icon" title="Run simulation" aria-pressed="false"><i class="icon-glyph" data-lucide="play" aria-hidden="true"></i><span id="run-sim-label">RUN</span></button>
+                <button id="step-sim" class="tool-button button-with-icon" title="Advance one simulation step"><i class="icon-glyph" data-lucide="step-forward" aria-hidden="true"></i><span id="step-sim-label">Step 0</span></button>
+                <label class="speed-control" title="Simulation steps per second"><span class="speed-control-label">speed</span><input id="sim-speed" type="number" min="1" max="30" step="1" value="8" inputmode="numeric" aria-label="Simulation steps per second" /><span>/s</span></label>
+                <button id="reset-sim" class="tool-button button-with-icon" title="Reset simulation"><i class="icon-glyph" data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button>
+              </div>
+              <label id="step-scrubber-wrap" class="step-scrubber hidden" title="Scrub simulation history">
+                <span class="step-scrubber-label">HISTORY</span>
+                <input id="step-scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub simulation history" />
+                <span id="step-scrubber-value">Step 0 / 0</span>
+              </label>
+            </div>
+          </div>
+          <div id="canvas-wrap" class="canvas-wrap">
+            <canvas id="world" aria-label="Digital logic circuit editor"></canvas>
+            <div id="canvas-empty" class="canvas-empty">
+              <div class="empty-orbit" aria-hidden="true"><i class="icon-glyph" data-lucide="plus"></i></div>
+              <strong>Empty circuit</strong>
+            </div>
+            <div id="viewed-banner" class="viewed-banner hidden">
+              <button id="viewed-back" class="button-with-icon" type="button" title="Return to the parent chip" aria-label="Return to the parent chip"><i class="icon-glyph" data-lucide="arrow-left" aria-hidden="true"></i><span>BACK</span></button>
+              <span id="viewed-path"></span>
+            </div>
+            <button id="canvas-inspect-button" class="canvas-inspect-button hidden" type="button" aria-label="Inspect selected chip" title="Inspect selected chip"><i class="icon-glyph" data-lucide="info" aria-hidden="true"></i></button>
+          </div>
+          <footer class="canvas-status" aria-label="Canvas status">
+            <div class="status-message-slot">
+              <span id="status-message">Ready.</span>
+            </div>
+            <div class="status-readouts" aria-label="Canvas readouts">
+              <span class="status-readout status-coordinate">
+                <span class="status-readout-label">COORD</span>
+                <span id="coordinate-readout" class="status-readout-value">0, 0</span>
+              </span>
+              <span class="status-readout status-zoom">
+                <span class="status-readout-label">ZOOM</span>
+                <span id="zoom-readout" class="status-readout-value">100%</span>
+              </span>
+              <button id="fit-view" class="status-button button-with-icon" title="Fit circuit to view"><i class="icon-glyph" data-lucide="maximize-2" aria-hidden="true"></i><span>FIT</span></button>
+            </div>
+          </footer>
+        </section>
+
+        <aside id="inspector-panel" class="panel inspector-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Inspector</h2>
+            </div>
+            <div class="panel-actions"><span id="selection-count" class="count-badge">0</span><button id="close-inspector" class="icon-button close-drawer" type="button" title="Close inspector" aria-label="Close inspector"><i class="icon-glyph" data-lucide="x" aria-hidden="true"></i></button></div>
+          </div>
+          <div id="inspector" class="inspector-content"></div>
+        </aside>
+      </main>
+
+      <nav id="bottom-bar" class="bottom-bar" aria-label="Quick chip access">
+        <button id="bottom-library" class="bottom-action bottom-library-button button-with-icon" type="button"><i class="icon-glyph" data-lucide="library" aria-hidden="true"></i><span>LIBRARY</span></button>
+        <div id="collection-tabs" class="collection-tabs" aria-label="Chip groups"></div>
+      </nav>
+      <div id="bottom-menu-popup" class="bottom-menu-popup hidden">
+        <button id="bottom-import"><span class="menu-item-label"><i class="icon-glyph" data-lucide="upload" aria-hidden="true"></i>IMPORT JSON</span></button>
+        <button id="bottom-unity-import"><span class="menu-item-label"><i class="icon-glyph" data-lucide="folder-open" aria-hidden="true"></i>IMPORT UNITY FOLDER</span></button>
+        <div class="menu-divider" role="separator"></div>
+        <button id="bottom-find"><span class="menu-item-label"><i class="icon-glyph" data-lucide="search" aria-hidden="true"></i>FIND CHIP</span><span>Ctrl+F</span></button>
+        <button id="bottom-new"><span class="menu-item-label"><i class="icon-glyph" data-lucide="file-plus-2" aria-hidden="true"></i>NEW PROJECT</span><span>Ctrl+N</span></button>
+        <button id="bottom-save"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE PROJECT</span><span>Ctrl+S</span></button>
+        <button id="bottom-save-chip"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE CHIP</span></button>
+        <div class="menu-divider" role="separator"></div>
+        <button id="bottom-export"><span class="menu-item-label"><i class="icon-glyph" data-lucide="download" aria-hidden="true"></i>EXPORT JSON</span></button>
+        <div class="menu-divider" role="separator"></div>
+        <button id="bottom-help"><span class="menu-item-label"><i class="icon-glyph" data-lucide="circle-help" aria-hidden="true"></i>HELP</span></button>
+      </div>
+      <div id="collection-popup" class="collection-popup hidden"></div>
+
+      <div id="help-modal" class="help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <section class="help-dialog">
+          <header class="help-dialog-header">
+            <div>
+              <span class="eyebrow">HELP / REFERENCE</span>
+              <h2 id="help-title">Shortcuts &amp; interaction</h2>
+            </div>
+            <button id="close-help" class="icon-button" type="button" title="Close help" aria-label="Close help"><i class="icon-glyph" data-lucide="x" aria-hidden="true"></i></button>
+          </header>
+          <div class="help-dialog-content">
+            <section class="help-guidance" aria-labelledby="help-guidance-title">
+              <div class="help-section-heading">
+                <div>
+                  <span class="eyebrow">START HERE</span>
+                  <h3 id="help-guidance-title">Build a circuit in four moves</h3>
+                </div>
+                <i class="icon-glyph" data-lucide="workflow" aria-hidden="true"></i>
+              </div>
+              <div class="help-guidance-grid">
+                <div class="help-guidance-item"><strong>Place</strong><span>Open the Library or a bottom-bar group, then click a chip to place it. Drag a chip directly onto the canvas for direct placement.</span></div>
+                <div class="help-guidance-item"><strong>Connect</strong><span>Click a pin to start or finish a compatible wire, or drag directly from one pin to another. Click empty canvas to add route points.</span></div>
+                <div class="help-guidance-item"><strong>Inspect</strong><span>Select an object to open its Inspector. Double-click chips, wires, notes, and labels for their edit action.</span></div>
+                <div class="help-guidance-item"><strong>Simulate</strong><span>Click input devices to toggle them, use RUN or STEP to advance the circuit, and RESET to return to its initial state.</span></div>
+              </div>
+            </section>
+            <section class="help-group">
+              <h3>Library &amp; placement</h3>
+              <div class="help-command"><kbd>LIBRARY</kbd><span>Open the chip library</span></div>
+              <div class="help-command"><kbd>CLICK</kbd><span>Place a chip from the library</span></div>
+              <div class="help-command"><kbd>DRAG</kbd><span>Drag a chip from the library or an open group drop-up to place it</span></div>
+              <div class="help-command"><kbd>RMB</kbd><span>Open a chip menu or cancel an active interaction</span></div>
+              <div class="help-command"><kbd>CTRL + F</kbd><span>Search the chip library</span></div>
+              <div class="help-command"><kbd>REORDER</kbd><span>Drag bottom-bar group tabs to change their order</span></div>
+            </section>
+            <section class="help-group">
+              <h3>Canvas</h3>
+              <div class="help-command"><kbd>V</kbd><span>Select and move</span></div>
+              <div class="help-command"><kbd>ALT / SHIFT</kbd><span>Add to a multi-selection</span></div>
+              <div class="help-command"><kbd>SHIFT</kbd><span>Constrain movement to one axis</span></div>
+              <div class="help-command"><kbd>MMB / ALT</kbd><span>Pan the world</span></div>
+              <div class="help-command"><kbd>WHEEL</kbd><span>Zoom at the cursor</span></div>
+              <div class="help-command"><kbd>FIT</kbd><span>Frame the current circuit</span></div>
+              <div class="help-command"><kbd>CTRL + R</kbd><span>Reset the camera</span></div>
+              <div class="help-command"><kbd>CTRL + G</kbd><span>Toggle the grid</span></div>
+            </section>
+            <section class="help-group">
+              <h3>Wiring</h3>
+              <div class="help-command"><kbd>W</kbd><span>Activate wire mode</span></div>
+              <div class="help-command"><kbd>PIN</kbd><span>Click a pin to start or finish a compatible wire</span></div>
+              <div class="help-command"><kbd>PIN → PIN</kbd><span>Drag directly between pins</span></div>
+              <div class="help-command"><kbd>WIRE</kbd><span>Click empty canvas for a route point or branch</span></div>
+              <div class="help-command"><kbd>DOUBLE-CLICK</kbd><span>Enter wire-edit mode</span></div>
+              <div class="help-command"><kbd>ENTER</kbd><span>Leave wire-edit mode</span></div>
+              <div class="help-command"><kbd>RMB</kbd><span>Delete a hovered route point</span></div>
+            </section>
+            <section class="help-group">
+              <h3>Editing</h3>
+              <div class="help-command"><kbd>N / L</kbd><span>Add a note or label</span></div>
+              <div class="help-command"><kbd>DOUBLE-CLICK</kbd><span>Inspect or edit an object</span></div>
+              <div class="help-command"><kbd>R</kbd><span>Rotate selection</span></div>
+              <div class="help-command"><kbd>SHIFT + R</kbd><span>Rotate selection counter-clockwise</span></div>
+              <div class="help-command"><kbd>CTRL + D</kbd><span>Duplicate selection</span></div>
+              <div class="help-command"><kbd>ESC</kbd><span>Cancel or clear selection</span></div>
+              <div class="help-command"><kbd>DELETE</kbd><span>Delete selection</span></div>
+            </section>
+            <section class="help-group">
+              <h3>Simulation</h3>
+              <div class="help-command"><kbd>INPUT</kbd><span>Click an input device to toggle its value</span></div>
+              <div class="help-command"><kbd>SPACE</kbd><span>Advance one step while paused</span></div>
+              <div class="help-command"><kbd>CTRL + SPACE</kbd><span>Run or pause</span></div>
+              <div class="help-command"><kbd>STEP</kbd><span>Advance and show the step count</span></div>
+              <div class="help-command"><kbd>SPEED</kbd><span>Set simulation steps per second</span></div>
+              <div class="help-command"><kbd>HISTORY</kbd><span>When paused, scrub back through recorded steps</span></div>
+              <div class="help-command"><kbd>RESET</kbd><span>Return signals to their initial state</span></div>
+            </section>
+            <section class="help-group">
+              <h3>Project</h3>
+              <div class="help-command"><kbd>CTRL + S</kbd><span>Save project</span></div>
+              <div class="help-command"><kbd>CTRL + N</kbd><span>New project</span></div>
+              <div class="help-command"><kbd>SAVE CHIP</kbd><span>Save the current circuit as a reusable chip</span></div>
+              <div class="help-command"><kbd>IMPORT / EXPORT</kbd><span>Move project JSON between sessions</span></div>
+              <div class="help-command"><kbd>DOUBLE-CLICK</kbd><span>Open a custom chip's internal circuit</span></div>
+            </section>
+            <section class="help-meta" aria-labelledby="help-meta-title">
+              <div class="help-section-heading">
+                <div>
+                  <span class="eyebrow">ABOUT THIS SESSION</span>
+                  <h3 id="help-meta-title">Application &amp; project</h3>
+                </div>
+                <span class="help-meta-badge">LOCAL-FIRST</span>
+              </div>
+              <dl class="help-meta-grid">
+                <div><dt>Application</dt><dd id="help-app-name">Digital Logic Simulator</dd></div>
+                <div><dt>Version</dt><dd id="help-app-version">v0.1.0</dd></div>
+                <div><dt>Project</dt><dd id="help-project-name">Untitled project</dd></div>
+                <div><dt>Active circuit</dt><dd id="help-current-view">Main circuit</dd></div>
+                <div><dt>Project schema</dt><dd id="help-project-schema">digital-logic-sim-web/1</dd></div>
+                <div><dt>Chip schema</dt><dd id="help-chip-schema">digital-logic-sim-web/chip/1</dd></div>
+                <div><dt>Contents</dt><dd id="help-project-stats">0 chips / 0 wires / 0 custom chips</dd></div>
+                <div><dt>Storage</dt><dd id="help-storage">Local JSON API + browser cache fallback</dd></div>
+              </dl>
+              <p class="help-meta-note">Keyboard modifiers use Ctrl on Windows/Linux and Command on macOS. Projects and custom chips remain local unless you export or copy their JSON.</p>
+            </section>
+          </div>
+        </section>
+      </div>
+
+      <div id="toast" class="toast" role="status"></div>
+      <div id="context-menu" class="context-menu hidden"></div>
+    </div>
+    <!-- Lucide is the single icon source for interface affordances. -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
