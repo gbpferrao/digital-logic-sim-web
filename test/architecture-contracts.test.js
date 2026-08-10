@@ -133,6 +133,7 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
   const renderer = await readFile(path.join(process.cwd(), "src", "renderer.js"), "utf8");
   assert.match(html, /id="xray-toggle"/);
+  assert.match(html, /id="xray-toggle" class="status-button button-with-icon"/);
   assert.match(html, /id="bottom-xray"/);
   assert.match(html, /<kbd>X<\/kbd>/);
   assert.match(renderer, /const XRAY_MAX_DEPTH = 3/);

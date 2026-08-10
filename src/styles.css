@@ -573,8 +573,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
 .status-readout-label { color: #85858a; font-size: 8px; font-weight: 700; letter-spacing: .12em; line-height: 1; }
 .status-readout-value { margin: 0; color: var(--ui-accent); font: 600 10px "JetBrains Mono", monospace; text-align: right; white-space: nowrap; }
 .canvas-status #coordinate-readout, .canvas-status #zoom-readout { min-width: 0; margin-left: 0; }
-.canvas-status .status-button { display: inline-flex; width: 52px; height: 24px; min-width: 52px; flex: 0 0 auto; align-items: center; justify-content: center; margin: 0; padding: 0 9px; border: 1px solid var(--ui-line-soft); border-radius: 3px; color: var(--ui-accent); background: rgb(0 0 0 / 18%); cursor: pointer; font: 700 9px "JetBrains Mono", monospace; letter-spacing: .08em; }
+.canvas-status .status-button { display: inline-flex; width: 52px; height: 24px; min-width: 52px; flex: 0 0 auto; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 0 9px; border: 1px solid var(--ui-line-soft); border-radius: 3px; color: var(--ui-accent); background: rgb(0 0 0 / 18%); cursor: pointer; font: 700 9px "JetBrains Mono", monospace; letter-spacing: .08em; white-space: nowrap; }
+.canvas-status .status-button .icon-glyph { width: 13px; height: 13px; }
 .canvas-status .status-button:hover { border-color: var(--ui-control-border-hover); color: var(--ui-accent-strong); background: rgb(0 0 0 / 28%); }
+.canvas-status .status-button.active { border-color: var(--ui-control-border-hover); color: var(--ui-accent-strong); background: var(--ui-control-active); }
+.canvas-status #xray-toggle { width: 70px; min-width: 70px; }
 .canvas-inspect-button {
   position: absolute;
   z-index: 5;
@@ -632,4 +635,5 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
   .status-coordinate { width: 112px; }
   .status-zoom { width: 82px; }
   .canvas-status .status-button { width: 48px; min-width: 48px; padding: 0 7px; }
+  .canvas-status #xray-toggle { width: 70px; min-width: 70px; }
 }
