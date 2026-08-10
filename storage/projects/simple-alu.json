@@ -22,8 +22,8 @@
         "id": "in-a",
         "name": "IN-1",
         "position": {
-          "x": -560,
-          "y": -220
+          "x": -960,
+          "y": -240
         },
         "rotation": 0,
         "label": "A",
@@ -35,8 +35,8 @@
         "id": "in-b",
         "name": "IN-1",
         "position": {
-          "x": -560,
-          "y": -100
+          "x": -960,
+          "y": -120
         },
         "rotation": 0,
         "label": "B",
@@ -48,8 +48,8 @@
         "id": "in-cin",
         "name": "IN-1",
         "position": {
-          "x": -560,
-          "y": 20
+          "x": -960,
+          "y": 0
         },
         "rotation": 0,
         "label": "CIN",
@@ -61,8 +61,8 @@
         "id": "in-op0",
         "name": "IN-1",
         "position": {
-          "x": -560,
-          "y": 240
+          "x": -960,
+          "y": 120
         },
         "rotation": 0,
         "label": "",
@@ -74,8 +74,8 @@
         "id": "in-op1",
         "name": "IN-1",
         "position": {
-          "x": -560,
-          "y": 350
+          "x": -960,
+          "y": 240
         },
         "rotation": 0,
         "label": "OP1",
@@ -87,8 +87,8 @@
         "id": "not-op0",
         "name": "NOT",
         "position": {
-          "x": -360,
-          "y": 180
+          "x": -800,
+          "y": -60
         },
         "rotation": 0,
         "label": "",
@@ -100,8 +100,8 @@
         "id": "not-op1",
         "name": "NOT",
         "position": {
-          "x": -360,
-          "y": 300
+          "x": -800,
+          "y": 60
         },
         "rotation": 0,
         "label": "",
@@ -113,8 +113,8 @@
         "id": "and-ab",
         "name": "AND",
         "position": {
-          "x": -340,
-          "y": -250
+          "x": -640,
+          "y": -120
         },
         "rotation": 0,
         "label": "",
@@ -126,8 +126,8 @@
         "id": "or-ab",
         "name": "OR",
         "position": {
-          "x": -340,
-          "y": -120
+          "x": -640,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -139,8 +139,8 @@
         "id": "xor-ab",
         "name": "XOR",
         "position": {
-          "x": -340,
-          "y": 10
+          "x": -640,
+          "y": 120
         },
         "rotation": 0,
         "label": "",
@@ -152,8 +152,8 @@
         "id": "sum",
         "name": "XOR",
         "position": {
-          "x": -100,
-          "y": 10
+          "x": -320,
+          "y": 120
         },
         "rotation": 0,
         "label": "ADD SUM",
@@ -165,8 +165,8 @@
         "id": "carry-and-ab",
         "name": "AND",
         "position": {
-          "x": -100,
-          "y": -190
+          "x": -320,
+          "y": -120
         },
         "rotation": 0,
         "label": "",
@@ -178,8 +178,8 @@
         "id": "carry-and-cin",
         "name": "AND",
         "position": {
-          "x": -100,
-          "y": -90
+          "x": -320,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -191,8 +191,8 @@
         "id": "carry-or",
         "name": "OR",
         "position": {
-          "x": 120,
-          "y": -140
+          "x": 0,
+          "y": 0
         },
         "rotation": 0,
         "label": "CARRY",
@@ -204,8 +204,8 @@
         "id": "select-00",
         "name": "AND",
         "position": {
-          "x": -120,
-          "y": 170
+          "x": -480,
+          "y": -60
         },
         "rotation": 0,
         "label": "",
@@ -217,8 +217,8 @@
         "id": "select-01",
         "name": "AND",
         "position": {
-          "x": 10,
-          "y": 260
+          "x": -160,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -231,7 +231,7 @@
         "name": "AND",
         "position": {
           "x": 160,
-          "y": 280
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -243,8 +243,8 @@
         "id": "select-11",
         "name": "AND",
         "position": {
-          "x": 260,
-          "y": 410
+          "x": 320,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -256,8 +256,8 @@
         "id": "term-and",
         "name": "AND",
         "position": {
-          "x": 510,
-          "y": -210
+          "x": 480,
+          "y": -180
         },
         "rotation": 0,
         "label": "",
@@ -269,8 +269,8 @@
         "id": "term-or",
         "name": "AND",
         "position": {
-          "x": 510,
-          "y": -110
+          "x": 480,
+          "y": -60
         },
         "rotation": 0,
         "label": "",
@@ -282,8 +282,8 @@
         "id": "term-xor",
         "name": "AND",
         "position": {
-          "x": 510,
-          "y": -10
+          "x": 480,
+          "y": 60
         },
         "rotation": 0,
         "label": "",
@@ -295,8 +295,8 @@
         "id": "term-add",
         "name": "AND",
         "position": {
-          "x": 510,
-          "y": 90
+          "x": 480,
+          "y": 180
         },
         "rotation": 0,
         "label": "",
@@ -308,8 +308,8 @@
         "id": "result-or-01",
         "name": "OR",
         "position": {
-          "x": 710,
-          "y": -160
+          "x": 640,
+          "y": -120
         },
         "rotation": 0,
         "label": "",
@@ -321,7 +321,7 @@
         "id": "result-or-23",
         "name": "OR",
         "position": {
-          "x": 710,
+          "x": 640,
           "y": 0
         },
         "rotation": 0,
@@ -334,8 +334,8 @@
         "id": "result-or",
         "name": "OR",
         "position": {
-          "x": 890,
-          "y": -80
+          "x": 800,
+          "y": 0
         },
         "rotation": 0,
         "label": "RESULT",
@@ -347,8 +347,8 @@
         "id": "carry-select",
         "name": "AND",
         "position": {
-          "x": 720,
-          "y": 150
+          "x": 640,
+          "y": 120
         },
         "rotation": 0,
         "label": "",
@@ -360,8 +360,8 @@
         "id": "out-result",
         "name": "OUT-1",
         "position": {
-          "x": 1070,
-          "y": -80
+          "x": 960,
+          "y": -60
         },
         "rotation": 0,
         "label": "RESULT",
@@ -373,8 +373,8 @@
         "id": "out-carry",
         "name": "OUT-1",
         "position": {
-          "x": 1070,
-          "y": 150
+          "x": 960,
+          "y": 60
         },
         "rotation": 0,
         "label": "CARRY",
@@ -386,8 +386,8 @@
         "id": "element-1fd71706",
         "name": "CLOCK",
         "position": {
-          "x": -120,
-          "y": 610
+          "x": -480,
+          "y": 60
         },
         "rotation": 0,
         "label": "",
@@ -952,8 +952,8 @@
         "type": "text",
         "text": "HOW TO USE\n1. Toggle A, B, and CIN.\n2. Set OP1 / OP0.\n3. Read RESULT and CARRY.",
         "position": {
-          "x": -1290,
-          "y": -400
+          "x": -1800,
+          "y": -350
         },
         "width": 288,
         "height": 210,
@@ -966,8 +966,8 @@
         "type": "text",
         "text": "OPCODE (OP1 OP0)\n00  =  AND\n01  =  OR\n10  =  XOR\n11  =  ADD",
         "position": {
-          "x": -1370,
-          "y": 230
+          "x": -1890,
+          "y": 30
         },
         "width": 300,
         "height": 150,
@@ -980,8 +980,8 @@
         "type": "text",
         "text": "OUTPUTS\nRESULT = selected logic result or ADD sum.\nCARRY = carry-out from ADD mode; otherwise LOW.",
         "position": {
-          "x": 1290,
-          "y": -70
+          "x": 1210,
+          "y": -150
         },
         "width": 360,
         "height": 150,
@@ -994,8 +994,8 @@
         "type": "label",
         "text": "LOGIC PATHS",
         "position": {
-          "x": -460,
-          "y": -350
+          "x": -830,
+          "y": -320
         },
         "width": 180,
         "height": 22,
@@ -1008,8 +1008,8 @@
         "type": "label",
         "text": "MODE SELECTOR: only the matching opcode path is enabled",
         "position": {
-          "x": 120,
-          "y": 480
+          "x": -160,
+          "y": 180
         },
         "width": 520,
         "height": 22,
@@ -1022,8 +1022,8 @@
         "type": "text",
         "text": "Explain this part...",
         "position": {
-          "x": -50,
-          "y": -590
+          "x": -360,
+          "y": -460
         },
         "width": 280,
         "height": 110,
@@ -1036,8 +1036,8 @@
         "type": "label",
         "text": "Label",
         "position": {
-          "x": 310,
-          "y": -560
+          "x": 60,
+          "y": -440
         },
         "width": 180,
         "height": 22,

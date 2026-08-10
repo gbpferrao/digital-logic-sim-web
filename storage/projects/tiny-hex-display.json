@@ -22,8 +22,8 @@
         "id": "input-d3",
         "name": "IN-1",
         "position": {
-          "x": -400,
-          "y": -90
+          "x": -1280,
+          "y": -180
         },
         "rotation": 0,
         "label": "D3 (8)",
@@ -35,8 +35,8 @@
         "id": "input-d2",
         "name": "IN-1",
         "position": {
-          "x": -400,
-          "y": -30
+          "x": -1280,
+          "y": -60
         },
         "rotation": 0,
         "label": "D2 (4)",
@@ -48,8 +48,8 @@
         "id": "input-d1",
         "name": "IN-1",
         "position": {
-          "x": -400,
-          "y": 30
+          "x": -1280,
+          "y": 60
         },
         "rotation": 0,
         "label": "D1 (2)",
@@ -61,8 +61,8 @@
         "id": "input-d0",
         "name": "IN-1",
         "position": {
-          "x": -400,
-          "y": 90
+          "x": -1280,
+          "y": 180
         },
         "rotation": 0,
         "label": "D0 (1)",
@@ -74,7 +74,7 @@
         "id": "decoder",
         "name": "HEX TO 7SEG",
         "position": {
-          "x": -80,
+          "x": -40,
           "y": 0
         },
         "rotation": 0,
@@ -87,7 +87,7 @@
         "id": "display",
         "name": "7-SEGMENT",
         "position": {
-          "x": 360,
+          "x": 1240,
           "y": 0
         },
         "rotation": 0,
@@ -250,8 +250,8 @@
         "type": "label",
         "text": "4-BIT HEX INPUT  ->  DECODER  ->  7-SEG DISPLAY",
         "position": {
-          "x": -460,
-          "y": -245
+          "x": -450,
+          "y": -240
         },
         "width": 620,
         "height": 26,
@@ -264,8 +264,8 @@
         "type": "text",
         "text": "Toggle D3..D0 to choose a hex digit.\nD3 is the 8's bit; D0 is the 1's bit.\nA-G are the seven display segments.",
         "position": {
-          "x": -460,
-          "y": 205
+          "x": -450,
+          "y": 210
         },
         "width": 320,
         "height": 70,
@@ -289,116 +289,116 @@
       "nameLocation": "top",
       "inputPins": [
         {
-          "direction": "input",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "d3",
           "name": "D3",
           "bits": 1,
-          "x": -140,
-          "y": -90
+          "direction": "input",
+          "x": -1140,
+          "y": -180,
+          "valueDisplay": "off",
+          "colour": "gray"
         },
         {
-          "direction": "input",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "d2",
           "name": "D2",
           "bits": 1,
-          "x": -140,
-          "y": -30
+          "direction": "input",
+          "x": -1140,
+          "y": -60,
+          "valueDisplay": "off",
+          "colour": "gray"
         },
         {
-          "direction": "input",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "d1",
           "name": "D1",
           "bits": 1,
-          "x": -140,
-          "y": 30
+          "direction": "input",
+          "x": -1140,
+          "y": 60,
+          "valueDisplay": "off",
+          "colour": "gray"
         },
         {
-          "direction": "input",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "d0",
           "name": "D0",
           "bits": 1,
-          "x": -140,
-          "y": 90
+          "direction": "input",
+          "x": -1140,
+          "y": 180,
+          "valueDisplay": "off",
+          "colour": "gray"
         }
       ],
       "outputPins": [
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-a",
           "name": "A",
           "bits": 1,
-          "x": 140,
-          "y": 56.875
+          "direction": "output",
+          "x": 1140,
+          "y": 360,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-b",
           "name": "B",
           "bits": 1,
-          "x": 140,
-          "y": 40.625
+          "direction": "output",
+          "x": 1140,
+          "y": 240,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-c",
           "name": "C",
           "bits": 1,
-          "x": 140,
-          "y": 24.375
+          "direction": "output",
+          "x": 1140,
+          "y": 120,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-d",
           "name": "D",
           "bits": 1,
-          "x": 140,
-          "y": 8.125
+          "direction": "output",
+          "x": 1140,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-e",
           "name": "E",
           "bits": 1,
-          "x": 140,
-          "y": -8.125
+          "direction": "output",
+          "x": 1140,
+          "y": -120,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-f",
           "name": "F",
           "bits": 1,
-          "x": 140,
-          "y": -24.375
+          "direction": "output",
+          "x": 1140,
+          "y": -240,
+          "valueDisplay": "off",
+          "colour": "green"
         },
         {
-          "direction": "output",
-          "valueDisplay": "off",
-          "colour": "red",
           "id": "seg-g",
           "name": "G",
           "bits": 1,
-          "x": 140,
-          "y": -40.625
+          "direction": "output",
+          "x": 1140,
+          "y": -360,
+          "valueDisplay": "off",
+          "colour": "green"
         }
       ],
       "instances": [
@@ -406,910 +406,1134 @@
           "id": "not-d3",
           "name": "NOT",
           "position": {
-            "x": -500,
-            "y": -90
+            "x": -880,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "not-d2",
           "name": "NOT",
           "position": {
-            "x": -500,
-            "y": -30
+            "x": -880,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "not-d1",
           "name": "NOT",
           "position": {
-            "x": -500,
-            "y": 30
+            "x": -880,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "not-d0",
           "name": "NOT",
           "position": {
-            "x": -500,
-            "y": 90
+            "x": -880,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-100x-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": -382.5
+            "x": -720,
+            "y": -540
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-100x-2",
           "name": "AND",
           "position": {
-            "x": -280,
-            "y": -382.5
+            "x": -560,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-01x1-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": -297.5
+            "x": -720,
+            "y": -420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-01x1-2",
           "name": "AND",
           "position": {
-            "x": -280,
-            "y": -297.5
+            "x": -560,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x0x0-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": -212.5
+            "x": -720,
+            "y": -300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1xx0-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": -127.5
+            "x": -720,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x1x-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": -42.5
+            "x": -720,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x11x-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": 42.5
+            "x": -720,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x00-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": 127.5
+            "x": -720,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x00-2",
           "name": "AND",
           "position": {
-            "x": -280,
-            "y": 127.5
+            "x": -560,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x11-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": 212.5
+            "x": -720,
+            "y": 300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x11-2",
           "name": "AND",
           "position": {
-            "x": -280,
-            "y": 212.5
+            "x": -560,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1x01-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": 297.5
+            "x": -720,
+            "y": 420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1x01-2",
           "name": "AND",
           "position": {
-            "x": -280,
-            "y": 297.5
+            "x": -560,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-00xx-1",
           "name": "AND",
           "position": {
-            "x": -360,
-            "y": 382.5
+            "x": -720,
+            "y": 540
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0x0x-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": -382.5
+            "x": -400,
+            "y": -540
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-0xx1-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": -297.5
+            "x": -400,
+            "y": -420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-01xx-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": -212.5
+            "x": -400,
+            "y": -300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-xx01-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": -127.5
+            "x": -400,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-10xx-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": -42.5
+            "x": -400,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-00x0-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": 42.5
+            "x": -400,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-00x0-2",
           "name": "AND",
           "position": {
-            "x": 0,
-            "y": 42.5
+            "x": -240,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x101-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": 127.5
+            "x": -400,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x101-2",
           "name": "AND",
           "position": {
-            "x": 0,
-            "y": 127.5
+            "x": -240,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x110-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": 212.5
+            "x": -400,
+            "y": 300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x110-2",
           "name": "AND",
           "position": {
-            "x": 0,
-            "y": 212.5
+            "x": -240,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x011-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": 297.5
+            "x": -400,
+            "y": 420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x011-2",
           "name": "AND",
           "position": {
-            "x": 0,
-            "y": 297.5
+            "x": -240,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1x0x-1",
           "name": "AND",
           "position": {
-            "x": -80,
-            "y": 382.5
+            "x": -400,
+            "y": 540
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-xx10-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": -382.5
+            "x": -80,
+            "y": -420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1x1x-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": -297.5
+            "x": -80,
+            "y": -300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-11xx-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": -212.5
+            "x": -80,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-010x-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": -127.5
+            "x": -80,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-010x-2",
           "name": "AND",
           "position": {
-            "x": 280,
-            "y": -127.5
+            "x": 80,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-xx00-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": -42.5
+            "x": -80,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x1x0-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": 42.5
+            "x": -80,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-x01x-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": 127.5
+            "x": -80,
+            "y": 300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "and-1xx1-1",
           "name": "AND",
           "position": {
-            "x": 200,
-            "y": 212.5
+            "x": -80,
+            "y": 420
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-a-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": -240
+            "x": 240,
+            "y": -360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-a-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": -240
+            "x": 400,
+            "y": -360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-a-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": -240
+            "x": 560,
+            "y": -360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-a-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": -240
+            "x": 720,
+            "y": -300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-a-5",
           "name": "OR",
           "position": {
-            "x": 940,
-            "y": -240
+            "x": 880,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-b-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": -160
+            "x": 240,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-b-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": -160
+            "x": 400,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-b-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": -160
+            "x": 560,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-b-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": -160
+            "x": 720,
+            "y": -180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-c-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": -80
+            "x": 240,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-c-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": -80
+            "x": 400,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-c-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": -80
+            "x": 560,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-c-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": -80
+            "x": 720,
+            "y": -60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-d-1",
           "name": "OR",
           "position": {
-            "x": 620,
+            "x": 240,
             "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-d-2",
           "name": "OR",
           "position": {
-            "x": 700,
+            "x": 400,
             "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-d-3",
           "name": "OR",
           "position": {
-            "x": 780,
+            "x": 560,
             "y": 0
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-d-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": 0
+            "x": 720,
+            "y": 60
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-e-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": 80
+            "x": 240,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-e-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": 80
+            "x": 400,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-e-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": 80
+            "x": 560,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-f-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": 160
+            "x": 240,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-f-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": 160
+            "x": 400,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-f-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": 160
+            "x": 560,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-f-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": 160
+            "x": 720,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-g-1",
           "name": "OR",
           "position": {
-            "x": 620,
-            "y": 240
+            "x": 240,
+            "y": 360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-g-2",
           "name": "OR",
           "position": {
-            "x": 700,
-            "y": 240
+            "x": 400,
+            "y": 360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-g-3",
           "name": "OR",
           "position": {
-            "x": 780,
-            "y": 240
+            "x": 560,
+            "y": 360
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
           "outputPinColours": {}
         },
         {
           "id": "or-g-4",
           "name": "OR",
           "position": {
-            "x": 860,
-            "y": 240
+            "x": 720,
+            "y": 300
           },
           "rotation": 0,
           "label": "",
           "internalData": {},
           "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d3",
+          "name": "IN-1",
+          "position": {
+            "x": -1040,
+            "y": -180
+          },
+          "rotation": 0,
+          "label": "D3",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d3",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d2",
+          "name": "IN-1",
+          "position": {
+            "x": -1040,
+            "y": -60
+          },
+          "rotation": 0,
+          "label": "D2",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d2",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d1",
+          "name": "IN-1",
+          "position": {
+            "x": -1040,
+            "y": 60
+          },
+          "rotation": 0,
+          "label": "D1",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d1",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d0",
+          "name": "IN-1",
+          "position": {
+            "x": -1040,
+            "y": 180
+          },
+          "rotation": 0,
+          "label": "D0",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d0",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-a",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": 360
+          },
+          "rotation": 0,
+          "label": "A",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-a",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-b",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": 240
+          },
+          "rotation": 0,
+          "label": "B",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-b",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-c",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": 120
+          },
+          "rotation": 0,
+          "label": "C",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-c",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-d",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "D",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-d",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-e",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": -120
+          },
+          "rotation": 0,
+          "label": "E",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-e",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-f",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": -240
+          },
+          "rotation": 0,
+          "label": "F",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-f",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-seg-g",
+          "name": "OUT-1",
+          "position": {
+            "x": 1040,
+            "y": -360
+          },
+          "rotation": 0,
+          "label": "G",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "seg-g",
           "outputPinColours": {}
         }
       ],
@@ -1317,8 +1541,8 @@
         {
           "id": "wire-not-d3-in",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "not-d3",
@@ -1330,8 +1554,8 @@
         {
           "id": "wire-not-d2-in",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "not-d2",
@@ -1343,8 +1567,8 @@
         {
           "id": "wire-not-d1-in",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "not-d1",
@@ -1356,8 +1580,8 @@
         {
           "id": "wire-not-d0-in",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "not-d0",
@@ -1369,8 +1593,8 @@
         {
           "id": "wire-and-100x-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-100x-1",
@@ -1434,8 +1658,8 @@
         {
           "id": "wire-and-01x1-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-01x1-1",
@@ -1460,8 +1684,8 @@
         {
           "id": "wire-and-01x1-2-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-01x1-2",
@@ -1499,8 +1723,8 @@
         {
           "id": "wire-and-1xx0-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1xx0-1",
@@ -1538,8 +1762,8 @@
         {
           "id": "wire-and-0x1x-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-0x1x-1",
@@ -1551,8 +1775,8 @@
         {
           "id": "wire-and-x11x-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x11x-1",
@@ -1564,8 +1788,8 @@
         {
           "id": "wire-and-x11x-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x11x-1",
@@ -1642,8 +1866,8 @@
         {
           "id": "wire-and-0x11-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-0x11-1",
@@ -1668,8 +1892,8 @@
         {
           "id": "wire-and-0x11-2-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-0x11-2",
@@ -1681,8 +1905,8 @@
         {
           "id": "wire-and-1x01-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1x01-1",
@@ -1720,8 +1944,8 @@
         {
           "id": "wire-and-1x01-2-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1x01-2",
@@ -1798,8 +2022,8 @@
         {
           "id": "wire-and-0xx1-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-0xx1-1",
@@ -1824,8 +2048,8 @@
         {
           "id": "wire-and-01xx-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-01xx-1",
@@ -1850,8 +2074,8 @@
         {
           "id": "wire-and-xx01-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-xx01-1",
@@ -1863,8 +2087,8 @@
         {
           "id": "wire-and-10xx-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-10xx-1",
@@ -1941,8 +2165,8 @@
         {
           "id": "wire-and-x101-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x101-1",
@@ -1980,8 +2204,8 @@
         {
           "id": "wire-and-x101-2-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x101-2",
@@ -1993,8 +2217,8 @@
         {
           "id": "wire-and-x110-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x110-1",
@@ -2006,8 +2230,8 @@
         {
           "id": "wire-and-x110-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x110-1",
@@ -2058,8 +2282,8 @@
         {
           "id": "wire-and-x011-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x011-1",
@@ -2084,8 +2308,8 @@
         {
           "id": "wire-and-x011-2-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x011-2",
@@ -2097,8 +2321,8 @@
         {
           "id": "wire-and-1x0x-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1x0x-1",
@@ -2123,8 +2347,8 @@
         {
           "id": "wire-and-xx10-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-xx10-1",
@@ -2149,8 +2373,8 @@
         {
           "id": "wire-and-1x1x-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1x1x-1",
@@ -2162,8 +2386,8 @@
         {
           "id": "wire-and-1x1x-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1x1x-1",
@@ -2175,8 +2399,8 @@
         {
           "id": "wire-and-11xx-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-11xx-1",
@@ -2188,8 +2412,8 @@
         {
           "id": "wire-and-11xx-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-11xx-1",
@@ -2214,8 +2438,8 @@
         {
           "id": "wire-and-010x-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-010x-1",
@@ -2279,8 +2503,8 @@
         {
           "id": "wire-and-x1x0-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d2"
+            "owner": "interface-input-d2",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x1x0-1",
@@ -2318,8 +2542,8 @@
         {
           "id": "wire-and-x01x-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d1"
+            "owner": "interface-input-d1",
+            "pin": "0"
           },
           "target": {
             "owner": "and-x01x-1",
@@ -2331,8 +2555,8 @@
         {
           "id": "wire-and-1xx1-1-left",
           "source": {
-            "owner": "root",
-            "pin": "d3"
+            "owner": "interface-input-d3",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1xx1-1",
@@ -2344,8 +2568,8 @@
         {
           "id": "wire-and-1xx1-1-right",
           "source": {
-            "owner": "root",
-            "pin": "d0"
+            "owner": "interface-input-d0",
+            "pin": "0"
           },
           "target": {
             "owner": "and-1xx1-1",
@@ -2491,8 +2715,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-a"
+            "owner": "interface-output-seg-a",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -2608,8 +2832,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-b"
+            "owner": "interface-output-seg-b",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -2725,8 +2949,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-c"
+            "owner": "interface-output-seg-c",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -2842,8 +3066,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-d"
+            "owner": "interface-output-seg-d",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -2933,8 +3157,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-e"
+            "owner": "interface-output-seg-e",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -3050,8 +3274,8 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-f"
+            "owner": "interface-output-seg-f",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -3167,15 +3391,97 @@
             "pin": "2"
           },
           "target": {
-            "owner": "root",
-            "pin": "seg-g"
+            "owner": "interface-output-seg-g",
+            "pin": "0"
           },
           "points": [],
           "colour": null
         }
       ],
       "junctions": [],
-      "displays": []
+      "displays": [],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "d3",
+            "instanceId": "interface-input-d3",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "d2",
+            "instanceId": "interface-input-d2",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "d1",
+            "instanceId": "interface-input-d1",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "d0",
+            "instanceId": "interface-input-d0",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "seg-a",
+            "instanceId": "interface-output-seg-a",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-b",
+            "instanceId": "interface-output-seg-b",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-c",
+            "instanceId": "interface-output-seg-c",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-d",
+            "instanceId": "interface-output-seg-d",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-e",
+            "instanceId": "interface-output-seg-e",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-f",
+            "instanceId": "interface-output-seg-f",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "seg-g",
+            "instanceId": "interface-output-seg-g",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -1140,
+          "y": -620,
+          "w": 2280,
+          "h": 1240
+        }
+      },
+      "annotations": []
     }
   },
   "collections": [
@@ -3253,6 +3559,17 @@
         "BUZZER"
       ]
     }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
   ],
   "starred": [
     "DISPLAY",

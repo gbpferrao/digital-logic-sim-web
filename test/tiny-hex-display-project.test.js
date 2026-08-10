@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { normalizeProject } from "../src/model.js";
+import { chipBoundingBox, normalizeProject } from "../src/model.js";
 import { Simulator, isHigh } from "../src/simulation.js";
 
 const projectFile = new URL("../storage/projects/tiny-hex-display.json", import.meta.url);
@@ -17,12 +17,15 @@ test("the hex display project has a readable layout and renders all 16 digits", 
 
   assert.equal(project.name, "Hex Display Lab");
   assert.deepEqual(project.root.size, { x: 1000, y: 560 });
-  assert.deepEqual(
-    ["input-d3", "input-d2", "input-d1", "input-d0"].map((id) => instances[id].position.x),
-    [-400, -400, -400, -400]
-  );
-  assert.equal(instances.decoder.position.x, -80);
-  assert.equal(instances.display.position.x, 360);
+  const inputInstances = ["input-d3", "input-d2", "input-d1", "input-d0"].map((id) => instances[id]);
+  assert.equal(new Set(inputInstances.map((instance) => instance.position.x)).size, 1);
+  assert.ok(inputInstances.every((instance) => instance.position.x < instances.decoder.position.x));
+  assert.ok(instances.decoder.position.x < instances.display.position.x);
+  const inputBoxes = inputInstances.map((instance) => chipBoundingBox(project, instance));
+  const decoderBox = chipBoundingBox(project, instances.decoder);
+  const displayBox = chipBoundingBox(project, instances.display);
+  assert.ok(inputBoxes.every((box) => box.x + box.w < decoderBox.x));
+  assert.ok(decoderBox.x + decoderBox.w < displayBox.x);
   assert.equal(project.root.annotations.length, 2);
   assert.equal(instances["input-d3"].label, "D3 (8)");
 
