@@ -50,6 +50,21 @@ test("all reference built-ins can execute one simulation step", () => {
   }
 });
 
+test("simulator exposes an evaluated step-zero snapshot and reset returns to it", () => {
+  const { project, output } = addNandCircuit(1, 0);
+  const simulator = new Simulator(project);
+  assert.equal(simulator.stepCount, 0);
+  assert.equal(simulator.snapshot.step, 0);
+  assert.equal(simulator.snapshot.instances[output.id].signals["0"].bits, 1);
+
+  simulator.step();
+  assert.equal(simulator.stepCount, 1);
+  simulator.reset();
+  assert.equal(simulator.stepCount, 0);
+  assert.equal(simulator.snapshot.step, 0);
+  assert.equal(simulator.snapshot.instances[output.id].signals["0"].bits, 1);
+});
+
 test("NAND propagates a high result for a low input", () => {
   const { project, output } = addNandCircuit(1, 0);
   const simulator = new Simulator(project);

@@ -1,7 +1,7 @@
 import { clone, uid } from "./domain/core.js";
-import { BUILTINS, COLLECTIONS, COLORS, CUSTOM_COLLECTION, GRID, TYPE } from "./domain/catalog.js";
+import { BUILTINS, COLLECTIONS, COLORS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, TYPE } from "./domain/catalog.js";
 
-export { BUILTINS, COLLECTIONS, CUSTOM_COLLECTION, GRID, TYPE, clone, uid };
+export { BUILTINS, COLLECTIONS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, TYPE, clone, uid };
 
 const DEFAULT_ANNOTATION_COLOUR = "#d7eaff";
 
@@ -176,6 +176,13 @@ export function normalizeProject(raw) {
 
 function normalizeDescription(raw) {
   const description = { ...raw };
+  const rawSize = raw?.size ?? {};
+  const rawWidth = Number(rawSize.x);
+  const rawHeight = Number(rawSize.y);
+  description.size = {
+    x: Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : MIN_CHIP_SIZE.x,
+    y: Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : MIN_CHIP_SIZE.y
+  };
   const normalizePin = (item, direction) => ({
     ...item,
     direction,
@@ -247,10 +254,20 @@ export function rootPinPosition(root, pinDesc) {
 export function chipBoundingBox(project, instance) {
   const desc = descriptorForInstance(project, instance);
   if (!desc) return { x: instance.position.x - 10, y: instance.position.y - 10, w: 20, h: 20 };
+  const boundsSize = chipBoundsSize(desc);
   const quarter = instance.rotation % 2 !== 0;
-  const w = quarter ? desc.size.y : desc.size.x;
-  const h = quarter ? desc.size.x : desc.size.y;
+  const w = quarter ? boundsSize.y : boundsSize.x;
+  const h = quarter ? boundsSize.x : boundsSize.y;
   return { x: instance.position.x - w / 2, y: instance.position.y - h / 2, w, h };
+}
+
+export function chipBoundsSize(description) {
+  const width = Number(description?.size?.x);
+  const height = Number(description?.size?.y);
+  return {
+    x: Math.max(MIN_CHIP_SIZE.x, Number.isFinite(width) && width > 0 ? width : MIN_CHIP_SIZE.x),
+    y: Math.max(MIN_CHIP_SIZE.y, Number.isFinite(height) && height > 0 ? height : MIN_CHIP_SIZE.y)
+  };
 }
 
 export function customFromRoot(project, name) {

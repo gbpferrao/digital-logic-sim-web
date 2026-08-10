@@ -37,6 +37,7 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | src/domain/core.js | IDs and deep cloning | Small domain utility boundary |
 | src/domain/catalog.js | Built-in descriptions, types, colors, collections, and catalog metadata | Built-in catalog |
 | src/simulation.js | Signal algebra, runtime graph, built-in chip execution, recursive custom-chip evaluation, snapshots | Simulation domain/runtime |
+| src/simulation-timeline.js | SimulationBake lifecycle, bounded run recording, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy |
 | src/unity-compat.js | Unity-shaped project/chip conversion | Import adapter |
 
 ### Persistence and tooling
@@ -45,7 +46,7 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | --- | --- | --- |
 | src/storage.js | Browser cache, export, and compatibility facade for server/import APIs | Client persistence facade |
 | src/io/storage-client.js | Local JSON API request/save/load behavior | Client transport adapter |
-| src/io/project-import.js | Web/Unity project and chip file parsing plus imported-pin exposure | File-format adapter |
+| src/io/project-import.js | Single-file web/Unity project and chip parsing plus imported-pin exposure | File-format adapter |
 | server/api.mjs | HTTP server, routes, request parsing, response codes, and CORS | Local persistence transport |
 | server/json-repository.mjs | Storage paths, atomic JSON writes, listing, and project/chip records | Replaceable filesystem repository |
 | server/dev.mjs | Starts Vite and the local API and coordinates shutdown | Development process composition |
@@ -100,14 +101,19 @@ The endpoint shape is shared by editor hit testing, wire editing, renderer geome
 Simulator accepts a project and exposes:
 
 - syncProject(project)
+- evaluate()
 - step()
 - reset()
 - restore(snapshot, stepCount)
 - stateFor(endpoint)
 - outputFor(instanceId)
-- snapshot, containing endpoint states, per-instance signals/internal state, and root outputs
+- snapshot, containing version, step, endpoint states, per-instance signals/internal state, and root outputs
+
+Every constructed or synchronized simulator has an evaluated step-zero snapshot; an empty snapshot is only a fallback shape, never the normal startup state. Structural project/root changes rebuild the runtime and return to step zero. cloneSnapshot(snapshot) is the boundary for restoring data without sharing mutable runtime state.
 
 Signal states are two bitmasks: bits for values and tri for driven/disconnected bits. PIN_MASK represents disconnected bits. Built-in processing is currently a type switch inside simulation.js.
+
+SimulationBake accepts frames shaped as { version, step, snapshot, signature } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and boundary restoration. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. SimulationTimeline remains as a compatibility export for older tests/integrations.
 
 ### Renderer interface
 
@@ -128,7 +134,7 @@ The browser client currently provides:
 - saveToServer and loadFromServer for the local JSON API
 - saveToBrowser and loadFromBrowser for the immediate local cache
 - encodeProject and downloadProject for portable JSON
-- readProjectFile and readProjectFiles for web/Unity import
+- readProjectFile for single-file web/Unity import
 
 The server provides:
 
@@ -174,10 +180,10 @@ Current ownership is mostly aligned. The first refactor wave removed several lea
 
 1. index.html creates the shell and loads the Lucide runtime.
 2. main.js loads the browser cache synchronously.
-3. The project is normalized and a Simulator is constructed.
-4. Library, renderer, inspector, and simulation controls are rendered.
+3. The project is normalized and a Simulator is constructed with an evaluated step-zero snapshot.
+4. The simulation bake is cleared or opened from that snapshot before library, renderer, inspector, and controls are rendered.
 5. The camera fits the current project and the simulation timer starts if not paused.
-6. hydrateProjectFromServer asynchronously loads the last/latest server project, replaces the project and simulator, then renders again.
+6. hydrateProjectFromServer asynchronously loads the last/latest server project, replaces the project and simulator, rebuilds the step-zero bake state, then renders again.
 
 This gives fast local-first startup, but the hydration boundary is hidden inside the same module as all editing behavior.
 
@@ -185,7 +191,7 @@ This gives fast local-first startup, but the hydration boundary is hidden inside
 
 1. A DOM or canvas event handler reads the current project and editor state.
 2. A command mutates project data, often through mutate.
-3. mutate records a full-project undo snapshot, updates revision/history, and calls render.
+3. mutate records a full-project undo snapshot, updates revision/history, rebuilds the simulation runtime/bake state for structural changes, and calls render.
 4. render copies the simulator snapshot onto the project, asks WorldRenderer to draw, updates DOM readouts, renders inspector/help/simulation controls, and refreshes Lucide icons.
 5. Explicit Save or selected autosave paths call saveCurrentProject.
 
@@ -193,11 +199,13 @@ The flow is understandable but broad. A single render can rebuild the inspector,
 
 ### Simulation loop
 
-1. setRunning creates or clears a timer.
-2. runStep syncs the simulator to the project, truncates history if needed, steps the recursive runtime, records a snapshot, plays audio, and renders.
-3. Paused history scrubbing restores a simulator snapshot and renders without changing the persisted project.
+1. Run starts a fresh SimulationBake from evaluated step zero; Pause only stops its timer.
+2. runStep syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, and records the exact execution head in the open bake.
+3. Only visually meaningful snapshots become bake checkpoints, so stable combinational ticks do not inflate the scrubber.
+4. A stability window closes finite runs automatically; Bake closes indefinite runs manually.
+5. Paused scrubbing restores a checkpoint, and Start/End/visible-step controls navigate only the current bake.
 
-The runtime is separated well from the UI, but the UI owns history policy, timer policy, audio policy, and simulator lifecycle in one place.
+The runtime is separated well from the UI. The remaining application-level ownership is intentional: main.js coordinates timer/audio/UI policy, simulation.js owns signal/runtime semantics, and SimulationBake owns the recording contract consumed by the controls.
 
 ### Chip placement and library flow
 
@@ -219,7 +227,7 @@ This works, but the open view is represented by mutation of the same project obj
 
 ### Import and persistence
 
-Project import and Unity conversion now live in `io/project-import.js`; API transport lives in `io/storage-client.js`; browser cache and export remain in `storage.js` as a compatibility facade. On the server, `api.mjs` routes into `json-repository.mjs`. The behavior remains local-first while the I/O seams can now be tested and replaced independently.
+Single-file project import and Unity conversion now live in `io/project-import.js`; API transport lives in `io/storage-client.js`; browser cache and export remain in `storage.js` as a compatibility facade. Folder-based Unity import is deliberately absent from the browser boundary. On the server, `api.mjs` routes into `json-repository.mjs`. The behavior remains local-first while the I/O seams can now be tested and replaced independently.
 
 ## Current architectural patterns
 
@@ -287,7 +295,7 @@ The file begins with a general application layout and later applies a reference-
 
 #### 7. Runtime and editor revisions are coupled
 
-Simulator runtime rebuilds are keyed from project._revision. Some meaningful changes intentionally use a non-structural touch call, while simulation history is maintained separately in main.js. The distinction is useful but implicit. A future feature can easily update the wrong revision/history channel.
+Simulator runtime rebuilds are keyed from project._revision. Some meaningful changes intentionally use a non-structural touch call, while bake/checkpoint policy now lives behind SimulationBake and runtime snapshots expose an explicit version/step contract. The distinction is clearer, but the controller still decides which project mutations are structural; a future feature can still update the wrong revision channel.
 
 #### 8. Test coverage is domain-heavy and UI-light
 

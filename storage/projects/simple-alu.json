@@ -3,7 +3,7 @@
   "storageId": "simple-alu",
   "name": "Simple 1-bit ALU",
   "createdAt": "2026-08-09T21:55:31.787Z",
-  "updatedAt": "2026-08-10T01:19:04.221Z",
+  "updatedAt": "2026-08-10T02:32:19.267Z",
   "root": {
     "id": "root",
     "name": "Simple ALU",
@@ -378,6 +378,19 @@
         },
         "rotation": 0,
         "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "element-1fd71706",
+        "name": "CLOCK",
+        "position": {
+          "x": -120,
+          "y": 610
+        },
+        "rotation": 0,
+        "label": "",
         "internalData": {},
         "linkedBusPairId": null,
         "outputPinColours": {}
@@ -939,22 +952,22 @@
         "type": "text",
         "text": "HOW TO USE\n1. Toggle A, B, and CIN.\n2. Set OP1 / OP0.\n3. Read RESULT and CARRY.",
         "position": {
-          "x": -910,
-          "y": -460
+          "x": -1290,
+          "y": -400
         },
-        "width": 360,
-        "height": 150,
+        "width": 288,
+        "height": 210,
         "fontSize": 12,
-        "colour": "#d7eaff",
-        "background": "#2f3338"
+        "colour": "#fff0f7",
+        "background": "#383536"
       },
       {
         "id": "note-opcode-table",
         "type": "text",
         "text": "OPCODE (OP1 OP0)\n00  =  AND\n01  =  OR\n10  =  XOR\n11  =  ADD",
         "position": {
-          "x": -1000,
-          "y": 410
+          "x": -1370,
+          "y": 230
         },
         "width": 300,
         "height": 150,
@@ -1003,6 +1016,34 @@
         "fontSize": 11,
         "colour": "#b8d7ff",
         "background": "#282f38"
+      },
+      {
+        "id": "annotation-59389af7",
+        "type": "text",
+        "text": "Explain this part...",
+        "position": {
+          "x": -50,
+          "y": -590
+        },
+        "width": 280,
+        "height": 110,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      },
+      {
+        "id": "annotation-266ffa85",
+        "type": "label",
+        "text": "Label",
+        "position": {
+          "x": 310,
+          "y": -560
+        },
+        "width": 180,
+        "height": 22,
+        "fontSize": 11,
+        "colour": "#f3d36b",
+        "background": "#352e18"
       }
     ]
   },
@@ -1103,12 +1144,14 @@
     "snapping": true,
     "straightWires": false,
     "grid": true,
-    "simulationPaused": false,
+    "simulationPaused": true,
     "stepsPerSecond": 13,
     "stepsPerClock": 8
   },
   "inputValues": {
-    "in-op0": 0
+    "in-op0": 1,
+    "in-a": 1,
+    "in-b": 1
   },
   "keyValues": {
     "ControlLeft": true,
@@ -1121,6 +1164,8 @@
     "IntlRo": false,
     "?": true,
     "/": false,
-    "Delete": false
+    "Delete": false,
+    "KeyS": true,
+    "s": true
   }
 }

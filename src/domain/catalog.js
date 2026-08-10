@@ -1,6 +1,7 @@
 import { clone } from "./core.js";
 
 export const GRID = 20;
+export const MIN_CHIP_SIZE = Object.freeze({ x: GRID * 6, y: GRID * 4 });
 
 export const TYPE = Object.freeze({
   CUSTOM: "custom",
@@ -44,17 +45,18 @@ export const TYPE = Object.freeze({
 });
 
 export const COLORS = Object.freeze({
-  dark: "#202b3a",
-  nand: "#b94e57",
-  logic: "#a15c68",
-  bus: "#3b4659",
-  io: "#3f7ea2",
-  memory: "#a66b42",
-  rom: "#45658e",
-  display: "#3a4658",
-  convert: "#343c4b",
+  dark: "#4a535c",
+  logic: "#706aa4",
+  nand: "#8176b3",
+  control: "#9b8653",
+  bus: "#647488",
+  io: "#4e8d91",
+  memory: "#967451",
+  rom: "#857654",
+  display: "#5f7885",
+  convert: "#5c8d78",
   custom: "#7358ad",
-  audio: "#4b5361"
+  audio: "#77738f"
 });
 
 function pin(id, name, bits = 1, direction = "input", x = 0, y = 0) {
@@ -78,7 +80,10 @@ function assignPinPositions(inputs, outputs, width, height) {
 function builtin(name, type, inputs = [], outputs = [], options = {}) {
   const width = options.width ?? GRID * 8;
   const height = options.height ?? Math.max(GRID * 4, (Math.max(inputs.length, outputs.length) + 1) * 12);
-  assignPinPositions(inputs, outputs, width, height);
+  // Compact components keep their narrow visual geometry, but their
+  // connection points live on the same minimum interaction bounds as every
+  // other component.
+  assignPinPositions(inputs, outputs, Math.max(width, MIN_CHIP_SIZE.x), Math.max(height, MIN_CHIP_SIZE.y));
   return {
     id: `builtin-${name}`,
     name,
@@ -120,9 +125,9 @@ function createBuiltins() {
     width: GRID * 6, height: GRID * 4, colour: COLORS.logic, special: "logicGate", gate: "buffer", nameLocation: "hidden"
   }));
   add(builtin(TYPE.TRI_STATE, TYPE.TRI_STATE,
-    [pin(0, "IN"), pin(1, "ENABLE")], [pin(2, "OUT", 1, "output")], { width: GRID * 2, height: GRID * 5 }));
-  add(builtin(TYPE.CLOCK, TYPE.CLOCK, [], [pin(0, "CLK", 1, "output")], { width: GRID * 2, height: GRID * 3, special: "clock" }));
-  add(builtin(TYPE.PULSE, TYPE.PULSE, [pin(0, "IN")], [pin(1, "PULSE", 1, "output")], { width: GRID * 2, height: GRID * 3, special: "pulse" }));
+    [pin(0, "IN"), pin(1, "ENABLE")], [pin(2, "OUT", 1, "output")], { width: GRID * 2, height: GRID * 5, colour: COLORS.control }));
+  add(builtin(TYPE.CLOCK, TYPE.CLOCK, [], [pin(0, "CLK", 1, "output")], { width: GRID * 2, height: GRID * 3, colour: COLORS.control, special: "clock" }));
+  add(builtin(TYPE.PULSE, TYPE.PULSE, [pin(0, "IN")], [pin(1, "PULSE", 1, "output")], { width: GRID * 2, height: GRID * 3, colour: COLORS.control, special: "pulse" }));
 
   const io = [
     [TYPE.IN_1, 1], [TYPE.IN_4, 4], [TYPE.IN_8, 8],
@@ -134,7 +139,7 @@ function createBuiltins() {
       width: GRID * 3, height: GRID * 3, colour: COLORS.io, kind: input ? "input" : "output", nameLocation: "hidden"
     }));
   });
-  add(builtin(TYPE.KEY, TYPE.KEY, [], [pin(0, "OUT", 1, "output")], { width: GRID * 3, height: GRID * 3, nameLocation: "hidden", special: "key" }));
+  add(builtin(TYPE.KEY, TYPE.KEY, [], [pin(0, "OUT", 1, "output")], { width: GRID * 3, height: GRID * 3, colour: COLORS.control, nameLocation: "hidden", special: "key" }));
 
   add(builtin(TYPE.RAM, TYPE.RAM,
     [pin(0, "ADDRESS", 8), pin(1, "DATA", 8), pin(2, "WRITE"), pin(3, "RESET"), pin(4, "CLOCK")],

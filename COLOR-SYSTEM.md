@@ -10,7 +10,7 @@ The shared tokens live in the final `:root` block in `src/styles.css`.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--world` | `#202124` | Dark unobstructed canvas/world background |
+| `--world` | `#242629` | Dark unobstructed canvas/world background |
 | `--surface` | `#1d1d1f` | Shell and dark surface |
 | `--surface-raised` | `#29292c` | Cards, drawers, and dialogs |
 | `--surface-hover` | `#38383b` | Neutral hover surface |
@@ -29,7 +29,7 @@ The shared tokens live in the final `:root` block in `src/styles.css`.
 | `--ui-control-border` | `#66666a` | Normal control border |
 | `--ui-control-border-hover` | `#919196` | Hover/focus border |
 
-The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the subdued `#2b2e33`, while every fifth grid line uses the slightly brighter `#353940`. Both remain restrained and lighter than the dark world fill, so the grid is readable without becoming a second background.
+The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the subdued `#2b2e33`, while every fifth grid line uses the slightly brighter `#353940`. The world fill is intentionally close to the minor grid now, so the canvas feels cohesive while the two grid levels remain readable.
 
 Light popup surfaces use the same grayscale scale in a separate set of tokens:
 
@@ -48,7 +48,25 @@ Saved/dirty markers and other runtime warnings may also use green, amber, or red
 
 ## Circuit-color boundary
 
-Do not replace semantic circuit colors with the interface palette. Keep the existing component-family swatches, wire/pin/output colors, high/low/disconnected signal colors, display colors, error colors, and note colors where they explain the circuit or its runtime state. A color belongs in the UI palette only when it describes the editor control or surface around that circuit.
+Do not replace semantic circuit colors with the interface palette. Keep the component-family swatches, wire/pin/output colors, high/low/disconnected signal colors, display colors, error colors, and note colors where they explain the circuit or its runtime state. A color belongs in the UI palette only when it describes the editor control or surface around that circuit.
+
+## Native component palette
+
+Native chip body colors follow one simple heuristic: hue identifies the chip's functional family, brightness stays in a similar muted middle range, and small variants stay within the same hue family. The palette is for identity and navigation, not signal state. Green/gray wires and pins still communicate HIGH/LOW/disconnected behavior.
+
+| Family | Native chips | Body color | Rationale |
+| --- | --- | --- | --- |
+| Logic | AND, OR, NOT, BUFFER, NOR, XOR, XNOR | `#706aa4` | Indigo-violet reads as abstract logic and keeps the full gate family together |
+| Logic variant | NAND | `#8176b3` | A lighter member of the same logic family; it is distinct without implying failure |
+| Timing/control | CLOCK, PULSE, KEY, 3-STATE BUFFER | `#9b8653` | Muted gold makes time, enable, and user-control devices easy to find |
+| I/O | IN-*, OUT-* | `#4e8d91` | Teal suggests the boundary between the circuit and the outside world |
+| Bus | BUS-* and BUS-TERMINUS-* | `#647488` | Steel blue-gray suggests shared pathways without competing with active green signals |
+| Conversion | MERGE/SPLIT chips | `#5c8d78` | Sage green indicates transformation/flow while remaining separate from HIGH-state green |
+| Memory | RAM and ROM | `#967451` / `#857654` | Muted ochre/brown gives storage a warm, physical feel without red warning semantics |
+| Display | 7-SEGMENT, LED, DOT, RGB | `#5f7885` | Cool slate keeps display hardware visually calm; the display itself supplies the brighter runtime color |
+| Audio | BUZZER | `#77738f` | Lavender-slate distinguishes sound output without using another warning-like warm color |
+
+Red is reserved for invalid connections, errors, and other genuinely problematic runtime states. It is not used as a normal native chip identity color.
 
 ## Usage guidelines
 

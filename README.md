@@ -29,6 +29,7 @@ npm run build
 
 - `src/model.js` contains the chip descriptions, project model, pin metadata, collections, and custom-chip conversion.
 - `src/simulation.js` contains the recursive simulator, tri-state pin states, built-in processors, sequential state, and snapshots.
+- `src/simulation-timeline.js` contains the SimulationBake lifecycle: bounded run recording, stability detection, exact execution head, scrub branching, and compatibility timeline exports.
 - `src/renderer.js` contains the canvas world renderer, camera, grid, wire drawing, chip drawing, display drawing, and hit testing.
 - `src/storage.js` contains the immediate browser cache, local API synchronization, and JSON import/export.
 - `server/api.mjs` contains the local JSON storage API; `server/dev.mjs` runs it alongside Vite without a page reload.
@@ -45,7 +46,7 @@ The interface palette and the boundary between grayscale UI chrome and semantic 
 
 - Place the built-in chip families exposed by the library: LOGIC, BASIC, IN/OUT, MERGE/SPLIT, BUS, DISPLAY, MEMORY, and AUDIO.
 - The editor uses the reference-style full-world view: a compact top command strip for MENU, project name/save state, tools, and simulation controls; a lower bar with reorderable chip-group drop-ups (including CUSTOM); and floating library/inspector drawers.
-- The simulation state is shown directly by the fixed-width RUN/PAUSE control. The Step control includes the current step number, and the project menu opens a centered Help dialog with the most important shortcuts and commands.
+- Each RUN starts a fresh bake. The bake can close automatically when the visible state stabilizes or manually through BAKE for indefinite circuits; CLEAR discards it. Step, visible-step navigation, boundaries, and the paused scrubber operate only on the current bake. The Step control includes the exact current engine tick, and the project menu opens a centered Help dialog with the most important shortcuts and commands.
 - Simulate recursive custom chips, tri-state signals, clocks, pulses, RAM, ROM, displays, buses, conversion chips, and the built-in input/output devices.
 - Use the primitive LOGIC collection: AND, OR, NOT, NAND, NOR, XOR, XNOR, and BUFFER.
 
@@ -59,15 +60,15 @@ The interface palette and the boundary between grayscale UI chrome and semantic 
 - Double-click a chip to open its inspector; a custom chip can then be opened into its internal circuit. Double-click a wire to enter wire-edit mode. Double-click a note or label to edit its content.
 - In wire-edit mode, hover close to a route point to highlight it, click a segment to insert a point, drag-select points, drag selected points together, right-click a hovered point to delete it, and press Enter to leave the mode. Delete removes selected route points.
 - Escape cancels placement, movement, wiring, or wire editing; when no transient interaction is active it clears the selection. Delete/Backspace removes the current selection.
-- `RUN`/`PAUSE`, `Step N`, and `Reset` control simulation. Set the steps-per-second rate with the numeric speed field beside `Step`; when paused, scrub the history slider below the run controls to inspect earlier execution steps. Space advances one step while paused; Ctrl/Command+Space runs or pauses. Clicking an input device toggles its value, while the inspector exposes live pin state and device-specific settings.
+- `RUN` starts a new bake and `PAUSE` pauses it without closing it. `BAKE` manually closes an open recording; `CLEAR` returns to evaluated step zero. The start/end controls, visible-step controls, `Step N`, and paused scrubber operate on that bake. The scrubber shows meaningful visual checkpoints while `Step N` remains the exact engine tick. Set the steps-per-second rate with the numeric speed field; Space advances one step while paused; Ctrl/Command+Space starts a fresh bake or pauses the current one. Clicking an input device toggles its value, while the inspector exposes live pin state and device-specific settings.
 - The MENU Help dialog is the in-app shortcut reference. Ctrl/Command+S saves, Ctrl/Command+N creates a project, and Ctrl/Command+F opens chip search.
 
 ## Projects and storage
 
-- Save one project at a time from the normal Save action; the local API writes the complete project and its custom chips as JSON files in one save operation.
+- Use SAVE to persist the current project; the first save asks whether the new circuit should be kept as a project or chip. SAVE AS PROJECT and SAVE AS CHIP remain explicit menu actions. The local API writes the complete project and its custom chips as JSON files in one save operation.
 - The browser cache remains a fast fallback if the local API is not running. With the API available, the editor keeps the browser cache synchronized after saving.
 - Export/import the web project JSON format separately when a portable file is needed.
-- Import individual Unity-shaped chip description JSON files from the upstream test data format, or import a Unity project folder to load its custom chip library in one operation.
+- Import a single web project or Unity-shaped JSON file when a portable document is needed. Folder-based Unity project import is intentionally not part of the web editor.
 - Save the current circuit as a custom chip and place it again from the library.
 
 The web project schema is `digital-logic-sim-web/1`. A project contains its root circuit (`instances`, `wires`, `junctions`, and `annotations`), settings, input/key values, persisted `collectionOrder`, and a `customChips` map. Saved/exported JSON omits the simulator's runtime revision and signal snapshot. Individual custom-chip files use `digital-logic-sim-web/chip/1` and wrap the chip description.

@@ -1,0 +1,221 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "FULL ADDER",
+  "updatedAt": "2026-08-10T12:00:00.000Z",
+  "description": {
+    "id": "chip-full-adder",
+    "name": "FULL ADDER",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 420,
+      "y": 260
+    },
+    "colour": "#5c8d78",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 1,
+        "direction": "input",
+        "x": -210,
+        "y": -70,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 1,
+        "direction": "input",
+        "x": -210,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cin",
+        "name": "CIN",
+        "bits": 1,
+        "direction": "input",
+        "x": -210,
+        "y": 70,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "sum",
+        "name": "SUM",
+        "bits": 1,
+        "direction": "output",
+        "x": 210,
+        "y": -45,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "carry",
+        "name": "CARRY",
+        "bits": 1,
+        "direction": "output",
+        "x": 210,
+        "y": 65,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "ha-ab",
+        "name": "HALF ADDER",
+        "position": {
+          "x": -70,
+          "y": -40
+        },
+        "rotation": 0,
+        "label": "A + B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "ha-cin",
+        "name": "HALF ADDER",
+        "position": {
+          "x": 80,
+          "y": -40
+        },
+        "rotation": 0,
+        "label": "X + CIN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-or",
+        "name": "OR",
+        "position": {
+          "x": 150,
+          "y": 90
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-ha",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "ha-ab",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-ha",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "ha-ab",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "ha-sum",
+        "source": {
+          "owner": "ha-ab",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "ha-cin",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-ha",
+        "source": {
+          "owner": "root",
+          "pin": "cin"
+        },
+        "target": {
+          "owner": "ha-cin",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "ha-carry",
+        "source": {
+          "owner": "ha-ab",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-carry",
+        "source": {
+          "owner": "ha-cin",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "full-sum",
+        "source": {
+          "owner": "ha-cin",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "sum"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "full-carry",
+        "source": {
+          "owner": "carry-or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "carry"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": []
+  }
+}

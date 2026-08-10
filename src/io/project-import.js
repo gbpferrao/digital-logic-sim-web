@@ -15,22 +15,6 @@ export async function readProjectFile(file) {
   throw new Error("The file is not a recognized Digital Logic Sim project or chip description.");
 }
 
-export async function readProjectFiles(files) {
-  const entries = await Promise.all([...files]
-    .filter((file) => file.name.toLowerCase().endsWith(".json"))
-    .map(async (file) => ({ file, raw: JSON.parse(await file.text()) })));
-  const projectRaw = entries.find((entry) => entry.raw?.ProjectName)?.raw;
-  const project = normalizeProject(projectRaw ? convertUnityProject(projectRaw) : { name: "Imported Unity project" });
-  for (const entry of entries) {
-    const chip = convertUnityChipFile(entry.raw);
-    if (!chip) continue;
-    if (chip.name === "#") project.root = { ...chip, id: "root" };
-    else project.customChips[chip.name] = chip;
-  }
-  if (project.root.inputPins.length || project.root.outputPins.length) exposeImportedChipPins(project);
-  return project;
-}
-
 function exposeImportedChipPins(project) {
   const root = project.root;
   const endpointMap = new Map();

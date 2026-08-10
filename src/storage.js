@@ -1,8 +1,8 @@
 import { clone, normalizeProject } from "./model.js";
-import { readProjectFile, readProjectFiles } from "./io/project-import.js";
+import { readProjectFile } from "./io/project-import.js";
 import { LAST_SERVER_PROJECT_KEY, loadProjectFromServer, saveProjectToServer } from "./io/storage-client.js";
 
-export { readProjectFile, readProjectFiles };
+export { readProjectFile };
 
 const STORAGE_KEY = "digital-logic-sim-web:project";
 

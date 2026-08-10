@@ -1,0 +1,187 @@
+export const SIMULATION_BAKE_VERSION = 1;
+export const SIMULATION_TIMELINE_VERSION = SIMULATION_BAKE_VERSION;
+
+export function createTimelineFrame({ step = 0, snapshot = null, signature = "" } = {}) {
+  return {
+    version: SIMULATION_BAKE_VERSION,
+    step: Math.max(0, Number(step) || 0),
+    snapshot,
+    signature: String(signature ?? "")
+  };
+}
+
+export class SimulationBake {
+  constructor({ maxFrames = 512, stabilityWindow = 16 } = {}) {
+    this.maxFrames = Math.max(2, Number(maxFrames) || 512);
+    this.stabilityWindow = Math.max(1, Number(stabilityWindow) || 16);
+    this.frames = [];
+    this.cursor = 0;
+    this.execution = null;
+    this.status = "empty";
+    this.reason = null;
+    this.stableTicks = 0;
+    this.lastSignature = "";
+  }
+
+  get length() {
+    return this.frames.length;
+  }
+
+  get currentIndex() {
+    return this.cursor;
+  }
+
+  get currentCheckpoint() {
+    return this.frames[this.cursor] ?? null;
+  }
+
+  get executionFrame() {
+    return this.execution ?? this.currentCheckpoint;
+  }
+
+  get hasBake() {
+    return this.frames.length > 0;
+  }
+
+  get isBaking() {
+    return this.status === "baking";
+  }
+
+  get isReady() {
+    return this.status === "ready";
+  }
+
+  get latestCheckpoint() {
+    return this.frames.at(-1) ?? null;
+  }
+
+  frameAt(index) {
+    return this.frames[Math.max(0, Math.min(this.frames.length - 1, Number(index) || 0))] ?? null;
+  }
+
+  reset(frame) {
+    const next = createTimelineFrame(frame);
+    this.frames = [next];
+    this.cursor = 0;
+    this.execution = next;
+    this.status = "ready";
+    this.reason = "reset";
+    this.stableTicks = 0;
+    this.lastSignature = next.signature;
+    return next;
+  }
+
+  begin(frame, { stabilityWindow = this.stabilityWindow } = {}) {
+    const next = createTimelineFrame(frame);
+    this.frames = [next];
+    this.cursor = 0;
+    this.execution = next;
+    this.status = "baking";
+    this.reason = null;
+    this.stabilityWindow = Math.max(1, Number(stabilityWindow) || this.stabilityWindow);
+    this.stableTicks = 0;
+    this.lastSignature = next.signature;
+    return next;
+  }
+
+  reopen({ stabilityWindow = this.stabilityWindow } = {}) {
+    if (!this.hasBake) return null;
+    this.status = "baking";
+    this.reason = null;
+    this.stabilityWindow = Math.max(1, Number(stabilityWindow) || this.stabilityWindow);
+    this.stableTicks = 0;
+    this.lastSignature = this.executionFrame?.signature ?? "";
+    return this.executionFrame;
+  }
+
+  finish(reason = "manual") {
+    if (!this.hasBake) return null;
+    this.status = "ready";
+    this.reason = String(reason || "manual");
+    return this.executionFrame;
+  }
+
+  clear() {
+    this.frames = [];
+    this.cursor = 0;
+    this.execution = null;
+    this.status = "empty";
+    this.reason = null;
+    this.stableTicks = 0;
+    this.lastSignature = "";
+  }
+
+  observe(signature) {
+    if (!this.isBaking) return false;
+    const nextSignature = String(signature ?? "");
+    if (nextSignature === this.lastSignature) this.stableTicks += 1;
+    else {
+      this.lastSignature = nextSignature;
+      this.stableTicks = 0;
+    }
+    return this.stableTicks >= this.stabilityWindow;
+  }
+
+  setCursor(index) {
+    if (!this.frames.length) return null;
+    this.cursor = Math.max(0, Math.min(this.frames.length - 1, Number(index) || 0));
+    this.execution = this.frames[this.cursor];
+    return this.execution;
+  }
+
+  truncateFuture() {
+    if (this.cursor >= this.frames.length - 1) return;
+    this.frames = this.frames.slice(0, this.cursor + 1);
+    this.execution = this.currentCheckpoint;
+  }
+
+  updateExecution(frame) {
+    this.execution = createTimelineFrame(frame);
+    return this.execution;
+  }
+
+  record(frame, { visible = true } = {}) {
+    const next = createTimelineFrame(frame);
+    this.truncateFuture();
+    if (!this.frames.length) return this.reset(next);
+    this.execution = next;
+    if (!visible) return next;
+
+    const last = this.latestCheckpoint;
+    if (last?.step === next.step) {
+      this.frames[this.frames.length - 1] = next;
+      this.cursor = this.frames.length - 1;
+      return next;
+    }
+
+    this.frames.push(next);
+    this.cursor = this.frames.length - 1;
+    this.prune();
+    return next;
+  }
+
+  previousIndex(predicate = () => true) {
+    for (let index = this.cursor - 1; index >= 0; index -= 1) {
+      if (predicate(this.frames[index], index)) return index;
+    }
+    return -1;
+  }
+
+  nextIndex(predicate = () => true) {
+    for (let index = this.cursor + 1; index < this.frames.length; index += 1) {
+      if (predicate(this.frames[index], index)) return index;
+    }
+    return -1;
+  }
+
+  prune() {
+    const excess = this.frames.length - this.maxFrames;
+    if (excess <= 0) return;
+    this.frames.splice(1, excess);
+    this.cursor = Math.max(0, this.cursor - excess);
+  }
+}
+
+// Kept as a compatibility name for the existing timeline tests and any small
+// integrations. New simulation code should use SimulationBake directly.
+export class SimulationTimeline extends SimulationBake {}

@@ -28,6 +28,39 @@ export function copyState(value) { return { bits: value?.bits ?? 0, tri: value?.
 export function stateEqual(a, b) { return Boolean(a && b && a.bits === b.bits && a.tri === b.tri); }
 export function isHigh(value, bit = 0) { return Boolean(value && ((value.bits >> bit) & 1)); }
 export function valueOf(value, bits = 16) { return (value?.bits ?? 0) & maskForBits(bits); }
+export const SIMULATION_SNAPSHOT_VERSION = 1;
+
+export function emptySnapshot(step = 0, outputs = new Map()) {
+  return {
+    version: SIMULATION_SNAPSHOT_VERSION,
+    step: Math.max(0, Number(step) || 0),
+    endpoints: {},
+    instances: {},
+    outputs
+  };
+}
+
+export function cloneSnapshot(snapshot) {
+  const source = snapshot ?? emptySnapshot();
+  const outputs = source.outputs instanceof Map
+    ? new Map([...source.outputs].map(([key, value]) => [key, copyState(value)]))
+    : Object.fromEntries(Object.entries(source.outputs ?? {}).map(([key, value]) => [key, copyState(value)]));
+  const instances = Object.fromEntries(Object.entries(source.instances ?? {}).map(([id, item]) => [
+    id,
+    {
+      ...item,
+      signals: Object.fromEntries(Object.entries(item?.signals ?? {}).map(([key, value]) => [key, copyState(value)])),
+      internal: clone(item?.internal ?? {})
+    }
+  ]));
+  return {
+    version: Number(source.version) || SIMULATION_SNAPSHOT_VERSION,
+    step: Math.max(0, Number(source.step) || 0),
+    endpoints: Object.fromEntries(Object.entries(source.endpoints ?? {}).map(([key, value]) => [key, copyState(value)])),
+    instances,
+    outputs
+  };
+}
 
 // A pin can have more than one input. Connected drivers are merged. If two
 // driven values conflict, use an AND merge. This is deterministic in the web
@@ -338,7 +371,7 @@ function snapshotRuntimeSignals(runtime) {
   return values.join("|");
 }
 
-function collectSnapshot(runtime, result = { endpoints: {}, instances: {}, outputs: new Map() }) {
+function collectSnapshot(runtime, result = emptySnapshot()) {
   for (const [id, item] of runtime.instances) {
     const signals = {};
     for (const [pin, value] of [...item.inputs, ...item.outputs]) signals[pin] = copyState(value);
@@ -358,30 +391,50 @@ export class Simulator {
     this.stepCount = 0;
     this.revision = -1;
     this.runtime = null;
-    this.snapshot = { endpoints: {}, instances: {}, outputs: new Map() };
+    this.snapshot = emptySnapshot();
+    this.audioNotes = [];
     this.syncProject(project);
   }
 
   syncProject(project) {
+    const changed = !this.runtime || this.revision !== project._revision || this.root !== project.root;
     this.project = project;
-    if (!this.runtime || this.revision !== project._revision) {
+    if (changed) {
       this.runtime = runtimeFor(project.root, project);
       this.revision = project._revision;
+      this.root = project.root;
+      this.stepCount = 0;
+      this.audioNotes = [];
+      const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
+      this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
     }
+    return this;
   }
 
   reset() {
     this.stepCount = 0;
     this.runtime = runtimeFor(this.project.root, this.project);
     this.revision = this.project._revision;
-    this.snapshot = { endpoints: {}, instances: {}, outputs: new Map() };
+    this.root = this.project.root;
+    this.audioNotes = [];
+    const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
+    this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+    return this.snapshot;
+  }
+
+  evaluate() {
+    this.syncProject(this.project);
+    this.audioNotes = [];
+    const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
+    this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+    return this.snapshot;
   }
 
   restore(snapshot, stepCount = 0) {
     this.syncProject(this.project);
     this.stepCount = Math.max(0, Number(stepCount) || 0);
     this.audioNotes = [];
-    const saved = snapshot ?? { endpoints: {}, instances: {}, outputs: new Map() };
+    const saved = cloneSnapshot(snapshot);
     const restoreRuntime = (runtime, root = false) => {
       for (const [id, item] of runtime.instances) {
         const itemSnapshot = saved.instances?.[id];
@@ -400,7 +453,8 @@ export class Simulator {
       runtime.lastTick = this.stepCount;
     };
     restoreRuntime(this.runtime, true);
-    this.snapshot = saved;
+    this.snapshot = { ...saved, step: this.stepCount };
+    return this.snapshot;
   }
 
   step() {
@@ -408,7 +462,7 @@ export class Simulator {
     this.stepCount += 1;
     this.audioNotes = [];
     const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map());
-    this.snapshot = collectSnapshot(this.runtime, { endpoints: {}, instances: {}, outputs: result.outputs });
+    this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
     return this.snapshot;
   }
 

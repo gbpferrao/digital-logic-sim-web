@@ -24,11 +24,14 @@ import {
   normalizeProject,
   uid
 } from "./model.js";
-import { Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
+import { PIN_MASK, Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
 import { WorldRenderer } from "./renderer.js";
-import { downloadProject, loadFromBrowser, loadFromServer, readProjectFile, readProjectFiles, saveToBrowser, saveToServer } from "./storage.js";
+import { downloadProject, loadFromBrowser, loadFromServer, readProjectFile, saveToBrowser, saveToServer } from "./storage.js";
 import { $, actionLabel, escapeHtml, icon, inspectorAction, refreshIcons } from "./ui/dom-icons.js";
 import { createLibraryController } from "./ui/library-controller.js";
+import { createNotificationCenter } from "./ui/notifications.js";
+import { createPointerSession, hasPointerMoved } from "./ui/pointer-session.js";
+import { SimulationBake, createTimelineFrame } from "./simulation-timeline.js";
 
 const APP_METADATA = Object.freeze({
   name: "Digital Logic Simulator",
@@ -40,6 +43,7 @@ const APP_METADATA = Object.freeze({
 
 const canvas = $("#world");
 const renderer = new WorldRenderer(canvas);
+const notifications = createNotificationCenter({ root: $("#notifications"), refreshIcons });
 
 function contextIcon(action) {
   return {
@@ -83,7 +87,6 @@ const state = {
   selectedWirePointKeys: new Set(),
   selectedWireId: null,
   wireStart: null,
-  wireGesture: null,
   wirePoints: [],
   wireTarget: null,
   wireTargetValid: null,
@@ -96,6 +99,8 @@ const state = {
   selectionBox: null,
   chipDrag: null,
   lastChipDragAt: 0,
+  annotationToolDrag: null,
+  lastAnnotationToolDragAt: 0,
   collectionDragName: null,
   lastCollectionDragAt: 0,
   hover: null,
@@ -105,20 +110,23 @@ const state = {
   simTimer: null,
   stepCount: 0,
   speed: Math.max(1, Math.min(30, Math.round(Number(project.settings.stepsPerSecond) || 8))),
-  simHistory: [],
-  simHistoryIndex: 0,
+  bake: new SimulationBake(),
   undo: [],
   redo: [],
   status: "Ready.",
   savePending: false,
   saveQueued: false,
-  toastTimer: null,
   projectNameBeforeEdit: null,
+  projectNameRevisionBeforeEdit: null,
+  projectNameUpdatedAtBeforeEdit: null,
   inspectorSelectionKey: null,
   viewStack: [],
   viewCameras: {},
-  savedRevision: 0,
+  projectSaved: Boolean(cachedProject),
+  savedRevision: cachedProject ? 0 : -1,
   suppressContextMenu: false,
+  pointerSession: null,
+  pendingInputToggle: null,
   pointer: { altKey: false, shiftKey: false, ctrlKey: false, metaKey: false }
 };
 
@@ -167,6 +175,50 @@ function updatePointerModifiers(input) {
   };
 }
 
+function beginCanvasPointer(event, kind, details = {}) {
+  if (state.pointerSession) return false;
+  state.pointerSession = createPointerSession({
+    pointerId: event.pointerId,
+    kind,
+    originScreen: canvasPoint(event),
+    originWorld: details.originWorld ?? state.mouseWorld,
+    target: details.target ?? null,
+    additive: details.additive ?? false
+  });
+  try { canvas.setPointerCapture?.(event.pointerId); } catch {}
+  return true;
+}
+
+function releaseCanvasPointer(pointerId = state.pointerSession?.pointerId) {
+  if (pointerId == null) return;
+  const ownsSession = state.pointerSession?.pointerId === pointerId;
+  if (ownsSession) state.pointerSession = null;
+  try {
+    if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
+  } catch {}
+}
+
+function ownsCanvasPointer(event) {
+  return !state.pointerSession || state.pointerSession.pointerId === event.pointerId;
+}
+
+function cancelPendingInputToggle() {
+  if (!state.pendingInputToggle) return;
+  clearTimeout(state.pendingInputToggle.timer);
+  state.pendingInputToggle = null;
+}
+
+function scheduleInputToggle(instance) {
+  cancelPendingInputToggle();
+  const id = String(instance.id);
+  const timer = setTimeout(() => {
+    state.pendingInputToggle = null;
+    const current = project.root.instances.find((item) => String(item.id) === id);
+    if (current && isInputType(current.name)) toggleInput(current);
+  }, 350);
+  state.pendingInputToggle = { id, timer };
+}
+
 function setTool(tool, message = null) {
   state.tool = tool;
   $("#select-tool").classList.toggle("active", tool === "select");
@@ -176,11 +228,95 @@ function setTool(tool, message = null) {
   if (message) setStatus(message);
 }
 
-function isWorldInteractionBlocked() {
+function beginAnnotationToolDrag(event) {
+  if (event.button !== 0) return;
+  const button = event.target.closest("[data-annotation-tool]");
+  if (!button) return;
+  state.annotationToolDrag = {
+    pointerId: event.pointerId,
+    type: button.dataset.annotationTool === "label" ? "label" : "text",
+    button,
+    startX: event.clientX,
+    startY: event.clientY,
+    moved: false
+  };
+  button.setPointerCapture?.(event.pointerId);
+}
+
+function clearAnnotationToolDrag() {
+  const drag = state.annotationToolDrag;
+  if (!drag) return;
+  state.lastAnnotationToolDragAt = performance.now();
+  try { drag.button.releasePointerCapture?.(drag.pointerId); } catch {}
+  drag.button.classList.remove("dragging");
+  state.annotationToolDrag = null;
+}
+
+function updateAnnotationToolDrag(event) {
+  const drag = state.annotationToolDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+  if (!drag.moved) {
+    if (distance < 6) return;
+    drag.moved = true;
+    const activeDrag = drag;
+    state.annotationToolDrag = null;
+    beginAnnotationPlacement(activeDrag.type);
+    state.annotationToolDrag = activeDrag;
+    activeDrag.button.classList.add("dragging");
+  }
+  event.preventDefault();
+  const screen = canvasPoint(event);
+  state.mouseWorld = renderer.toWorld(screen.x, screen.y);
+  updateAnnotationPlacementPreview(state.mouseWorld);
+  render();
+}
+
+function finishAnnotationToolDrag(event, cancelled = false) {
+  const drag = state.annotationToolDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  state.annotationToolDrag = null;
+  try { drag.button.releasePointerCapture?.(event.pointerId); } catch {}
+  drag.button.classList.remove("dragging");
+  if (!drag.moved) return;
+  state.lastAnnotationToolDragAt = performance.now();
+  event.preventDefault();
+  if (cancelled || !state.annotationPlacement) {
+    if (state.annotationPlacement) cancelTransientInteraction();
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const insideCanvas = event.clientX >= rect.left && event.clientX <= rect.right
+    && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  if (!insideCanvas) {
+    cancelTransientInteraction();
+    return;
+  }
+  const screen = canvasPoint(event);
+  state.mouseWorld = renderer.toWorld(screen.x, screen.y);
+  placeAnnotationAt(state.mouseWorld);
+}
+
+function handleAnnotationToolClick(event) {
+  const button = event.target.closest("[data-annotation-tool]");
+  if (!button) return;
+  if (performance.now() - state.lastAnnotationToolDragAt < 300) {
+    state.lastAnnotationToolDragAt = 0;
+    event.preventDefault();
+    return;
+  }
+  beginAnnotationPlacement(button.dataset.annotationTool === "label" ? "label" : "text");
+}
+
+function isKeyboardInteractionBlocked() {
   return $("#app").classList.contains("library-open")
     || !$("#bottom-menu-popup").classList.contains("hidden")
     || !$("#collection-popup").classList.contains("hidden")
     || !$("#help-modal").classList.contains("hidden");
+}
+
+function isCanvasInteractionBlocked() {
+  return !$("#help-modal").classList.contains("hidden");
 }
 
 function viewKey() {
@@ -275,56 +411,110 @@ function updatePlacementPreview(world = state.mouseWorld, input = state.pointer)
   }
 }
 
-function invalidateSimulationHistory() {
-  state.simHistory = [];
-  state.simHistoryIndex = 0;
+function simulationStabilityWindow() {
+  const period = Math.max(1, Math.round(Number(project.settings.stepsPerClock) || 8));
+  return Math.max(4, Math.min(64, period * 2));
 }
 
-function resetSimulationHistory() {
-  state.simHistory = [{ step: simulator.stepCount, snapshot: simulator.snapshot }];
-  state.simHistoryIndex = 0;
+function beginSimulationBake() {
+  simulator.syncProject(project);
+  simulator.reset();
+  const frame = simulationFrame();
+  state.bake.begin(frame, { stabilityWindow: simulationStabilityWindow() });
+  state.stepCount = simulator.stepCount;
+  project._simSnapshot = simulator.snapshot;
+  return frame;
 }
 
-function ensureSimulationHistory() {
-  if (!state.simHistory.length) resetSimulationHistory();
+function ensureSimulationBake() {
+  if (!state.bake.hasBake) beginSimulationBake();
   state.stepCount = simulator.stepCount;
 }
 
-function truncateSimulationHistory() {
-  ensureSimulationHistory();
-  if (state.simHistoryIndex >= state.simHistory.length - 1) return;
-  state.simHistory = state.simHistory.slice(0, state.simHistoryIndex + 1);
+function truncateSimulationBake() {
+  ensureSimulationBake();
+  state.bake.truncateFuture();
 }
 
-function recordSimulationFrame() {
-  ensureSimulationHistory();
-  truncateSimulationHistory();
-  const frame = { step: simulator.stepCount, snapshot: simulator.snapshot };
-  const last = state.simHistory.at(-1);
-  if (last?.step === frame.step) state.simHistory[state.simHistory.length - 1] = frame;
-  else state.simHistory.push(frame);
-  if (state.simHistory.length > 240) state.simHistory.shift();
-  state.simHistoryIndex = state.simHistory.length - 1;
+function simulationFrame(snapshot = simulator.snapshot) {
+  return createTimelineFrame({
+    step: simulator.stepCount,
+    snapshot,
+    signature: simulationVisualSignature(snapshot)
+  });
 }
 
-function restoreSimulationFrame(index) {
-  if (state.simRunning || !state.simHistory.length) return;
-  const nextIndex = Math.max(0, Math.min(state.simHistory.length - 1, Number(index) || 0));
-  const frame = state.simHistory[nextIndex];
+function resetSimulationBake() {
+  simulator.syncProject(project);
+  simulator.reset();
+  const frame = simulationFrame();
+  state.bake.clear();
+  if (state.simRunning) state.bake.begin(frame, { stabilityWindow: simulationStabilityWindow() });
+  state.stepCount = simulator.stepCount;
+  project._simSnapshot = simulator.snapshot;
+}
+
+function recordSimulationFrame({ visible = null } = {}) {
+  ensureSimulationBake();
+  if (!state.bake.isBaking) state.bake.reopen({ stabilityWindow: simulationStabilityWindow() });
+  truncateSimulationBake();
+  const frame = simulationFrame();
+  const previous = state.bake.executionFrame;
+  const isVisible = visible == null
+    ? !previous || frame.signature !== (previous.signature || simulationVisualSignature(previous.snapshot))
+    : visible;
+  state.bake.record(frame, { visible: isVisible });
+  state.stepCount = simulator.stepCount;
+  return frame;
+}
+
+function syncSimulationBakeCursor() {
+  state.stepCount = simulator.stepCount;
+}
+
+function simulationVisualSignature(snapshot) {
+  const rootOwners = new Set(["root", ...(project.root.instances ?? []).map((instance) => String(instance.id))]);
+  const signals = Object.entries(snapshot?.endpoints ?? {})
+    .filter(([key]) => rootOwners.has(key.split(":", 1)[0]))
+    .filter(([, value]) => (value?.tri ?? PIN_MASK) !== PIN_MASK)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => [key, value.bits ?? 0, value.tri ?? PIN_MASK]);
+  const displays = {};
+  for (const instance of project.root.instances ?? []) {
+    const descriptor = descriptorForInstance(project, instance);
+    if (!descriptor?.special) continue;
+    const runtime = snapshot?.instances?.[String(instance.id)];
+    const display = runtime?.internal?.display ?? instance.internalData?.display;
+    if (display !== undefined) displays[String(instance.id)] = Array.isArray(display) ? [...display] : display;
+  }
+  return JSON.stringify({ signals, displays });
+}
+
+function previousVisibleHistoryIndex() {
+  const current = state.bake.executionFrame;
+  if (!current) return -1;
+  const currentSignature = current.signature || simulationVisualSignature(current.snapshot);
+  return state.bake.previousIndex((frame) => (frame.signature || simulationVisualSignature(frame.snapshot)) !== currentSignature);
+}
+
+function restoreSimulationFrame(index, message = null) {
+  if (state.simRunning || !state.bake.length) return;
+  const nextIndex = Math.max(0, Math.min(state.bake.length - 1, Number(index) || 0));
+  const frame = state.bake.frameAt(nextIndex);
   if (!frame) return;
   simulator.restore(frame.snapshot, frame.step);
-  state.simHistoryIndex = nextIndex;
+  state.bake.setCursor(nextIndex);
   state.stepCount = frame.step;
   project._simSnapshot = simulator.snapshot;
-  const latest = state.simHistory.at(-1)?.step ?? frame.step;
-  setStatus(nextIndex === state.simHistory.length - 1 ? "Simulation paused." : `Viewing step ${frame.step} of ${latest}.`);
+  const latest = state.bake.latestCheckpoint?.step ?? frame.step;
+  setStatus(message || (nextIndex === state.bake.length - 1 ? "Simulation paused." : `Viewing step ${frame.step} of ${latest}.`));
   render();
 }
 
 function touch(message = null, structural = true, resetSimulation = true) {
   if (structural) {
     project._revision += 1;
-    if (resetSimulation) invalidateSimulationHistory();
+    if (resetSimulation) resetSimulationBake();
   }
   project.updatedAt = new Date().toISOString();
   if (message) setStatus(message);
@@ -350,13 +540,8 @@ function setStatus(message) {
   $("#status-message").textContent = message;
 }
 
-function toast(message, error = false) {
-  const element = $("#toast");
-  element.textContent = message;
-  element.classList.toggle("error", error);
-  element.classList.add("visible");
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => element.classList.remove("visible"), 2800);
+function notify(message, error = false) {
+  return notifications.notify(message, { tone: error ? "error" : "info" });
 }
 
 function makeInstance(name, position) {
@@ -435,7 +620,6 @@ function beginAnnotationPlacement(type = "text") {
   state.selectedWirePointKeys.clear();
   state.selectedWireId = null;
   state.wireStart = null;
-  state.wireGesture = null;
   state.wireTarget = null;
   state.wireTargetValid = null;
   $("#app").classList.remove("library-open", "inspector-open");
@@ -499,7 +683,6 @@ function beginPlacement(name) {
   state.selectedWirePointKeys.clear();
   state.selectedWireId = null;
   state.wireStart = null;
-  state.wireGesture = null;
   state.wireTarget = null;
   state.wireTargetValid = null;
   canvas.parentElement.classList.remove("selecting");
@@ -519,7 +702,6 @@ function cancelPlacement() {
   }
   state.placement = null;
   state.wireStart = null;
-  state.wireGesture = null;
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
@@ -534,7 +716,7 @@ function placeAt(world) {
   updatePlacementPreview(world);
   if (!state.placement.validity.valid) {
     setStatus(state.placement.validity.message);
-    toast(state.placement.validity.message, true);
+    notify(state.placement.validity.message, true);
     return;
   }
 
@@ -606,18 +788,14 @@ function clearSelection(message = null) {
   render();
 }
 
-function startWire(endpoint, pointerId = null) {
+function startWire(endpoint) {
   if (state.wireEdit) exitWireEdit();
   setTool("wire");
   state.wireStart = { ...endpoint, owner: String(endpoint.owner), pin: String(endpoint.pin) };
-  state.wireGesture = pointerId == null
-    ? null
-    : { pointerId, start: { ...state.mouseWorld }, moved: false };
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
   setStatus(endpoint.wireConnection ? "Wire branch started." : "Wire started.");
-  if (pointerId != null) canvas.setPointerCapture?.(pointerId);
   render();
 }
 
@@ -629,7 +807,7 @@ function completeWire(endpoint) {
   const result = canConnect(state.wireStart, endpoint);
   if (!result.ok) {
     setStatus(result.message);
-    toast(result.message, true);
+    notify(result.message, true);
     return;
   }
   mutate("Wire connected.", () => {
@@ -676,19 +854,15 @@ function wireEndpointAt(wire, world) {
 }
 
 function wireTargetAt(world) {
-  const pin = renderer.findPin(project, world);
-  const junction = pin ? null : renderer.findJunction(project, world);
-  const annotation = pin || junction ? null : renderer.findAnnotation(project, world);
-  const instance = pin || junction || annotation ? null : renderer.findInstance(project, world);
-  const wire = pin || junction || annotation || instance ? null : renderer.findWire(project, world);
-  if (pin) return { endpoint: pin, wire: null };
-  if (junction) return { endpoint: { ...junction, direction: "input" }, wire: null };
-  return { endpoint: wire ? wireEndpointAt(wire, world) : null, wire };
+  const hit = canvasHitTarget(world);
+  if (hit.kind === "pin") return { endpoint: hit.value, wire: null };
+  if (hit.kind === "junction") return { endpoint: { ...hit.value, direction: "input" }, wire: null };
+  if (hit.kind === "wire") return { endpoint: wireEndpointAt(hit.value, world), wire: hit.value };
+  return { endpoint: null, wire: null };
 }
 
 function finishWirePlacement() {
   state.wireStart = null;
-  state.wireGesture = null;
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
@@ -706,7 +880,7 @@ function completeWireFromWire(endpoint) {
   const result = canConnect(state.wireStart, endpoint);
   if (!result.ok) {
     setStatus(result.message);
-    toast(result.message, true);
+    notify(result.message, true);
     return;
   }
   const split = wireSplitAt(sourceWire, state.wireStart.position);
@@ -728,7 +902,7 @@ function completeWireToWire(wire, world) {
   const result = canConnect(state.wireStart, endpoint);
   if (!result.ok) {
     setStatus(result.message);
-    toast(result.message, true);
+    notify(result.message, true);
     return;
   }
   const split = wireSplitAt(wire, world);
@@ -741,7 +915,7 @@ function completeWireToWire(wire, world) {
 }
 
 function cancelCanvasInteractionBeforeEdit() {
-  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox || state.pan || state.zoomDrag) {
+  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.pan || state.zoomDrag || state.pointerSession) {
     cancelTransientInteraction();
   }
 }
@@ -755,7 +929,6 @@ function enterWireEdit(wire) {
   }
   cancelCanvasInteractionBeforeEdit();
   state.wireStart = null;
-  state.wireGesture = null;
   state.wirePoints = [];
   state.wireTarget = null;
   selectWire(wire);
@@ -780,7 +953,7 @@ function exitWireEdit(restore = false) {
   render();
 }
 
-function insertWirePoint(wire, world, pointerId = null) {
+function insertWirePoint(wire, world) {
   const closest = renderer.closestWireSegment(project, wire, world);
   if (closest.index < 0 || closest.index > (wire.points ?? []).length) return;
   const before = clone(project);
@@ -792,11 +965,11 @@ function insertWirePoint(wire, world, pointerId = null) {
   state.selectedWirePointKeys.clear();
   state.selectedWirePointKeys.add(wirePointKey(wire.id, closest.index));
   state.selectedWireId = wire.id;
-  startWirePointDrag({ wire, index: closest.index }, world, pointerId);
+  startWirePointDrag({ wire, index: closest.index }, world);
   render();
 }
 
-function startWirePointDrag(point, world, pointerId) {
+function startWirePointDrag(point, world) {
   const wire = point?.wire;
   if (!wire || !state.wireEdit) return;
   const key = wirePointKey(wire.id, point.index);
@@ -821,7 +994,6 @@ function startWirePointDrag(point, world, pointerId) {
   state.wireEdit.index = point.index;
   state.wireEdit.before = null;
   state.wireEdit.moved = false;
-  if (pointerId != null) canvas.setPointerCapture?.(pointerId);
 }
 
 function restoreWirePointDrag() {
@@ -883,22 +1055,36 @@ function deleteWireEditPoint(index = null) {
   return true;
 }
 
-function cancelTransientInteraction() {
+function cancelActiveCanvasPointerSession({ renderState = true } = {}) {
+  const wasZooming = state.pointerSession?.kind === "zoom";
   if (state.drag) restoreDrag();
   if (state.annotationDrag) restoreAnnotationDrag();
   if (state.annotationResize) restoreAnnotationResize();
+  if (state.wirePointDrag) restoreWirePointDrag();
   state.drag = null;
   state.annotationDrag = null;
   state.annotationResize = null;
+  state.wirePointDrag = null;
   state.selectionBox = null;
   state.pan = null;
   state.zoomDrag = null;
+  state.wireTarget = null;
+  state.wireTargetValid = null;
+  if (wasZooming) state.suppressContextMenu = false;
+  canvas.parentElement.classList.remove("panning", "selecting");
+  releaseCanvasPointer();
+  if (renderState) render();
+}
+
+function cancelTransientInteraction() {
+  clearAnnotationToolDrag();
+  cancelPendingInputToggle();
+  cancelActiveCanvasPointerSession({ renderState: false });
   state.chipDrag = null;
   if (state.wireEdit) exitWireEdit(true);
   state.placement = null;
   state.annotationPlacement = null;
   state.wireStart = null;
-  state.wireGesture = null;
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
@@ -996,7 +1182,7 @@ function rotateSelection(delta = 1) {
       if (old) item.rotation = old.rotation;
     });
     setStatus("Rotation cancelled: the rotated element overlaps another element.");
-    toast("Rotation cancelled: overlap.", true);
+    notify("Rotation cancelled: overlap.", true);
     render();
     return;
   }
@@ -1101,7 +1287,7 @@ function beginDuplicatePlacement(placedItems = null) {
   render();
 }
 
-function startDragging(instance, world, pointerId) {
+function startDragging(instance, world) {
   const startPositions = new Map([...state.selectedIds].map((id) => {
     const item = project.root.instances.find((candidate) => String(candidate.id) === id);
     return [id, item ? { ...item.position } : null];
@@ -1118,11 +1304,9 @@ function startDragging(instance, world, pointerId) {
     before: clone(project),
     moved: false,
     invalid: false,
-    straightAxis: null,
-    clickedInstanceId: String(instance.id)
+    straightAxis: null
   };
   delete state.drag.before._revision;
-  if (pointerId != null) canvas.setPointerCapture?.(pointerId);
 }
 
 function restoreDrag() {
@@ -1176,7 +1360,7 @@ function applyDrag(world, event) {
   if (Math.hypot(delta.x, delta.y) > 1) state.drag.moved = true;
 }
 
-function startDraggingAnnotation(annotation, world, pointerId) {
+function startDraggingAnnotation(annotation, world) {
   const startPositions = new Map([...state.selectedAnnotationIds].map((id) => {
     const item = project.root.annotations?.find((candidate) => String(candidate.id) === id);
     return [id, item ? { ...item.position } : null];
@@ -1189,7 +1373,6 @@ function startDraggingAnnotation(annotation, world, pointerId) {
     straightAxis: null
   };
   delete state.annotationDrag.before._revision;
-  if (pointerId != null) canvas.setPointerCapture?.(pointerId);
 }
 
 function restoreAnnotationDrag() {
@@ -1222,7 +1405,7 @@ function applyAnnotationDrag(world, event) {
   if (Math.hypot(delta.x, delta.y) > 1) state.annotationDrag.moved = true;
 }
 
-function startAnnotationResize(annotation, world, pointerId) {
+function startAnnotationResize(annotation, world) {
   if (!annotation || annotation.type !== "text") return;
   const before = clone(project);
   delete before._revision;
@@ -1238,7 +1421,6 @@ function startAnnotationResize(annotation, world, pointerId) {
   state.selectedAnnotationIds = new Set([String(annotation.id)]);
   state.selectedWirePointKeys.clear();
   state.selectedWireId = null;
-  canvas.setPointerCapture?.(pointerId);
 }
 
 function restoreAnnotationResize() {
@@ -1278,7 +1460,7 @@ function undo() {
   state.redo.push(current);
   project = normalizeProject(snapshot); project._revision += 1;
   simulator.syncProject(project);
-  invalidateSimulationHistory();
+  resetSimulationBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null;
   setStatus("Undo."); render();
 }
@@ -1290,7 +1472,7 @@ function redo() {
   state.undo.push(current);
   project = normalizeProject(snapshot); project._revision += 1;
   simulator.syncProject(project);
-  invalidateSimulationHistory();
+  resetSimulationBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null;
   setStatus("Redo."); render();
 }
@@ -1307,12 +1489,12 @@ function toggleInput(instance) {
 function createCustomChip() {
   const name = window.prompt("Name for the custom chip:", `CHIP ${Object.keys(project.customChips).length + 1}`)?.trim();
   if (!name) return;
-  if (BUILTINS[name] || project.customChips[name]) { toast("A chip with that name already exists.", true); return; }
-  if (!project.root.instances.length) { toast("Place at least one chip before saving a custom chip.", true); return; }
+  if (BUILTINS[name] || project.customChips[name]) { notify("A chip with that name already exists.", true); return; }
+  if (!project.root.instances.length) { notify("Place at least one chip before saving a custom chip.", true); return; }
   mutate(`${name} added to the library.`, () => {
     project.customChips[name] = customFromRoot(project, name);
   });
-  toast(`${name} is now available in the library.`);
+  notify(`${name} is now available in the library.`);
   renderLibrary();
   void saveCurrentProject({ quiet: true });
 }
@@ -1320,6 +1502,7 @@ function createCustomChip() {
 function resetProject() {
   if (!confirmDiscardChanges("Create a new project?")) return;
   project = createProject(); project._revision = 0; simulator = new Simulator(project);
+  state.projectSaved = false;
   resetEditorStateForProject();
   renderer.fit(project);
   setStatus("New project created.");
@@ -1352,10 +1535,11 @@ function enterCustomView(instance) {
   if (!confirmDiscardChanges("Open this chip?")) return;
   rememberCamera();
   state.viewStack.push({ root: project.root, name: project.name, customName: instance.name, parentViewKey: viewKey() });
-  project.root = description;
-  project.name = `${description.name} internals`;
-  simulator.syncProject(project);
-  state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null; state.wireGesture = null;
+ project.root = description;
+ project.name = `${description.name} internals`;
+ simulator.syncProject(project);
+  resetSimulationBake();
+  state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
   state.wireEdit = null;
   state.wirePointDrag = null;
   $("#app").classList.remove("library-open", "inspector-open");
@@ -1373,25 +1557,90 @@ function exitCustomView() {
   }
   rememberCamera();
   project.customChips[frame.customName] = project.root;
-  project.root = frame.root;
-  project.name = frame.name;
-  simulator.syncProject(project);
-  state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null; state.wireGesture = null;
+ project.root = frame.root;
+ project.name = frame.name;
+ simulator.syncProject(project);
+  resetSimulationBake();
+  state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
   restoreCamera(frame.parentViewKey || viewKey());
   setStatus(`Returned to ${frame.name}.`);
   render();
 }
 
-function runStep() {
+function runStep(options = {}) {
+  const renderFrame = !options || typeof options !== "object" || options.renderFrame !== false;
+  const playAudioFrame = !options || typeof options !== "object" || options.playAudio !== false;
+  const recordFrame = !options || typeof options !== "object" || options.recordFrame !== false;
   simulator.syncProject(project);
-  ensureSimulationHistory();
-  truncateSimulationHistory();
+  ensureSimulationBake();
+  if (!state.bake.isBaking) state.bake.reopen({ stabilityWindow: simulationStabilityWindow() });
+  if (recordFrame) truncateSimulationBake();
   simulator.step();
   state.stepCount = simulator.stepCount;
-  recordSimulationFrame();
-  playAudio(simulator.audioNotes);
+  const frame = recordFrame ? recordSimulationFrame() : null;
+  if (playAudioFrame) playAudio(simulator.audioNotes);
   project._simSnapshot = simulator.snapshot;
+  if (state.simRunning && frame && state.bake.observe(frame.signature)) finishSimulationBake("stable");
+  if (renderFrame) render();
+}
+
+function macroStep(direction) {
+  if (state.simRunning) {
+    setStatus("Pause the simulation before using visible-step controls.");
+    render();
+    return;
+  }
+  if (!state.bake.hasBake) {
+    setStatus("No bake is available. Use Run or Step to create one.");
+    render();
+    return;
+  }
+  const current = state.bake.executionFrame ?? state.bake.currentCheckpoint;
+  if (!current) return;
+  const baseline = current.signature || simulationVisualSignature(current.snapshot);
+
+  if (direction < 0) {
+    const previousIndex = previousVisibleHistoryIndex();
+    if (previousIndex >= 0) {
+      const frame = state.bake.frameAt(previousIndex);
+      restoreSimulationFrame(previousIndex, `Previous visible step: ${frame.step}.`);
+      return;
+    }
+    const first = state.bake.frameAt(0);
+    if (first && current.step > first.step) {
+      restoreSimulationFrame(0, "Simulation start.");
+      return;
+    }
+    setStatus("Already at the first visible step.");
+    render();
+    return;
+  }
+
+  const nextIndex = state.bake.nextIndex((frame) => (frame.signature || simulationVisualSignature(frame.snapshot)) !== baseline);
+  if (nextIndex >= 0) {
+    const frame = state.bake.frameAt(nextIndex);
+    restoreSimulationFrame(nextIndex, `Next visible step: ${frame.step}.`);
+    return;
+  }
+
+  setStatus("No later visible step in this bake.");
   render();
+}
+
+function jumpToSimulationBoundary(direction) {
+  if (state.simRunning) {
+    setStatus("Pause the simulation before using timeline controls.");
+    render();
+    return;
+  }
+  if (!state.bake.hasBake) {
+    setStatus("No bake is available. Use Run or Step to create one.");
+    render();
+    return;
+  }
+  syncSimulationBakeCursor();
+  const targetIndex = direction < 0 ? 0 : state.bake.length - 1;
+  restoreSimulationFrame(targetIndex, direction < 0 ? "Simulation start." : "Latest simulation step.");
 }
 
 function playAudio(notes) {
@@ -1408,7 +1657,38 @@ function playAudio(notes) {
   }
 }
 
-function setRunning(running, markDirty = false) {
+function finishSimulationBake(reason = "manual") {
+  if (!state.bake.hasBake) return;
+  state.bake.finish(reason);
+  const message = reason === "stable"
+    ? "Bake complete at step " + state.stepCount + "; no further visible change detected."
+    : "Bake registered at step " + state.stepCount + ".";
+  setRunning(false, false, message);
+}
+
+function clearSimulationBake() {
+  const wasRunning = state.simRunning;
+  clearInterval(state.simTimer);
+  state.simTimer = null;
+  state.simRunning = false;
+  project.settings.simulationPaused = true;
+  simulator.syncProject(project);
+  simulator.reset();
+  state.bake.clear();
+  state.stepCount = simulator.stepCount;
+  project._simSnapshot = simulator.snapshot;
+  if (wasRunning) touch("Bake cleared.", false, false);
+  else setStatus("Bake cleared.");
+  render();
+}
+
+function startSimulationRun(markDirty = false) {
+  beginSimulationBake();
+  setRunning(true, markDirty, "Simulation baking.");
+}
+
+function setRunning(running, markDirty = false, statusMessage = null) {
+  if (running && !state.bake.hasBake) beginSimulationBake();
   const settingChanged = project.settings.simulationPaused === running;
   state.simRunning = running;
   project.settings.simulationPaused = !running;
@@ -1420,7 +1700,7 @@ function setRunning(running, markDirty = false) {
   $("#run-sim").classList.toggle("running", running);
   $("#run-sim").setAttribute("aria-pressed", String(running));
   $("#run-sim").title = running ? "Pause simulation" : "Run simulation";
-  setStatus(running ? "Simulation running." : "Simulation paused.");
+  setStatus(statusMessage || (running ? "Simulation baking." : "Simulation paused."));
   render();
 }
 
@@ -1438,23 +1718,28 @@ function updateSimulationSpeed(value) {
 function updateName(value) {
   const nextName = String(value ?? "").trim() || "Untitled project";
   if (nextName === project.name) {
-    $("#project-name").value = project.name;
+    if (document.activeElement !== $("#project-name")) $("#project-name").value = project.name;
     return;
   }
   project.name = nextName;
-  state.projectNameBeforeEdit = null;
-  touch("Project name updated.");
+  touch("Project name updated.", true, false);
   render();
 }
 
 function beginProjectNameEdit() {
-  if (state.projectNameBeforeEdit == null) state.projectNameBeforeEdit = project.name;
+  if (state.projectNameBeforeEdit == null) {
+    state.projectNameBeforeEdit = project.name;
+    state.projectNameRevisionBeforeEdit = project._revision;
+    state.projectNameUpdatedAtBeforeEdit = project.updatedAt;
+  }
 }
 
 function commitProjectNameEdit() {
   const input = $("#project-name");
   const nextName = input.value;
   state.projectNameBeforeEdit = null;
+  state.projectNameRevisionBeforeEdit = null;
+  state.projectNameUpdatedAtBeforeEdit = null;
   input.blur();
   updateName(nextName);
 }
@@ -1466,8 +1751,17 @@ function commitProjectNameEditIfOutside(event) {
 
 function cancelProjectNameEdit() {
   const input = $("#project-name");
-  input.value = state.projectNameBeforeEdit ?? project.name;
+  const previousName = state.projectNameBeforeEdit;
+  const previousRevision = state.projectNameRevisionBeforeEdit;
+  if (previousName != null) {
+    project.name = previousName;
+    if (Number.isInteger(previousRevision)) project._revision = previousRevision;
+    if (state.projectNameUpdatedAtBeforeEdit) project.updatedAt = state.projectNameUpdatedAtBeforeEdit;
+  }
+  input.value = previousName ?? project.name;
   state.projectNameBeforeEdit = null;
+  state.projectNameRevisionBeforeEdit = null;
+  state.projectNameUpdatedAtBeforeEdit = null;
   input.blur();
   render();
 }
@@ -1476,7 +1770,22 @@ function confirmDiscardChanges(action) {
   return project._revision === state.savedRevision || window.confirm(`${action} Unsaved changes will be replaced.`);
 }
 
-async function saveCurrentProject({ quiet = false } = {}) {
+function saveTargetForNewProject() {
+  const answer = window.prompt("Save this new circuit as a project or a chip? Enter PROJECT or CHIP.", "project");
+  if (answer == null) return null;
+  const target = answer.trim().toLowerCase();
+  if (["project", "p"].includes(target)) return "project";
+  if (["chip", "c"].includes(target)) return "chip";
+  notify("Choose PROJECT or CHIP to save.", true);
+  return null;
+}
+
+async function saveCurrentProject({ quiet = false, promptIfNeeded = !quiet } = {}) {
+  if (!state.projectSaved && promptIfNeeded) {
+    const target = saveTargetForNewProject();
+    if (target === "chip") { createCustomChip(); return; }
+    if (target !== "project") return;
+  }
   if (state.savePending) {
     state.saveQueued = true;
     return;
@@ -1489,14 +1798,16 @@ async function saveCurrentProject({ quiet = false } = {}) {
     const saved = await saveToServer(project);
     project.storageId = saved.storageId || project.storageId;
     project.updatedAt = saved.updatedAt || project.updatedAt;
+    state.projectSaved = true;
     saveToBrowser(project);
     if (project._revision === revisionAtStart) state.savedRevision = revisionAtStart;
-    if (!quiet) toast("Project and custom chips saved to storage.");
+    if (!quiet) notify("Project and custom chips saved to storage.");
     setStatus("Saved to local JSON storage.");
   } catch (error) {
     saveToBrowser(project);
+    state.projectSaved = true;
     if (project._revision === revisionAtStart) state.savedRevision = revisionAtStart;
-    if (!quiet) toast("Storage server unavailable; saved to browser cache.", true);
+    if (!quiet) notify("Storage server unavailable; saved to browser cache.", true);
     setStatus("Saved to browser cache; server will be used when available.");
   } finally {
     state.savePending = false;
@@ -1508,6 +1819,10 @@ async function saveCurrentProject({ quiet = false } = {}) {
   }
 }
 
+function saveAsProject() {
+  void saveCurrentProject({ promptIfNeeded: false });
+}
+
 function toggleGrid() {
   project.settings.grid = project.settings.grid === false;
   touch(`Grid ${project.settings.grid ? "enabled" : "hidden"}.`);
@@ -1517,11 +1832,13 @@ function toggleGrid() {
 function resetEditorStateForProject() {
   clearInterval(state.simTimer);
   state.simTimer = null;
+  cancelPendingInputToggle();
+  cancelActiveCanvasPointerSession({ renderState: false });
   state.simRunning = project.settings.simulationPaused !== true;
   state.speed = Math.max(1, Math.min(30, Math.round(Number(project.settings.stepsPerSecond) || 8)));
   $("#sim-speed").value = String(state.speed);
   state.stepCount = 0;
-  resetSimulationHistory();
+  resetSimulationBake();
   state.viewStack.length = 0;
   state.viewCameras = {};
   state.selectedIds.clear();
@@ -1529,7 +1846,6 @@ function resetEditorStateForProject() {
   state.selectedWirePointKeys.clear();
   state.selectedWireId = null;
   state.wireStart = null;
-  state.wireGesture = null;
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
@@ -1549,8 +1865,10 @@ function resetEditorStateForProject() {
   state.hover = null;
   state.undo.length = 0;
   state.redo.length = 0;
-  state.savedRevision = 0;
+  state.savedRevision = state.projectSaved ? 0 : -1;
   state.projectNameBeforeEdit = null;
+  state.projectNameRevisionBeforeEdit = null;
+  state.projectNameUpdatedAtBeforeEdit = null;
   $("#app").classList.remove("library-open", "inspector-open");
   closeBottomMenu();
   closeCollectionPopup();
@@ -1713,18 +2031,41 @@ function renderHelpMetadata() {
 function renderSimulationControls() {
   const speedInput = $("#sim-speed");
   if (speedInput && document.activeElement !== speedInput) speedInput.value = String(state.speed);
+  const stepButton = $("#step-sim");
+  const bakeButton = $("#bake-sim");
+  const clearBakeButton = $("#clear-bake");
+  const startButton = $("#start-sim");
+  const previousButton = $("#macro-prev-sim");
+  const nextButton = $("#macro-next-sim");
+  const endButton = $("#end-sim");
   const scrubber = $("#step-scrubber");
   const scrubberWrap = $("#step-scrubber-wrap");
-  const scrubberValue = $("#step-scrubber-value");
-  if (!scrubber || !scrubberWrap || !scrubberValue) return;
-  const maxIndex = Math.max(0, state.simHistory.length - 1);
-  state.simHistoryIndex = Math.max(0, Math.min(maxIndex, state.simHistoryIndex));
-  const latestStep = state.simHistory.at(-1)?.step ?? state.stepCount;
+  if (!scrubber || !scrubberWrap) return;
+  syncSimulationBakeCursor();
+  const hasBake = state.bake.hasBake;
+  const maxIndex = Math.max(0, state.bake.length - 1);
+  const currentIndex = Math.max(0, Math.min(maxIndex, state.bake.currentIndex));
+  const firstStep = state.bake.frameAt(0)?.step ?? 0;
+  const executionStep = state.bake.executionFrame?.step ?? firstStep;
+  const atStart = currentIndex <= 0 && executionStep <= firstStep;
+  if (stepButton) stepButton.disabled = state.simRunning;
+  if (startButton) startButton.disabled = state.simRunning || !hasBake || atStart;
+  if (previousButton) previousButton.disabled = state.simRunning || !hasBake || (previousVisibleHistoryIndex() < 0 && atStart);
+  if (nextButton) nextButton.disabled = state.simRunning || !hasBake;
+  if (endButton) endButton.disabled = state.simRunning || !hasBake || currentIndex >= maxIndex;
+  if (bakeButton) {
+    const ready = state.bake.isReady;
+    bakeButton.disabled = !hasBake || ready;
+    bakeButton.classList.toggle("active", state.bake.isBaking);
+    bakeButton.title = ready ? "Bake is registered" : "Register the current simulation as a bake";
+    const label = $("#bake-sim-label");
+    if (label) label.textContent = ready ? "BAKED" : "BAKE";
+  }
+  if (clearBakeButton) clearBakeButton.disabled = !hasBake;
   scrubber.max = String(maxIndex);
-  scrubber.value = String(state.simHistoryIndex);
-  scrubber.disabled = state.simRunning || maxIndex === 0;
-  scrubberWrap.classList.toggle("hidden", state.simRunning);
-  scrubberValue.textContent = `Step ${state.stepCount} / ${latestStep}`;
+  scrubber.value = String(currentIndex);
+  scrubber.disabled = state.simRunning || !hasBake || maxIndex === 0;
+  scrubberWrap.classList.toggle("hidden", state.simRunning || !hasBake);
 }
 
 function render() {
@@ -1735,10 +2076,13 @@ function render() {
   if (document.activeElement !== $("#project-name")) $("#project-name").value = project.name;
   const viewed = state.viewStack.length > 0;
   $("#app").classList.toggle("viewed-open", viewed);
-  $("#viewed-banner").classList.toggle("hidden", !viewed);
-  $("#viewed-path").textContent = viewed
-    ? [...state.viewStack.map((frame) => frame.name), project.name].join("  ›  ")
-    : "";
+  const viewedBack = $("#viewed-back");
+  if (viewedBack) {
+    const parentName = state.viewStack.at(-1)?.name || "the parent chip";
+    viewedBack.classList.toggle("hidden", !viewed);
+    viewedBack.title = viewed ? "Back to " + parentName : "Return to the parent chip";
+    viewedBack.setAttribute("aria-label", viewed ? "Back to " + parentName : "Return to the parent chip");
+  }
   $("#canvas-empty").classList.toggle("hidden", Boolean(project.root.instances.length || project.root.annotations?.length));
   $("#zoom-readout").textContent = `${Math.round(renderer.camera.zoom * 100)}%`;
   $("#coordinate-readout").textContent = `${Math.round(state.mouseWorld.x)}, ${Math.round(state.mouseWorld.y)}`;
@@ -1836,38 +2180,71 @@ function canvasPoint(event) {
   return { x: event.clientX - rect.left, y: event.clientY - rect.top };
 }
 
+function canvasHitTarget(world) {
+  const selectedAnnotation = state.selectedAnnotationIds.size === 1
+    ? project.root.annotations?.find((item) => String(item.id) === [...state.selectedAnnotationIds][0])
+    : null;
+  if (selectedAnnotation?.type === "text" && renderer.findAnnotationResizeHandle(project, world) === selectedAnnotation) {
+    return { kind: "annotation-resize", value: selectedAnnotation };
+  }
+  if (state.wireEdit) {
+    const point = renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
+    if (point) return { kind: "wire-point", value: point };
+  }
+  const pin = renderer.findPin(project, world);
+  if (pin) return { kind: "pin", value: pin };
+  const junction = renderer.findJunction(project, world);
+  if (junction) return { kind: "junction", value: junction };
+  const annotation = renderer.findAnnotation(project, world);
+  if (annotation) return { kind: "annotation", value: annotation };
+  const instance = renderer.findInstance(project, world);
+  if (instance) return { kind: "instance", value: instance };
+  const wire = renderer.findWire(project, world);
+  if (wire) return { kind: "wire", value: wire };
+  return { kind: "empty", value: null };
+}
+
+function hoverFromHit(hit) {
+  if (hit.kind === "annotation-resize") return { kind: "annotation-resize", id: String(hit.value.id) };
+  if (hit.kind === "wire-point") return { kind: "wire-point", wireId: String(hit.value.wire.id), index: hit.value.index };
+  if (hit.kind === "pin") return { kind: "pin", owner: String(hit.value.owner), pin: String(hit.value.pin) };
+  if (hit.kind === "junction") return { kind: "junction", id: String(hit.value.pin) };
+  if (hit.kind === "annotation") return { kind: "annotation", id: String(hit.value.id) };
+  if (hit.kind === "instance") return { kind: "instance", id: String(hit.value.id) };
+  if (hit.kind === "wire") return { kind: "wire", id: hit.value.id };
+  return null;
+}
+
+function updateCanvasHover(world) {
+  state.hover = hoverFromHit(canvasHitTarget(world));
+}
+
 function handlePointerDown(event) {
-  event.preventDefault();
+  if (state.pointerSession) return;
   updatePointerModifiers(event);
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
-  state.lastPointerId = event.pointerId;
-  if (isWorldInteractionBlocked()) {
+  if (isCanvasInteractionBlocked()) {
+    event.preventDefault();
     closeBottomMenu();
     closeCollectionPopup();
     hideContextMenu();
     return;
   }
-  const selectedAnnotation = state.selectedAnnotationIds.size === 1
-    ? project.root.annotations?.find((item) => String(item.id) === [...state.selectedAnnotationIds][0])
-    : null;
-  if (event.button === 0 && selectedAnnotation?.type === "text" && renderer.findAnnotationResizeHandle(project, world) === selectedAnnotation) {
-    startAnnotationResize(selectedAnnotation, world, event.pointerId);
-    render();
-    return;
-  }
+  closeBottomMenu();
+  closeCollectionPopup();
+  hideContextMenu();
   if (event.button === 2) {
-    const routePoint = state.wireEdit
-      ? renderer.findWirePoint(project, world, 12, state.wireEdit.wireId)
-      : null;
-    if (routePoint) {
+    event.preventDefault();
+    const hit = canvasHitTarget(world);
+    if (hit.kind === "wire-point") {
       state.suppressContextMenu = true;
-      deleteWireEditPoint(routePoint.index);
+      deleteWireEditPoint(hit.value.index);
       return;
     }
-    if (event.altKey && !state.annotationPlacement && !state.placement && !state.drag && !state.annotationDrag && !state.annotationResize && !state.wireStart && !state.wireEdit) {
+    if (event.altKey) {
       state.zoomDrag = { screen };
       state.suppressContextMenu = true;
-      canvas.setPointerCapture(event.pointerId);
+      beginCanvasPointer(event, "zoom", { originWorld: world });
       return;
     }
     if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox) {
@@ -1877,56 +2254,43 @@ function handlePointerDown(event) {
     }
     return;
   }
-  if (state.annotationPlacement && event.button === 0) {
+  if (event.button === 1 || event.button === 0 && event.altKey) {
+    event.preventDefault();
+    state.pan = { x: screen.x, y: screen.y, camera: { ...renderer.camera } };
+    canvas.parentElement.classList.add("panning");
+    beginCanvasPointer(event, "pan", { originWorld: world });
+    return;
+  }
+  if (event.button !== 0) return;
+  if (state.annotationPlacement) {
+    event.preventDefault();
+    beginCanvasPointer(event, "annotation-placement", { originWorld: world });
     placeAnnotationAt(world);
+    releaseCanvasPointer(event.pointerId);
     return;
   }
-  const pointerTarget = renderer.findPin(project, world)
-    || renderer.findJunction(project, world)
-    || renderer.findAnnotation(project, world)
-    || renderer.findInstance(project, world)
-    || renderer.findWire(project, world);
-  if (event.button === 1 || event.altKey && event.button === 0 && !pointerTarget) {
-    state.pan = { x: screen.x, y: screen.y, camera: { ...renderer.camera } }; canvas.parentElement.classList.add("panning"); canvas.setPointerCapture(event.pointerId); return;
-  }
-  if (state.placement) { updatePlacementPreview(world); placeAt(world); return; }
-  const pin = renderer.findPin(project, world);
-  const junctionUnderMouse = pin ? null : renderer.findJunction(project, world);
-  const annotationUnderMouse = pin || junctionUnderMouse ? null : renderer.findAnnotation(project, world);
-  const wireUnderMouse = pin || junctionUnderMouse || annotationUnderMouse ? null : renderer.findWire(project, world);
-  if (event.detail >= 2 && wireUnderMouse) {
-    enterWireEdit(wireUnderMouse);
+  if (state.placement) {
+    event.preventDefault();
+    beginCanvasPointer(event, "placement", { originWorld: world });
+    updatePlacementPreview(world);
+    placeAt(world);
+    releaseCanvasPointer(event.pointerId);
     return;
   }
-  if (pin) {
-    if (state.wireStart) completeWire(pin);
-    else startWire(pin, event.pointerId);
-    return;
-  }
-  if (junctionUnderMouse) {
-    if (state.wireStart?.wireConnection) {
-      setStatus("A wire branch cannot connect to another wire.");
-      toast("A wire branch cannot connect to another wire.", true);
-    } else if (state.wireStart) completeWire({ ...junctionUnderMouse, direction: "input" });
-    else startWire(junctionUnderMouse, event.pointerId);
+  const hit = canvasHitTarget(world);
+  if (hit.kind === "annotation-resize") {
+    beginCanvasPointer(event, "annotation-resize-press", { originWorld: world, target: hit.value });
+    startAnnotationResize(hit.value, world);
+    render();
     return;
   }
   if (state.wireStart) {
-    if (!wireUnderMouse) {
-      const start = state.wirePoints.at(-1) ?? renderer.endpointPosition(project, state.wireStart);
-      state.wirePoints.push(snap(forceStraight(world, start, event), event));
-      setStatus("Wire route point added.");
-      render();
-    } else {
-      completeWireToWire(wireUnderMouse, world);
-    }
+    beginCanvasPointer(event, hit.kind === "empty" ? "wire-route-press" : "wire-target-press", { originWorld: world, target: hit.value });
     return;
   }
-  const editablePoint = state.wireEdit
-    ? renderer.findWirePoint(project, world, 10, state.wireEdit.wireId)
-    : state.selectedWireId ? renderer.findWirePoint(project, world) : null;
-  if (state.wireEdit && editablePoint && editablePoint.wire.id === state.wireEdit.wireId) {
-    const key = wirePointKey(editablePoint.wire.id, editablePoint.index);
+  if (hit.kind === "wire-point") {
+    const point = hit.value;
+    const key = wirePointKey(point.wire.id, point.index);
     if (isMultiMode(event) && state.selectedWirePointKeys.has(key)) {
       state.selectedWirePointKeys.delete(key);
       state.wireEdit.index = -1;
@@ -1937,85 +2301,112 @@ function handlePointerDown(event) {
       state.selectedWirePointKeys.clear();
       state.selectedWirePointKeys.add(key);
     }
-    startWirePointDrag(editablePoint, world, event.pointerId);
+    beginCanvasPointer(event, "wire-point-press", { originWorld: world, target: point, additive: isMultiMode(event) });
     render();
     return;
   }
-  if (state.wireEdit && wireUnderMouse && wireUnderMouse.id === state.wireEdit.wireId) {
-    insertWirePoint(wireUnderMouse, world, event.pointerId);
+  if (state.wireEdit && hit.kind === "wire" && hit.value.id === state.wireEdit.wireId) {
+    beginCanvasPointer(event, "wire-point-drag", { originWorld: world, target: { wire: hit.value, index: -1 } });
+    insertWirePoint(hit.value, world);
+    return;
+  }
+  if (hit.kind === "pin" || hit.kind === "junction") {
+    beginCanvasPointer(event, "wire-start-press", { originWorld: world, target: hit.value });
+    startWire(hit.value);
     return;
   }
   if (state.tool === "wire") {
+    if (hit.kind === "wire") {
+      const endpoint = wireEndpointAt(hit.value, world);
+      if (endpoint) {
+        beginCanvasPointer(event, "wire-start-press", { originWorld: world, target: endpoint });
+        startWire(endpoint);
+      }
+      return;
+    }
     setStatus("Wire tool active.");
     return;
   }
-  if (annotationUnderMouse) {
+  if (hit.kind === "annotation") {
+    const annotation = hit.value;
     const additive = isMultiMode(event);
-    const alreadySelected = state.selectedAnnotationIds.has(String(annotationUnderMouse.id));
-    if (additive || !alreadySelected) selectAnnotation(annotationUnderMouse, additive);
-    if (state.selectedAnnotationIds.has(String(annotationUnderMouse.id))) startDraggingAnnotation(annotationUnderMouse, world, event.pointerId);
+    const alreadySelected = state.selectedAnnotationIds.has(String(annotation.id));
+    if (additive || !alreadySelected) selectAnnotation(annotation, additive);
+    if (state.selectedAnnotationIds.has(String(annotation.id))) {
+      beginCanvasPointer(event, "annotation-press", { originWorld: world, target: annotation, additive });
+    }
     return;
   }
-  const instance = renderer.findInstance(project, world);
-  if (instance) {
+  if (hit.kind === "instance") {
+    const instance = hit.value;
     const additive = isMultiMode(event);
-    // Clicking an already-selected element is the handoff from selection to
-    // dragging. Preserve the rest of the selection so a group moves as one;
-    // a click on an unselected element still starts a fresh selection.
+    const id = String(instance.id);
+    if (state.pendingInputToggle?.id === id) cancelPendingInputToggle();
     const alreadySelected = state.selectedIds.has(String(instance.id));
     if (additive || !alreadySelected) selectInstance(instance, additive);
-    if (state.selectedIds.has(String(instance.id))) startDragging(instance, world, event.pointerId);
+    if (state.selectedIds.has(String(instance.id))) {
+      beginCanvasPointer(event, "instance-press", { originWorld: world, target: instance, additive });
+    }
     return;
   }
-  const wire = renderer.findWire(project, world);
-  if (wire) {
-    const endpoint = wireEndpointAt(wire, world);
-    if (endpoint) startWire(endpoint, event.pointerId);
+  if (hit.kind === "wire") {
+    const wire = hit.value;
+    if (state.tool === "wire") {
+      const endpoint = wireEndpointAt(wire, world);
+      if (endpoint) {
+        beginCanvasPointer(event, "wire-start-press", { originWorld: world, target: endpoint });
+        startWire(endpoint);
+      }
+    } else {
+      selectWire(wire);
+    }
     return;
   }
   const routeSelection = Boolean(state.wireEdit);
   if (routeSelection) {
     if (!isMultiMode(event)) state.selectedWirePointKeys.clear();
   } else if (!isMultiMode(event)) {
-    selectInstance(null);
+    state.selectedIds.clear();
+    state.selectedAnnotationIds.clear();
+    state.selectedWireId = null;
+    state.selectedWirePointKeys.clear();
   }
-  state.selectionBox = {
-    start: { ...world },
-    current: { ...world },
-    additive: isMultiMode(event),
-    mode: routeSelection ? "wire-points" : "instances",
-    wireId: routeSelection ? String(state.wireEdit.wireId) : null
-  };
-  canvas.parentElement.classList.add("selecting");
-  canvas.setPointerCapture(event.pointerId);
+  event.preventDefault();
+  beginCanvasPointer(event, "empty-press", { originWorld: world, additive: isMultiMode(event) });
 }
 
 function handlePointerMove(event) {
+  if (!ownsCanvasPointer(event)) return;
   updatePointerModifiers(event);
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
-  if (state.wireGesture?.pointerId === event.pointerId && !state.wireGesture.moved) {
-    state.wireGesture.moved = Math.hypot(world.x - state.wireGesture.start.x, world.y - state.wireGesture.start.y) > 4 / renderer.camera.zoom;
+  const session = state.pointerSession;
+  if (session && !session.moved && hasPointerMoved(session, screen)) {
+    session.moved = true;
+    if (session.kind === "instance-press") {
+      startDragging(session.target, session.originWorld);
+      session.kind = "instance-drag";
+    } else if (session.kind === "annotation-press") {
+      startDraggingAnnotation(session.target, session.originWorld);
+      session.kind = "annotation-drag";
+    } else if (session.kind === "wire-point-press") {
+      startWirePointDrag(session.target, session.originWorld);
+      session.kind = "wire-point-drag";
+    } else if (session.kind === "annotation-resize-press") {
+      session.kind = "annotation-resize";
+    } else if (session.kind === "empty-press") {
+      const routeSelection = Boolean(state.wireEdit);
+      state.selectionBox = {
+        start: { ...session.originWorld },
+        current: { ...world },
+        additive: session.additive,
+        mode: routeSelection ? "wire-points" : "instances",
+        wireId: routeSelection ? String(state.wireEdit.wireId) : null
+      };
+      session.kind = "selection-box";
+      canvas.parentElement.classList.add("selecting");
+    }
   }
-  state.hover = null;
-  const selectedAnnotation = state.selectedAnnotationIds.size === 1
-    ? project.root.annotations?.find((item) => String(item.id) === [...state.selectedAnnotationIds][0])
-    : null;
-  const resizeHandle = selectedAnnotation?.type === "text" ? renderer.findAnnotationResizeHandle(project, world) : null;
-  const hoverPin = renderer.findPin(project, world);
-  const hoverJunction = hoverPin ? null : renderer.findJunction(project, world);
-  const hoverAnnotation = hoverPin || hoverJunction ? null : renderer.findAnnotation(project, world);
-  const hoverInstance = hoverPin || hoverJunction || hoverAnnotation ? null : renderer.findInstance(project, world);
-  const hoverWirePoint = hoverPin || hoverJunction || hoverAnnotation || hoverInstance || !state.wireEdit
-    ? null
-    : renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
-  const hoverWire = hoverPin || hoverJunction || hoverAnnotation || hoverInstance || hoverWirePoint ? null : renderer.findWire(project, world);
-  if (resizeHandle === selectedAnnotation) state.hover = { kind: "annotation-resize", id: String(selectedAnnotation.id) };
-  else if (hoverPin) state.hover = { kind: "pin", owner: String(hoverPin.owner), pin: String(hoverPin.pin) };
-  else if (hoverJunction) state.hover = { kind: "junction", id: String(hoverJunction.pin) };
-  else if (hoverAnnotation) state.hover = { kind: "annotation", id: String(hoverAnnotation.id) };
-  else if (hoverInstance) state.hover = { kind: "instance", id: String(hoverInstance.id) };
-  else if (hoverWirePoint) state.hover = { kind: "wire-point", wireId: String(hoverWirePoint.wire.id), index: hoverWirePoint.index };
-  else if (hoverWire) state.hover = { kind: "wire", id: hoverWire.id };
+  updateCanvasHover(world);
   if (state.zoomDrag) {
     const deltaY = screen.y - state.zoomDrag.screen.y;
     renderer.zoomAt(screen.x, screen.y, Math.exp(-deltaY * 0.006));
@@ -2033,7 +2424,7 @@ function handlePointerMove(event) {
     updateAnnotationPlacementPreview(world);
     render(); return;
   }
-  if (state.annotationResize) {
+  if (state.annotationResize && (!session || session.kind === "annotation-resize")) {
     applyAnnotationResize(world, event);
     render(); return;
   }
@@ -2045,7 +2436,7 @@ function handlePointerMove(event) {
     applyAnnotationDrag(world, event);
     render(); return;
   }
-  if (state.wirePointDrag) {
+  if (state.wirePointDrag && (!session || session.moved)) {
     applyWirePointDrag(world, event);
     render(); return;
   }
@@ -2068,9 +2459,16 @@ function handlePointerMove(event) {
 }
 
 function handlePointerUp(event) {
+  if (!ownsCanvasPointer(event)) return;
   updatePointerModifiers(event);
-  if (state.zoomDrag) { state.zoomDrag = null; return; }
-  if (state.pan) { state.pan = null; canvas.parentElement.classList.remove("panning"); return; }
+  const session = state.pointerSession;
+  if (!session) return;
+  const screen = canvasPoint(event);
+  const world = renderer.toWorld(screen.x, screen.y);
+  state.mouseWorld = world;
+  const finishPointer = () => releaseCanvasPointer(event.pointerId);
+  if (state.zoomDrag) { state.zoomDrag = null; finishPointer(); return; }
+  if (state.pan) { state.pan = null; canvas.parentElement.classList.remove("panning"); finishPointer(); return; }
   if (state.annotationResize) {
     if (state.annotationResize.moved) {
       state.undo.push(state.annotationResize.before);
@@ -2078,28 +2476,28 @@ function handlePointerUp(event) {
       touch("Note resized.");
     }
     state.annotationResize = null;
+    finishPointer();
     render();
     return;
   }
-  if (state.wireGesture?.pointerId === event.pointerId && state.wireStart) {
-    const screen = canvasPoint(event);
-    const world = renderer.toWorld(screen.x, screen.y);
-    state.mouseWorld = world;
-    const gesture = state.wireGesture;
-    state.wireGesture = null;
-    const moved = gesture.moved || Math.hypot(world.x - gesture.start.x, world.y - gesture.start.y) > 4 / renderer.camera.zoom;
-    if (moved) {
-      const target = wireTargetAt(world);
-      state.wireTarget = target.endpoint;
-      if (target.endpoint) {
-        if (target.wire) completeWireToWire(target.wire, world);
-        else completeWire(target.endpoint);
-      } else {
-        state.wireTarget = null;
-        state.wireTargetValid = null;
-        setStatus("Wire remains active.");
-      }
+  if (state.wireStart && ["wire-start-press", "wire-target-press", "wire-route-press"].includes(session.kind)) {
+    const target = wireTargetAt(world);
+    state.wireTarget = target.endpoint;
+    if (target.endpoint) {
+      if (target.wire) completeWireToWire(target.wire, world);
+      else completeWire(target.endpoint);
+    } else if (session.kind === "wire-route-press") {
+      const start = state.wirePoints.at(-1) ?? renderer.endpointPosition(project, state.wireStart);
+      state.wirePoints.push(snap(forceStraight(world, start, event), event));
+      state.wireTarget = null;
+      state.wireTargetValid = null;
+      setStatus("Wire route point added.");
+    } else {
+      state.wireTarget = null;
+      state.wireTargetValid = null;
+      setStatus("Wire remains active.");
     }
+    finishPointer();
     render();
     return;
   }
@@ -2115,6 +2513,7 @@ function handlePointerUp(event) {
       state.wireEdit.before = null;
       state.wireEdit.moved = false;
     }
+    finishPointer();
     render();
     return;
   }
@@ -2140,10 +2539,14 @@ function handlePointerUp(event) {
       for (const item of project.root.instances) {
         if (boxesOverlap(box, chipBoundingBox(project, item))) state.selectedIds.add(String(item.id));
       }
+      for (const annotation of project.root.annotations ?? []) {
+        if (boxesOverlap(box, annotationBoundingBox(annotation))) state.selectedAnnotationIds.add(String(annotation.id));
+      }
       state.selectedWireId = null;
     }
     state.selectionBox = null;
     canvas.parentElement.classList.remove("selecting");
+    finishPointer();
     render();
     return;
   }
@@ -2154,24 +2557,33 @@ function handlePointerUp(event) {
       touch("Annotations moved.");
     }
     state.annotationDrag = null;
+    finishPointer();
     render();
     return;
   }
   if (state.drag) {
-    const clicked = project.root.instances.find((item) => String(item.id) === state.drag.clickedInstanceId);
     if (state.drag.invalid) {
       restoreDrag();
       setStatus("Move cancelled: an element overlaps another element.");
-      toast("Move cancelled: overlap.", true);
+      notify("Move cancelled: overlap.", true);
     } else if (state.drag.moved) {
       state.undo.push(state.drag.before);
       state.redo.length = 0;
       touch("Elements moved.");
-    } else if (clicked && isInputType(clicked.name)) {
-      toggleInput(clicked);
     }
-    state.drag = null; render();
+    state.drag = null;
+    finishPointer();
+    render();
+    return;
   }
+  if (session.kind === "instance-press") {
+    const clicked = project.root.instances.find((item) => String(item.id) === String(session.target?.id));
+    if (clicked && isInputType(clicked.name)) scheduleInputToggle(clicked);
+    finishPointer();
+    render();
+    return;
+  }
+  finishPointer();
 }
 
 function handleKeyDown(event) {
@@ -2180,13 +2592,14 @@ function handleKeyDown(event) {
     event.preventDefault();
     if (event.target === $("#project-name")) { cancelProjectNameEdit(); return; }
     if (isTextEntry) { event.target.blur(); return; }
+    if (state.pendingInputToggle) cancelPendingInputToggle();
     if (!$("#help-modal").classList.contains("hidden")) { closeHelp(); return; }
     if (!$("#context-menu").classList.contains("hidden")) { hideContextMenu(); return; }
-    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.wireStart || state.wireEdit || state.selectionBox || state.chipDrag || state.pan || state.zoomDrag) {
+    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.chipDrag || state.annotationToolDrag || state.pan || state.zoomDrag || state.pointerSession) {
       cancelTransientInteraction();
       return;
     }
-    if (isWorldInteractionBlocked()) {
+    if (isKeyboardInteractionBlocked()) {
       closeBottomMenu();
       closeCollectionPopup();
       $("#app").classList.remove("library-open", "inspector-open");
@@ -2209,7 +2622,7 @@ function handleKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && key === "g") { event.preventDefault(); toggleGrid(); return; }
   if ((event.ctrlKey || event.metaKey) && key === "l") { event.preventDefault(); $("#app").classList.add("library-open"); $("#chip-search").focus(); return; }
   if ((event.ctrlKey || event.metaKey) && key === "f") { event.preventDefault(); $("#app").classList.add("library-open"); $("#chip-search").focus(); return; }
-  if (isWorldInteractionBlocked()) return;
+  if (isKeyboardInteractionBlocked()) return;
   if (event.key === "Delete" || event.key === "Backspace") {
     event.preventDefault();
     if (state.annotationPlacement) {
@@ -2241,7 +2654,10 @@ function handleKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && key === "y") { event.preventDefault(); redo(); return; }
   if (event.key === " " || event.key === "Spacebar") {
     event.preventDefault();
-    if (event.ctrlKey || event.metaKey) setRunning(!state.simRunning, true);
+    if (event.ctrlKey || event.metaKey) {
+      if (state.simRunning) setRunning(false, true);
+      else startSimulationRun(true);
+    }
     else if (!state.simRunning) runStep();
   }
 }
@@ -2268,26 +2684,21 @@ libraryController.bind();
 $("#save-chip").addEventListener("click", createCustomChip);
 $("#new-project").addEventListener("click", resetProject);
 $("#save-project").addEventListener("click", saveCurrentProject);
-$("#export-project").addEventListener("click", () => { downloadProject(project); toast("Project JSON exported."); });
+$("#export-project").addEventListener("click", () => { downloadProject(project); notify("Project JSON exported."); });
 $("#import-project").addEventListener("click", () => $("#import-file").click());
-$("#import-folder").addEventListener("click", () => $("#import-folder-file").click());
 $("#import-file").addEventListener("change", async (event) => {
   const file = event.target.files?.[0]; if (!file) return;
   if (!confirmDiscardChanges("Import this project?")) { event.target.value = ""; return; }
-  try { project = await readProjectFile(file); project._revision = 0; simulator = new Simulator(project); resetEditorStateForProject(); renderer.fit(project); renderLibrary(); render(); if (state.simRunning) setRunning(true); toast("Project imported."); setStatus("Project imported successfully."); }
-  catch (error) { toast(`Import failed: ${error.message}`, true); }
-  event.target.value = "";
-});
-$("#import-folder-file").addEventListener("change", async (event) => {
-  const files = event.target.files;
-  if (!files?.length) return;
-  if (!confirmDiscardChanges("Import this Unity project?")) { event.target.value = ""; return; }
-  try { project = await readProjectFiles(files); project._revision = 0; simulator = new Simulator(project); resetEditorStateForProject(); renderer.fit(project); renderLibrary(); render(); if (state.simRunning) setRunning(true); toast(`${Object.keys(project.customChips).length} custom chips imported.`); setStatus("Unity project folder imported."); }
-  catch (error) { toast(`Folder import failed: ${error.message}`, true); }
+  try { project = await readProjectFile(file); project._revision = 0; state.projectSaved = false; simulator = new Simulator(project); resetEditorStateForProject(); renderer.fit(project); renderLibrary(); render(); if (state.simRunning) setRunning(true); notify("Project imported."); setStatus("Project imported successfully."); }
+  catch (error) { notify(`Import failed: ${error.message}`, true); }
   event.target.value = "";
 });
 $("#project-name").addEventListener("focus", beginProjectNameEdit);
-$("#project-name").addEventListener("blur", () => { state.projectNameBeforeEdit = null; });
+$("#project-name").addEventListener("blur", () => {
+  state.projectNameBeforeEdit = null;
+  state.projectNameRevisionBeforeEdit = null;
+  state.projectNameUpdatedAtBeforeEdit = null;
+});
 $("#project-name").addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
@@ -2299,6 +2710,7 @@ $("#project-name").addEventListener("keydown", (event) => {
     cancelProjectNameEdit();
   }
 });
+$("#project-name").addEventListener("input", (event) => updateName(event.target.value));
 $("#project-name").addEventListener("change", (event) => updateName(event.target.value));
 $("#bottom-menu").addEventListener("click", toggleBottomMenu);
 $("#bottom-library").addEventListener("click", () => { closeBottomMenu(); toggleDrawer("library"); });
@@ -2307,16 +2719,17 @@ $("#close-library").addEventListener("click", () => $("#app").classList.remove("
 $("#close-inspector").addEventListener("click", () => $("#app").classList.remove("inspector-open"));
 $("#bottom-new").addEventListener("click", () => { closeBottomMenu(); resetProject(); });
 $("#bottom-save").addEventListener("click", () => { closeBottomMenu(); saveCurrentProject(); });
-$("#bottom-find").addEventListener("click", () => { closeBottomMenu(); $("#app").classList.add("library-open"); $("#chip-search").focus(); });
+$("#bottom-save-as-project").addEventListener("click", () => { closeBottomMenu(); saveAsProject(); });
 $("#bottom-help").addEventListener("click", openHelp);
 $("#bottom-save-chip").addEventListener("click", () => { closeBottomMenu(); createCustomChip(); });
-$("#bottom-export").addEventListener("click", () => { closeBottomMenu(); downloadProject(project); toast("Project JSON exported."); });
+$("#bottom-export").addEventListener("click", () => { closeBottomMenu(); downloadProject(project); notify("Project JSON exported."); });
 $("#bottom-import").addEventListener("click", () => { closeBottomMenu(); $("#import-file").click(); });
-$("#bottom-unity-import").addEventListener("click", () => { closeBottomMenu(); $("#import-folder-file").click(); });
 $("#select-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("select", "Select tool active."); render(); });
 $("#wire-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("wire", "Wire tool active."); render(); });
-$("#add-note").addEventListener("click", () => beginAnnotationPlacement("text"));
-$("#add-label").addEventListener("click", () => beginAnnotationPlacement("label"));
+document.querySelectorAll("[data-annotation-tool]").forEach((button) => {
+  button.addEventListener("pointerdown", beginAnnotationToolDrag);
+  button.addEventListener("click", handleAnnotationToolClick);
+});
 $("#canvas-inspect-button").addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
@@ -2325,11 +2738,24 @@ $("#canvas-inspect-button").addEventListener("click", (event) => {
   if (instance) openInstanceInspector(instance);
 });
 $("#fit-view").addEventListener("click", () => { renderer.fit(project); state.viewCameras[viewKey()] = { ...renderer.camera }; render(); });
-$("#run-sim").addEventListener("click", () => { audioContext ||= new AudioContext(); audioContext.resume(); setRunning(!state.simRunning, true); });
+$("#run-sim").addEventListener("click", () => {
+  audioContext ||= new AudioContext();
+  audioContext.resume();
+  if (state.simRunning) setRunning(false, true);
+  else startSimulationRun(true);
+});
+$("#bake-sim").addEventListener("click", () => finishSimulationBake("manual"));
+$("#clear-bake").addEventListener("click", clearSimulationBake);
 $("#step-sim").addEventListener("click", () => { audioContext ||= new AudioContext(); audioContext.resume(); runStep(); });
-$("#reset-sim").addEventListener("click", () => { simulator.reset(); state.stepCount = 0; resetSimulationHistory(); setStatus("Simulation reset."); render(); });
+$("#start-sim").addEventListener("click", () => jumpToSimulationBoundary(-1));
+$("#macro-prev-sim").addEventListener("click", () => macroStep(-1));
+$("#macro-next-sim").addEventListener("click", () => macroStep(1));
+$("#end-sim").addEventListener("click", () => jumpToSimulationBoundary(1));
 $("#sim-speed").addEventListener("change", (event) => updateSimulationSpeed(event.target.value));
-$("#step-scrubber").addEventListener("input", (event) => restoreSimulationFrame(event.target.value));
+$("#step-scrubber").addEventListener("input", (event) => {
+  if (state.simRunning) return;
+  restoreSimulationFrame(event.target.value);
+});
 $("#close-help").addEventListener("click", closeHelp);
 $("#help-modal").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeHelp(); });
 $("#inspector").addEventListener("click", (event) => {
@@ -2398,11 +2824,17 @@ canvas.addEventListener("contextmenu", showContextMenu);
 canvas.addEventListener("pointerdown", handlePointerDown);
 canvas.addEventListener("pointermove", handlePointerMove);
 canvas.addEventListener("pointerup", handlePointerUp);
-canvas.addEventListener("pointercancel", () => {
-  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox || state.pan || state.zoomDrag) cancelTransientInteraction();
+canvas.addEventListener("pointercancel", (event) => {
+  if (state.pointerSession?.pointerId !== event.pointerId) return;
+  cancelActiveCanvasPointerSession();
+});
+canvas.addEventListener("lostpointercapture", () => {
+  if (state.pointerSession) cancelActiveCanvasPointerSession();
 });
 canvas.addEventListener("pointerleave", () => { if (!state.drag && !state.annotationDrag && !state.annotationResize && !state.wirePointDrag && !state.selectionBox && !state.wireStart) { state.hover = null; render(); } });
 canvas.addEventListener("dblclick", (event) => {
+  cancelPendingInputToggle();
+  if (state.pointerSession) cancelActiveCanvasPointerSession({ renderState: false });
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); const annotation = renderer.findAnnotation(project, world);
   if (annotation) {
     selectAnnotation(annotation);
@@ -2427,9 +2859,18 @@ canvas.addEventListener("wheel", (event) => {
   render();
 }, { passive: false });
 window.addEventListener("keydown", handleKeyDown);
+window.addEventListener("pointermove", updateAnnotationToolDrag);
 window.addEventListener("pointermove", updateChipDragPreview);
-window.addEventListener("pointerup", (event) => finishChipDrag(event));
-window.addEventListener("pointercancel", (event) => finishChipDrag(event, true));
+window.addEventListener("pointerup", (event) => {
+  finishAnnotationToolDrag(event);
+  finishChipDrag(event);
+});
+window.addEventListener("pointercancel", (event) => {
+  finishAnnotationToolDrag(event, true);
+  finishChipDrag(event, true);
+});
+window.addEventListener("blur", () => { if (state.pointerSession) cancelActiveCanvasPointerSession(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && state.pointerSession) cancelActiveCanvasPointerSession(); });
 window.addEventListener("resize", () => requestAnimationFrame(updateCanvasInspectButton));
 window.addEventListener("pointerdown", commitProjectNameEditIfOutside, true);
 window.addEventListener("pointerdown", (event) => {
@@ -2487,12 +2928,13 @@ $("#context-menu").addEventListener("click", (event) => {
 async function hydrateProjectFromServer() {
   try {
     const remote = await loadFromServer({ storageId: cachedProject?.storageId, latest: !cachedProject });
-    if (!remote || project._revision !== state.savedRevision) return;
+    if (!remote || (cachedProject ? project._revision !== state.savedRevision : project._revision !== 0)) return;
     const remoteTime = Date.parse(remote.updatedAt || "") || 0;
     const localTime = Date.parse(project.updatedAt || "") || 0;
     if (cachedProject && remoteTime <= localTime) return;
     project = remote;
     project._revision = 0;
+    state.projectSaved = true;
     simulator = new Simulator(project);
     resetEditorStateForProject();
     renderer.fit(project);
@@ -2505,7 +2947,7 @@ async function hydrateProjectFromServer() {
   }
 }
 
-resetSimulationHistory();
+resetSimulationBake();
 renderLibrary();
 renderer.fit(project);
 render();

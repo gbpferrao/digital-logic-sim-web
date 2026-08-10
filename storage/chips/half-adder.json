@@ -1,0 +1,172 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "HALF ADDER",
+  "updatedAt": "2026-08-10T12:00:00.000Z",
+  "description": {
+    "id": "chip-half-adder",
+    "name": "HALF ADDER",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 260,
+      "y": 160
+    },
+    "colour": "#5c8d78",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 1,
+        "direction": "input",
+        "x": -130,
+        "y": -35,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 1,
+        "direction": "input",
+        "x": -130,
+        "y": 35,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "sum",
+        "name": "SUM",
+        "bits": 1,
+        "direction": "output",
+        "x": 130,
+        "y": -35,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "carry",
+        "name": "CARRY",
+        "bits": 1,
+        "direction": "output",
+        "x": 130,
+        "y": 35,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "xor",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -35
+        },
+        "rotation": 0,
+        "label": "SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 35
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-xor",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "xor",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-xor",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "xor",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-and",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "and",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-and",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "and",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-sum",
+        "source": {
+          "owner": "xor",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "sum"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "and-carry",
+        "source": {
+          "owner": "and",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "carry"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": []
+  }
+}

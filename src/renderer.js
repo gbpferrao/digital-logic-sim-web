@@ -8,6 +8,7 @@ import {
   getPin,
   instancePinPosition,
   annotationBoundingBox,
+  chipBoundsSize,
   rootPinPosition,
   rotatePoint
 } from "./model.js";
@@ -15,7 +16,7 @@ import { disconnected, isHigh, stateLabel } from "./simulation.js";
 
 const TAU = Math.PI * 2;
 const GRID_COLOURS = Object.freeze({
-  background: "#202124",
+  background: "#242629",
   line: "#2b2e33",
   highlight: "#353940"
 });
@@ -35,13 +36,53 @@ function darken(hex, factor = .72) {
   return `#${channel(16)}${channel(8)}${channel(0)}`;
 }
 
-function chipCaptionAnchor(description, width) {
+function chipCaptionAnchor(description, width, height = description?.size?.y ?? 0) {
   if (description?.kind === "input") return { x: -width / 6, y: 0 };
+  if (description?.special === "sevenSegment") return { x: 0, y: -height / 2 + 14 };
   if (description?.special !== "logicGate") return { x: 0, y: 0 };
   if (["not", "buffer"].includes(description.gate)) return { x: -width * .207, y: 0 };
   if (["or", "nor", "xor", "xnor"].includes(description.gate)) return { x: -width * .118, y: 0 };
   if (["and", "nand"].includes(description.gate)) return { x: -width * .026, y: 0 };
   return { x: 0, y: 0 };
+}
+
+function wrapCaptionLines(ctx, text, maxWidth) {
+  const lines = [];
+  for (const paragraph of String(text).split(/\r?\n/)) {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      if (lines.length) lines.push("");
+      continue;
+    }
+    let line = "";
+    for (const word of words) {
+      if (ctx.measureText(word).width <= maxWidth) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && ctx.measureText(candidate).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = candidate;
+        }
+        continue;
+      }
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      let chunk = "";
+      for (const character of word) {
+        if (chunk && ctx.measureText(`${chunk}${character}`).width > maxWidth) {
+          lines.push(chunk);
+          chunk = "";
+        }
+        chunk += character;
+      }
+      line = chunk;
+    }
+    if (line) lines.push(line);
+  }
+  return lines.length ? lines : ["CHIP"];
 }
 
 function distToSegment(point, a, b) {
@@ -180,14 +221,6 @@ export class WorldRenderer {
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
-      if (signal.tri !== 0) {
-        ctx.fillStyle = "#687279";
-        for (let i = 0; i < points.length - 1; i += 1) {
-          const a = points[i]; const b = points[i + 1];
-          const t = .5; const x = a.x + (b.x - a.x) * t; const y = a.y + (b.y - a.y) * t;
-          ctx.beginPath(); ctx.arc(x, y, 2.6 / this.camera.zoom, 0, TAU); ctx.fill();
-        }
-      }
       if (wire.id === editorState.selectedWireId || editing) {
         ctx.strokeStyle = "#b8d7ff";
         ctx.lineWidth = 5 / this.camera.zoom;
@@ -230,9 +263,12 @@ export class WorldRenderer {
         ctx.beginPath(); ctx.arc(position.x, position.y, 7 / this.camera.zoom, 0, TAU); ctx.stroke();
       }
       if (this.camera.zoom > .62) {
-        ctx.fillStyle = "#b2c1d4"; ctx.font = "600 9px JetBrains Mono, Consolas, monospace"; ctx.textBaseline = "middle";
+        ctx.save();
+        ctx.fillStyle = "#ffffff"; ctx.globalAlpha = hovered ? 1 : .36;
+        ctx.font = "600 9px JetBrains Mono, Consolas, monospace"; ctx.textBaseline = "middle";
         ctx.textAlign = pin.direction === "input" ? "right" : "left";
         ctx.fillText(`${pin.name}${pin.bits > 1 ? ` [${pin.bits}]` : ""}`, position.x + outward * 25, position.y);
+        ctx.restore();
       }
     }
   }
@@ -448,6 +484,7 @@ export class WorldRenderer {
     ctx.rotate(rotation);
     const w = description.size.x;
     const h = description.size.y;
+    const labelBounds = chipBoundsSize(description);
     const bodyColour = description.colour || "#202b3a";
     const bodyOutline = darken(bodyColour);
     ctx.lineJoin = "round";
@@ -482,8 +519,8 @@ export class WorldRenderer {
         this.drawSpecialDisplay(ctx, project, instance, description);
       }
     }
-    const captionAnchor = chipCaptionAnchor(description, w);
-    this.drawChipCaption(ctx, instance.label || description.name, w, h, hovered, captionAnchor);
+    const captionAnchor = chipCaptionAnchor(description, w, h);
+    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered, captionAnchor);
     ctx.restore();
     if (selected || hovered || invalid) {
       ctx.save();
@@ -495,22 +532,16 @@ export class WorldRenderer {
 
   drawChipCaption(ctx, value, width, height, hovered = false, anchor = { x: 0, y: 0 }) {
     const text = String(value || "CHIP").trim() || "CHIP";
-    const available = Math.max(28, width - 12);
+    const available = Math.max(32, width - 12);
     let fontSize = Math.min(12, Math.max(8, height * .22));
-    const font = () => { ctx.font = `700 ${fontSize}px JetBrains Mono, Consolas, monospace`; };
-    font();
-    while (fontSize > 7 && ctx.measureText(text).width > available) {
-      fontSize -= .5;
-      font();
-    }
-    let fitted = text;
-    if (ctx.measureText(fitted).width > available) {
-      fitted = "";
-      for (const character of text) {
-        if (ctx.measureText(`${fitted}${character}…`).width > available) break;
-        fitted += character;
-      }
-      fitted = `${fitted || text.slice(0, 1)}…`;
+    let lines = [];
+    let lineHeight = fontSize * 1.16;
+    for (let candidate = fontSize; candidate >= 7; candidate -= .5) {
+      fontSize = candidate;
+      ctx.font = `700 ${fontSize}px JetBrains Mono, Consolas, monospace`;
+      lines = wrapCaptionLines(ctx, text, available);
+      lineHeight = Math.max(9, fontSize * 1.16);
+      if (lines.length * lineHeight <= Math.max(18, height - 10) || candidate <= 7) break;
     }
     ctx.save();
     ctx.globalAlpha = hovered ? 1 : .36;
@@ -519,7 +550,8 @@ export class WorldRenderer {
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 0, 0, .65)";
     ctx.shadowBlur = 2;
-    ctx.fillText(fitted, anchor.x, anchor.y);
+    const firstLineY = anchor.y - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, index) => ctx.fillText(line, anchor.x, firstLineY + index * lineHeight));
     ctx.restore();
   }
 
@@ -529,7 +561,7 @@ export class WorldRenderer {
     ctx.beginPath();
     if (gate === "not" || gate === "buffer") {
       ctx.moveTo(-w * .48, -h * .82);
-      ctx.lineTo(w * .34, 0);
+      ctx.lineTo(w * .58, 0);
       ctx.lineTo(-w * .48, h * .82);
       ctx.closePath();
     } else if (["and", "nand"].includes(gate)) {
@@ -556,8 +588,9 @@ export class WorldRenderer {
     }
     if (["not", "nand", "nor", "xnor"].includes(gate)) {
       const bubble = Math.min(w, h) * .13;
+      const bubbleX = ["not", "buffer"].includes(gate) ? w * .72 : w * .76;
       ctx.fillStyle = GRID_COLOURS.background;
-      ctx.beginPath(); ctx.arc(w * .88, 0, bubble, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(bubbleX, 0, bubble, 0, TAU); ctx.fill(); ctx.stroke();
     }
   }
 
@@ -626,14 +659,14 @@ export class WorldRenderer {
         ctx.beginPath(); ctx.arc(world.x, world.y, 7 / this.camera.zoom, 0, TAU); ctx.stroke();
       }
       if (this.camera.zoom > .62) {
-        ctx.fillStyle = "#9aaac0"; ctx.font = "9px JetBrains Mono, Consolas, monospace"; ctx.textBaseline = "middle";
+        ctx.fillStyle = "#ffffff"; ctx.globalAlpha = hovered ? 1 : .36;
+        ctx.font = "9px JetBrains Mono, Consolas, monospace"; ctx.textBaseline = "middle";
         ctx.textAlign = pin.direction === "input" ? "right" : "left";
-        const textOffset = pin.direction === "input" ? -8 : 8;
         ctx.fillText(`${pin.name}${pin.bits > 1 ? ` [${pin.bits}]` : ""}`, world.x + (local.x < 0 ? -8 : 8), world.y);
-      }
-      if (this.camera.zoom > .9 && pin.bits > 1) {
-        ctx.textAlign = "center"; ctx.fillStyle = "#75869c"; ctx.font = "8px JetBrains Mono, monospace";
-        ctx.fillText(stateLabel(state, pin.bits), world.x + (local.x < 0 ? -27 : 27), world.y - 9);
+        if (this.camera.zoom > .9 && pin.bits > 1) {
+          ctx.fillStyle = "#75869c"; ctx.font = "8px JetBrains Mono, monospace"; ctx.textAlign = "center";
+          ctx.fillText(stateLabel(state, pin.bits), world.x + (local.x < 0 ? -27 : 27), world.y - 9);
+        }
       }
       ctx.restore();
     }

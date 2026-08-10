@@ -19,12 +19,10 @@
         </div>
         <div class="top-actions">
           <button id="new-project" class="button subtle button-with-icon" title="Create a new project"><i class="icon-glyph" data-lucide="file-plus-2" aria-hidden="true"></i><span>New</span></button>
-          <button id="save-project" class="button subtle button-with-icon" title="Save to this browser"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+          <button id="save-project" class="button subtle button-with-icon" title="Save current project to local JSON storage"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
           <button id="export-project" class="button subtle button-with-icon" title="Export project JSON"><i class="icon-glyph" data-lucide="download" aria-hidden="true"></i><span>Export</span></button>
           <button id="import-project" class="button subtle button-with-icon" title="Import project JSON"><i class="icon-glyph" data-lucide="upload" aria-hidden="true"></i><span>Import</span></button>
-          <button id="import-folder" class="button subtle button-with-icon" title="Import a Unity project folder"><i class="icon-glyph" data-lucide="folder-open" aria-hidden="true"></i><span>Unity folder</span></button>
           <input id="import-file" type="file" accept="application/json,.json" hidden />
-          <input id="import-folder-file" type="file" webkitdirectory multiple hidden />
         </div>
       </header>
 
@@ -45,6 +43,7 @@
 
         <section class="canvas-panel">
           <div class="canvas-toolbar">
+            <button id="viewed-back" class="toolbar-back-button button-with-icon hidden" type="button" aria-label="Return to the parent chip"><i class="icon-glyph" data-lucide="arrow-left" aria-hidden="true"></i><span>BACK</span></button>
             <button id="bottom-menu" class="toolbar-menu-button button-with-icon" type="button" aria-label="Open project menu"><i class="icon-glyph" data-lucide="menu" aria-hidden="true"></i><span>MENU</span></button>
             <div class="project-title toolbar-project-title">
               <span class="eyebrow">PROJECT</span>
@@ -53,21 +52,32 @@
             <div class="tool-group">
               <button id="select-tool" class="tool-button active button-with-icon" title="Select and move"><i class="icon-glyph" data-lucide="mouse-pointer-2" aria-hidden="true"></i><span>Select</span></button>
               <button id="wire-tool" class="tool-button button-with-icon" title="Create a wire"><i class="icon-glyph" data-lucide="git-branch" aria-hidden="true"></i><span>Wire</span></button>
-              <button id="add-note" class="tool-button button-with-icon" title="Add an explanatory note"><i class="icon-glyph" data-lucide="sticky-note" aria-hidden="true"></i><span>Note</span></button>
-              <button id="add-label" class="tool-button button-with-icon" title="Add a short canvas label"><i class="icon-glyph" data-lucide="tag" aria-hidden="true"></i><span>Label</span></button>
+              <button id="add-note" class="tool-button button-with-icon" data-annotation-tool="text" title="Add an explanatory note"><i class="icon-glyph" data-lucide="sticky-note" aria-hidden="true"></i><span>Note</span></button>
+              <button id="add-label" class="tool-button button-with-icon" data-annotation-tool="label" title="Add a short canvas label"><i class="icon-glyph" data-lucide="tag" aria-hidden="true"></i><span>Label</span></button>
             </div>
             <div class="sim-control-stack">
               <div class="sim-controls">
                 <button id="run-sim" class="run-button button-with-icon" title="Run simulation" aria-pressed="false"><i class="icon-glyph" data-lucide="play" aria-hidden="true"></i><span id="run-sim-label">RUN</span></button>
-                <button id="step-sim" class="tool-button button-with-icon" title="Advance one simulation step"><i class="icon-glyph" data-lucide="step-forward" aria-hidden="true"></i><span id="step-sim-label">Step 0</span></button>
-                <label class="speed-control" title="Simulation steps per second"><span class="speed-control-label">speed</span><input id="sim-speed" type="number" min="1" max="30" step="1" value="8" inputmode="numeric" aria-label="Simulation steps per second" /><span>/s</span></label>
-                <button id="reset-sim" class="tool-button button-with-icon" title="Reset simulation"><i class="icon-glyph" data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button>
+                <button id="bake-sim" class="tool-button button-with-icon simulation-bake-button" type="button" title="Register the current simulation as a bake" disabled><i class="icon-glyph" data-lucide="layers-2" aria-hidden="true"></i><span id="bake-sim-label">BAKE</span></button>
+                <button id="clear-bake" class="tool-button button-with-icon clear-bake-button" type="button" title="Clear the current simulation bake" disabled><i class="icon-glyph" data-lucide="eraser" aria-hidden="true"></i><span>CLEAR</span></button>
+                <label class="speed-control" title="Simulation steps per second">
+                  <span class="speed-input-shell">
+                    <span class="speed-label" aria-hidden="true">speed</span>
+                    <input id="sim-speed" type="number" min="1" max="30" step="1" value="8" inputmode="numeric" aria-label="Simulation steps per second" />
+                    <span class="speed-unit" aria-hidden="true">/s</span>
+                  </span>
+                </label>
+                <div class="step-control-group" aria-label="Simulation stepping">
+                  <button id="start-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Jump to simulation start" aria-label="Jump to simulation start"><i class="icon-glyph" data-lucide="chevrons-left" aria-hidden="true"></i></button>
+                  <button id="macro-prev-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Previous canvas-visible simulation step" aria-label="Previous canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-back" aria-hidden="true"></i></button>
+                  <button id="step-sim" class="tool-button button-with-icon" type="button" title="Advance one exact simulation step"><i class="icon-glyph" data-lucide="step-forward" aria-hidden="true"></i><span id="step-sim-label">Step 0</span></button>
+                  <button id="macro-next-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Next canvas-visible simulation step" aria-label="Next canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-forward" aria-hidden="true"></i></button>
+                  <button id="end-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Jump to latest simulation step" aria-label="Jump to latest simulation step"><i class="icon-glyph" data-lucide="chevrons-right" aria-hidden="true"></i></button>
+                </div>
               </div>
-              <label id="step-scrubber-wrap" class="step-scrubber hidden" title="Scrub simulation history">
-                <span class="step-scrubber-label">HISTORY</span>
-                <input id="step-scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub simulation history" />
-                <span id="step-scrubber-value">Step 0 / 0</span>
-              </label>
+              <div id="step-scrubber-wrap" class="step-scrubber hidden">
+                <input id="step-scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub simulation steps" />
+              </div>
             </div>
           </div>
           <div id="canvas-wrap" class="canvas-wrap">
@@ -75,10 +85,6 @@
             <div id="canvas-empty" class="canvas-empty">
               <div class="empty-orbit" aria-hidden="true"><i class="icon-glyph" data-lucide="plus"></i></div>
               <strong>Empty circuit</strong>
-            </div>
-            <div id="viewed-banner" class="viewed-banner hidden">
-              <button id="viewed-back" class="button-with-icon" type="button" title="Return to the parent chip" aria-label="Return to the parent chip"><i class="icon-glyph" data-lucide="arrow-left" aria-hidden="true"></i><span>BACK</span></button>
-              <span id="viewed-path"></span>
             </div>
             <button id="canvas-inspect-button" class="canvas-inspect-button hidden" type="button" aria-label="Inspect selected chip" title="Inspect selected chip"><i class="icon-glyph" data-lucide="info" aria-hidden="true"></i></button>
           </div>
@@ -117,12 +123,11 @@
       </nav>
       <div id="bottom-menu-popup" class="bottom-menu-popup hidden">
         <button id="bottom-import"><span class="menu-item-label"><i class="icon-glyph" data-lucide="upload" aria-hidden="true"></i>IMPORT JSON</span></button>
-        <button id="bottom-unity-import"><span class="menu-item-label"><i class="icon-glyph" data-lucide="folder-open" aria-hidden="true"></i>IMPORT UNITY FOLDER</span></button>
         <div class="menu-divider" role="separator"></div>
-        <button id="bottom-find"><span class="menu-item-label"><i class="icon-glyph" data-lucide="search" aria-hidden="true"></i>FIND CHIP</span><span>Ctrl+F</span></button>
         <button id="bottom-new"><span class="menu-item-label"><i class="icon-glyph" data-lucide="file-plus-2" aria-hidden="true"></i>NEW PROJECT</span><span>Ctrl+N</span></button>
-        <button id="bottom-save"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE PROJECT</span><span>Ctrl+S</span></button>
-        <button id="bottom-save-chip"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE CHIP</span></button>
+        <button id="bottom-save"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE</span><span>Ctrl+S</span></button>
+        <button id="bottom-save-as-project"><span class="menu-item-label"><i class="icon-glyph" data-lucide="folder-plus" aria-hidden="true"></i>SAVE AS PROJECT</span></button>
+        <button id="bottom-save-chip"><span class="menu-item-label"><i class="icon-glyph" data-lucide="save" aria-hidden="true"></i>SAVE AS CHIP</span></button>
         <div class="menu-divider" role="separator"></div>
         <button id="bottom-export"><span class="menu-item-label"><i class="icon-glyph" data-lucide="download" aria-hidden="true"></i>EXPORT JSON</span></button>
         <div class="menu-divider" role="separator"></div>
@@ -152,9 +157,11 @@
                 <div class="help-guidance-item"><strong>Place</strong><span>Open the Library or a bottom-bar group, then click a chip to place it. Drag a chip directly onto the canvas for direct placement.</span></div>
                 <div class="help-guidance-item"><strong>Connect</strong><span>Click a pin to start or finish a compatible wire, or drag directly from one pin to another. Click empty canvas to add route points.</span></div>
                 <div class="help-guidance-item"><strong>Inspect</strong><span>Select an object to open its Inspector. Double-click chips, wires, notes, and labels for their edit action.</span></div>
-                <div class="help-guidance-item"><strong>Simulate</strong><span>Click input devices to toggle them, use RUN or STEP to advance the circuit, and RESET to return to its initial state.</span></div>
+                <div class="help-guidance-item"><strong>Simulate</strong><span>Click input devices to toggle them, use RUN or STEP to advance the circuit, and START to return to its initial state.</span></div>
               </div>
             </section>
+            <div class="help-section-divider" aria-hidden="true"></div>
+            <div class="help-shortcuts" aria-label="Shortcuts">
             <section class="help-group">
               <h3>Library &amp; placement</h3>
               <div class="help-command"><kbd>LIBRARY</kbd><span>Open the chip library</span></div>
@@ -199,20 +206,26 @@
               <h3>Simulation</h3>
               <div class="help-command"><kbd>INPUT</kbd><span>Click an input device to toggle its value</span></div>
               <div class="help-command"><kbd>SPACE</kbd><span>Advance one step while paused</span></div>
-              <div class="help-command"><kbd>CTRL + SPACE</kbd><span>Run or pause</span></div>
-              <div class="help-command"><kbd>STEP</kbd><span>Advance and show the step count</span></div>
+              <div class="help-command"><kbd>CTRL + SPACE</kbd><span>Start a fresh bake or pause the current one</span></div>
+              <div class="help-command"><kbd>RUN</kbd><span>Start a fresh recorded simulation bake</span></div>
+              <div class="help-command"><kbd>BAKE</kbd><span>Manually register an open-ended run and stop it</span></div>
+              <div class="help-command"><kbd>CLEAR</kbd><span>Discard the current bake and return to evaluated step zero</span></div>
+              <div class="help-command"><kbd>STEP</kbd><span>Advance within or extend the current bake</span></div>
+              <div class="help-command"><kbd>START / END</kbd><span>Jump to the first or latest frame in the current bake</span></div>
+              <div class="help-command"><kbd>VISIBLE STEP</kbd><span>Move between canvas-visible frames already recorded in the bake</span></div>
               <div class="help-command"><kbd>SPEED</kbd><span>Set simulation steps per second</span></div>
-              <div class="help-command"><kbd>HISTORY</kbd><span>When paused, scrub back through recorded steps</span></div>
-              <div class="help-command"><kbd>RESET</kbd><span>Return signals to their initial state</span></div>
+              <div class="help-command"><kbd>SCRUB</kbd><span>When paused, move through the current bake’s recorded frames</span></div>
             </section>
             <section class="help-group">
               <h3>Project</h3>
-              <div class="help-command"><kbd>CTRL + S</kbd><span>Save project</span></div>
+              <div class="help-command"><kbd>CTRL + S</kbd><span>Save the current project; the first save asks whether to keep it as a project or chip</span></div>
               <div class="help-command"><kbd>CTRL + N</kbd><span>New project</span></div>
-              <div class="help-command"><kbd>SAVE CHIP</kbd><span>Save the current circuit as a reusable chip</span></div>
+              <div class="help-command"><kbd>SAVE AS</kbd><span>Use the menu to save explicitly as a project or reusable chip</span></div>
               <div class="help-command"><kbd>IMPORT / EXPORT</kbd><span>Move project JSON between sessions</span></div>
               <div class="help-command"><kbd>DOUBLE-CLICK</kbd><span>Open a custom chip's internal circuit</span></div>
             </section>
+            </div>
+            <div class="help-section-divider" aria-hidden="true"></div>
             <section class="help-meta" aria-labelledby="help-meta-title">
               <div class="help-section-heading">
                 <div>
@@ -237,7 +250,7 @@
         </section>
       </div>
 
-      <div id="toast" class="toast" role="status"></div>
+      <div id="notifications" class="notification-stack" aria-live="polite" aria-relevant="additions"></div>
       <div id="context-menu" class="context-menu hidden"></div>
     </div>
     <!-- Lucide is the single icon source for interface affordances. -->

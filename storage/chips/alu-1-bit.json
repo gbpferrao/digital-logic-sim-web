@@ -1,0 +1,462 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "ALU 1-BIT",
+  "updatedAt": "2026-08-10T12:00:00.000Z",
+  "description": {
+    "id": "chip-alu-1-bit",
+    "name": "ALU 1-BIT",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 620,
+      "y": 360
+    },
+    "colour": "#7358ad",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 1,
+        "direction": "input",
+        "x": -310,
+        "y": -110,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 1,
+        "direction": "input",
+        "x": -310,
+        "y": -50,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cin",
+        "name": "CIN",
+        "bits": 1,
+        "direction": "input",
+        "x": -310,
+        "y": 10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "s0",
+        "name": "OP0",
+        "bits": 1,
+        "direction": "input",
+        "x": -310,
+        "y": 80,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "s1",
+        "name": "OP1",
+        "bits": 1,
+        "direction": "input",
+        "x": -310,
+        "y": 140,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "result",
+        "name": "RESULT",
+        "bits": 1,
+        "direction": "output",
+        "x": 310,
+        "y": -45,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "carry",
+        "name": "CARRY",
+        "bits": 1,
+        "direction": "output",
+        "x": 310,
+        "y": 85,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "and",
+        "name": "AND",
+        "position": {
+          "x": -180,
+          "y": -110
+        },
+        "rotation": 0,
+        "label": "AND",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or",
+        "name": "OR",
+        "position": {
+          "x": -180,
+          "y": -50
+        },
+        "rotation": 0,
+        "label": "OR",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "xor",
+        "name": "XOR",
+        "position": {
+          "x": -180,
+          "y": 10
+        },
+        "rotation": 0,
+        "label": "XOR",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "adder",
+        "name": "FULL ADDER",
+        "position": {
+          "x": -20,
+          "y": 120
+        },
+        "rotation": 0,
+        "label": "ADD",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "mux",
+        "name": "MUX 4:1",
+        "position": {
+          "x": 160,
+          "y": -20
+        },
+        "rotation": 0,
+        "label": "SELECT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-op1",
+        "name": "AND",
+        "position": {
+          "x": 140,
+          "y": 100
+        },
+        "rotation": 0,
+        "label": "CARRY & OP1",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-op",
+        "name": "AND",
+        "position": {
+          "x": 245,
+          "y": 100
+        },
+        "rotation": 0,
+        "label": "CARRY & ADD",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-and",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "and",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-and",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "and",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-or",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-or",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-xor",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "xor",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-xor",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "xor",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-adder",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "adder",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-adder",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "adder",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-adder",
+        "source": {
+          "owner": "root",
+          "pin": "cin"
+        },
+        "target": {
+          "owner": "adder",
+          "pin": "cin"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "and-mux",
+        "source": {
+          "owner": "and",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "or-mux",
+        "source": {
+          "owner": "or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-mux",
+        "source": {
+          "owner": "xor",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d2"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum-mux",
+        "source": {
+          "owner": "adder",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d3"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "s0-mux",
+        "source": {
+          "owner": "root",
+          "pin": "s0"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "s0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "s1-mux",
+        "source": {
+          "owner": "root",
+          "pin": "s1"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "s1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "mux-result",
+        "source": {
+          "owner": "mux",
+          "pin": "out"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "result"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "adder-carry",
+        "source": {
+          "owner": "adder",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "carry-op1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "s1-carry",
+        "source": {
+          "owner": "root",
+          "pin": "s1"
+        },
+        "target": {
+          "owner": "carry-op1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-op1-out",
+        "source": {
+          "owner": "carry-op1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "carry-op",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "s0-carry",
+        "source": {
+          "owner": "root",
+          "pin": "s0"
+        },
+        "target": {
+          "owner": "carry-op",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-result",
+        "source": {
+          "owner": "carry-op",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "carry"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": []
+  }
+}

@@ -1,0 +1,429 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "RIPPLE ADDER 4",
+  "updatedAt": "2026-08-10T12:00:00.000Z",
+  "description": {
+    "id": "chip-ripple-adder-4",
+    "name": "RIPPLE ADDER 4",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 1120,
+      "y": 520
+    },
+    "colour": "#5c8d78",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A[3:0]",
+        "bits": 4,
+        "direction": "input",
+        "x": -560,
+        "y": -90,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B[3:0]",
+        "bits": 4,
+        "direction": "input",
+        "x": -560,
+        "y": 30,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cin",
+        "name": "CIN",
+        "bits": 1,
+        "direction": "input",
+        "x": -560,
+        "y": 150,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "sum",
+        "name": "SUM[3:0]",
+        "bits": 4,
+        "direction": "output",
+        "x": 560,
+        "y": -80,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "carry",
+        "name": "CARRY",
+        "bits": 1,
+        "direction": "output",
+        "x": 560,
+        "y": 80,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "split-a",
+        "name": "4-1BIT",
+        "position": {
+          "x": -410,
+          "y": -100
+        },
+        "rotation": 0,
+        "label": "A bits",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "split-b",
+        "name": "4-1BIT",
+        "position": {
+          "x": -410,
+          "y": 80
+        },
+        "rotation": 0,
+        "label": "B bits",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "fa0",
+        "name": "FULL ADDER",
+        "position": {
+          "x": -180,
+          "y": 180
+        },
+        "rotation": 0,
+        "label": "BIT 0",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "fa1",
+        "name": "FULL ADDER",
+        "position": {
+          "x": 0,
+          "y": 120
+        },
+        "rotation": 0,
+        "label": "BIT 1",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "fa2",
+        "name": "FULL ADDER",
+        "position": {
+          "x": 180,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "BIT 2",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "fa3",
+        "name": "FULL ADDER",
+        "position": {
+          "x": 360,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "BIT 3",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "merge-sum",
+        "name": "1-4BIT",
+        "position": {
+          "x": 470,
+          "y": -100
+        },
+        "rotation": 0,
+        "label": "SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a0",
+        "source": {
+          "owner": "split-a",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "fa0",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a1",
+        "source": {
+          "owner": "split-a",
+          "pin": "3"
+        },
+        "target": {
+          "owner": "fa1",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a2",
+        "source": {
+          "owner": "split-a",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "fa2",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a3",
+        "source": {
+          "owner": "split-a",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "fa3",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b0",
+        "source": {
+          "owner": "split-b",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "fa0",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b1",
+        "source": {
+          "owner": "split-b",
+          "pin": "3"
+        },
+        "target": {
+          "owner": "fa1",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b2",
+        "source": {
+          "owner": "split-b",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "fa2",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b3",
+        "source": {
+          "owner": "split-b",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "fa3",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin0",
+        "source": {
+          "owner": "root",
+          "pin": "cin"
+        },
+        "target": {
+          "owner": "fa0",
+          "pin": "cin"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry0",
+        "source": {
+          "owner": "fa0",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "fa1",
+          "pin": "cin"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry1",
+        "source": {
+          "owner": "fa1",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "fa2",
+          "pin": "cin"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry2",
+        "source": {
+          "owner": "fa2",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "fa3",
+          "pin": "cin"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-out",
+        "source": {
+          "owner": "fa3",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "carry"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum0",
+        "source": {
+          "owner": "fa0",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "merge-sum",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum1",
+        "source": {
+          "owner": "fa1",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "merge-sum",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum2",
+        "source": {
+          "owner": "fa2",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "merge-sum",
+          "pin": "2"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum3",
+        "source": {
+          "owner": "fa3",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "merge-sum",
+          "pin": "3"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum-out",
+        "source": {
+          "owner": "merge-sum",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "root",
+          "pin": "sum"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "root-a",
+        "source": {
+          "owner": "root",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "split-a",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "root-b",
+        "source": {
+          "owner": "root",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "split-b",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": []
+  }
+}
