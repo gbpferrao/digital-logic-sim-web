@@ -25,6 +25,14 @@ npm run build
 
 `npm run build` writes the production bundle to `dist/`; `npm run preview` serves that bundle locally after a build. The tests use Node's built-in test runner and cover the simulator, primitive truth tables, recursive custom chips, junctions, and three saved example projects.
 
+## GitHub Pages static build
+
+The repository includes a v0 GitHub Pages workflow at [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). Push the repository to GitHub, set Pages' publishing source to **GitHub Actions**, and the workflow will build and deploy the site on pushes to `main` or `master`.
+
+The Pages build sets `VITE_STATIC_MODE=true`. In that mode the app never calls `/api`: it starts from the browser cache or a blank project, saves locally to browser storage, and uses JSON import/export for portability. The local `npm run dev` workflow keeps the optional JSON API for development.
+
+The build copies the example projects and reusable chips into [`public/examples`](public/examples). The Help dialog exposes them as downloads with the intended flow: download a JSON file, then use **MENU → IMPORT JSON**. No backend or storage service is needed for the hosted version.
+
 ## Current web architecture
 
 - `src/model.js` contains the chip descriptions, project model, pin metadata, collections, and custom-chip conversion.
@@ -66,7 +74,7 @@ The interface palette and the boundary between grayscale UI chrome and semantic 
 
 ## Projects and storage
 
-- Use SAVE to persist the current project; the first save asks whether the new circuit should be kept as a project or chip. SAVE AS PROJECT and SAVE AS CHIP remain explicit menu actions. The local API writes the complete project and its custom chips as JSON files in one save operation.
+- Use SAVE to persist the current project; the first save asks whether the new circuit should be kept as a project or chip. SAVE AS PROJECT and SAVE AS CHIP remain explicit menu actions. Locally, the API writes the complete project and its custom chips as JSON files in one save operation; on GitHub Pages, SAVE uses browser cache and EXPORT/IMPORT JSON is the portable path.
 - The browser cache remains a fast fallback if the local API is not running. With the API available, the editor keeps the browser cache synchronized after saving.
 - Export/import the web project JSON format separately when a portable file is needed.
 - Import a single web project or Unity-shaped JSON file when a portable document is needed. Folder-based Unity project import is intentionally not part of the web editor.
@@ -76,7 +84,7 @@ The web project schema is `digital-logic-sim-web/1`. A project contains its root
 
 Custom-chip interfaces are authored as ordinary movable `IN-*` and `OUT-*` nodes. Saving a chip preserves those nodes, their labels, positions, and wires. When the chip is reused, the parent-facing ports are derived from them and bridge the parent signal into the internal `IN` node or out of the internal `OUT` node. Older fixed-pin chip JSONs are upgraded automatically when normalized, so existing ALU, adder, and display examples remain usable.
 
-The repository includes four inspectable examples in [`storage/projects`](storage/projects): `full-adder.json` (truth-table-tested 1-bit full adder), `simple-alu.json` (annotated AND/OR/XOR/ADD selector), `step-showcase.json` (a visible step-by-step light progression), and `tiny-hex-display.json` (annotated 4-bit hexadecimal input and seven-segment display, with a saved `HEX TO 7SEG` custom chip).
+The repository includes inspectable examples in [`storage/projects`](storage/projects): `basic-alu.json`, `full-adder.json`, `simple-alu.json`, `sophisticated-alu.json`, `step-showcase.json`, and `tiny-hex-display.json`. Their reusable chip JSON files live in [`storage/chips`](storage/chips), and the static build publishes copies under [`public/examples`](public/examples) for download/import.
 
 The storage endpoints and file layout are documented in [`storage/README.md`](storage/README.md).
 

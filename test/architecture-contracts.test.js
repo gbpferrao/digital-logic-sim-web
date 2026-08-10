@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { createJsonRepository } from "../server/json-repository.mjs";
 import { COLORS } from "../src/domain/catalog.js";
+import { readProjectFile } from "../src/io/project-import.js";
 import { BUILTINS, MIN_CHIP_SIZE, TYPE, chipBoundingBox, chipBoundsSize, collectionGroupsFor, createProject, customFromRoot, instanceFor, instancePinPosition, interfaceBindingsFor, normalizeProject } from "../src/model.js";
 
 test("collection groups preserve saved order and always expose custom chips", () => {
@@ -139,6 +140,29 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   assert.match(renderer, /const XRAY_MAX_DEPTH = 3/);
   assert.match(renderer, /XRAY_MAX_INSTANCES/);
   assert.match(renderer, /drawXrayComposite/);
+});
+
+test("GitHub Pages is a static import/export distribution", async () => {
+  const workflow = await readFile(path.join(process.cwd(), ".github", "workflows", "deploy-pages.yml"), "utf8");
+  const vite = await readFile(path.join(process.cwd(), "vite.config.js"), "utf8");
+  const storage = await readFile(path.join(process.cwd(), "src", "storage.js"), "utf8");
+  const manifest = JSON.parse(await readFile(path.join(process.cwd(), "public", "examples", "manifest.json"), "utf8"));
+  assert.ok(workflow.includes("actions/deploy-pages@v4"));
+  assert.ok(workflow.includes('VITE_STATIC_MODE: "true"'));
+  assert.ok(vite.includes('mode === "pages"'));
+  assert.ok(storage.includes("if (STATIC_MODE) return null"));
+  assert.equal(manifest.projects.length, 6);
+  assert.equal(manifest.chips.length, 7);
+});
+
+test("downloaded web chip JSON imports as an editable circuit", async () => {
+  const chip = await readFile(path.join(process.cwd(), "storage", "chips", "half-adder.json"), "utf8");
+  const project = await readProjectFile({ text: async () => chip });
+  assert.equal(project.name, "HALF ADDER");
+  assert.equal(project.root.inputPins.length, 0);
+  assert.equal(project.root.outputPins.length, 0);
+  assert.ok(project.root.instances.some((instance) => instance.id === "interface-input-a"));
+  assert.equal(project.root.interfaceBindings?.inputs?.length ?? 0, 0);
 });
 
 test("native component colors reserve warning red for actual errors", () => {

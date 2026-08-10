@@ -1,0 +1,72 @@
+{
+  "schema": "digital-logic-sim-web/examples/1",
+  "projects": [
+    {
+      "file": "basic-alu.json",
+      "name": "Basic ALU Lab",
+      "href": "examples/projects/basic-alu.json"
+    },
+    {
+      "file": "full-adder.json",
+      "name": "1-bit Full Adder",
+      "href": "examples/projects/full-adder.json"
+    },
+    {
+      "file": "simple-alu.json",
+      "name": "Simple 1-bit ALU",
+      "href": "examples/projects/simple-alu.json"
+    },
+    {
+      "file": "sophisticated-alu.json",
+      "name": "Sophisticated 4-bit ALU Lab",
+      "href": "examples/projects/sophisticated-alu.json"
+    },
+    {
+      "file": "step-showcase.json",
+      "name": "Step Progression Lab",
+      "href": "examples/projects/step-showcase.json"
+    },
+    {
+      "file": "tiny-hex-display.json",
+      "name": "Hex Display Lab",
+      "href": "examples/projects/tiny-hex-display.json"
+    }
+  ],
+  "chips": [
+    {
+      "file": "alu-1-bit.json",
+      "name": "ALU 1-BIT",
+      "href": "examples/chips/alu-1-bit.json"
+    },
+    {
+      "file": "alu-4-bit.json",
+      "name": "ALU 4-BIT",
+      "href": "examples/chips/alu-4-bit.json"
+    },
+    {
+      "file": "full-adder.json",
+      "name": "FULL ADDER",
+      "href": "examples/chips/full-adder.json"
+    },
+    {
+      "file": "half-adder.json",
+      "name": "HALF ADDER",
+      "href": "examples/chips/half-adder.json"
+    },
+    {
+      "file": "hex-to-7seg.json",
+      "name": "HEX TO 7SEG",
+      "href": "examples/chips/hex-to-7seg.json"
+    },
+    {
+      "file": "mux-4-1.json",
+      "name": "MUX 4:1",
+      "href": "examples/chips/mux-4-1.json"
+    },
+    {
+      "file": "ripple-adder-4.json",
+      "name": "RIPPLE ADDER 4",
+      "href": "examples/chips/ripple-adder-4.json"
+    }
+  ]
+}

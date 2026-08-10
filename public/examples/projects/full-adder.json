@@ -1,0 +1,450 @@
+{
+  "schema": "digital-logic-sim-web/1",
+  "storageId": "full-adder",
+  "name": "1-bit Full Adder",
+  "createdAt": "2026-08-09T00:00:00.000Z",
+  "updatedAt": "2026-08-09T00:00:00.000Z",
+  "root": {
+    "id": "root",
+    "name": "1-bit Full Adder",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 800,
+      "y": 460
+    },
+    "colour": "#202b3a",
+    "nameLocation": "top",
+    "inputPins": [],
+    "outputPins": [],
+    "instances": [
+      {
+        "id": "input-a",
+        "name": "IN-1",
+        "position": {
+          "x": -320,
+          "y": -120
+        },
+        "rotation": 0,
+        "label": "A",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "input-b",
+        "name": "IN-1",
+        "position": {
+          "x": -320,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "input-cin",
+        "name": "IN-1",
+        "position": {
+          "x": -320,
+          "y": 120
+        },
+        "rotation": 0,
+        "label": "CIN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "xor-ab",
+        "name": "XOR",
+        "position": {
+          "x": -160,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "A XOR B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-ab",
+        "name": "AND",
+        "position": {
+          "x": -160,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "A AND B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "xor-sum",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "and-cin",
+        "name": "AND",
+        "position": {
+          "x": 0,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "CIN AND XOR",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "or-carry",
+        "name": "OR",
+        "position": {
+          "x": 160,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "output-sum",
+        "name": "OUT-1",
+        "position": {
+          "x": 320,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "output-carry",
+        "name": "OUT-1",
+        "position": {
+          "x": 320,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-xor",
+        "source": {
+          "owner": "input-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "xor-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-xor",
+        "source": {
+          "owner": "input-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "xor-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-and",
+        "source": {
+          "owner": "input-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "and-ab",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-and",
+        "source": {
+          "owner": "input-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "and-ab",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-sum",
+        "source": {
+          "owner": "xor-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "xor-sum",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-sum",
+        "source": {
+          "owner": "input-cin",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "xor-sum",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "xor-cin-and",
+        "source": {
+          "owner": "xor-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "and-cin",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-and",
+        "source": {
+          "owner": "input-cin",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "and-cin",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sum-out",
+        "source": {
+          "owner": "xor-sum",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "output-sum",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "ab-carry",
+        "source": {
+          "owner": "and-ab",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-carry",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-carry",
+        "source": {
+          "owner": "and-cin",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "or-carry",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "carry-out",
+        "source": {
+          "owner": "or-carry",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "output-carry",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "adder-title",
+        "type": "label",
+        "text": "1-BIT FULL ADDER",
+        "position": {
+          "x": -350,
+          "y": -240
+        },
+        "width": 300,
+        "height": 26,
+        "fontSize": 14,
+        "colour": "#f3d36b",
+        "background": "#352e18"
+      },
+      {
+        "id": "adder-help",
+        "type": "text",
+        "text": "Toggle A, B, and CIN.\nSUM = A XOR B XOR CIN\nCARRY = (A AND B) OR (CIN AND (A XOR B))",
+        "position": {
+          "x": -350,
+          "y": 180
+        },
+        "width": 390,
+        "height": 96,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ]
+  },
+  "customChips": {},
+  "collections": [
+    {
+      "name": "LOGIC",
+      "chips": [
+        "AND",
+        "OR",
+        "NOT",
+        "NAND",
+        "NOR",
+        "XOR",
+        "XNOR",
+        "BUFFER"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "chips": [
+        "CLOCK",
+        "PULSE",
+        "KEY",
+        "3-STATE BUFFER"
+      ]
+    },
+    {
+      "name": "IN/OUT",
+      "chips": [
+        "IN-1",
+        "IN-4",
+        "IN-8",
+        "OUT-1",
+        "OUT-4",
+        "OUT-8"
+      ]
+    },
+    {
+      "name": "MERGE/SPLIT",
+      "chips": [
+        "1-4BIT",
+        "1-8BIT",
+        "4-8BIT",
+        "4-1BIT",
+        "8-4BIT",
+        "8-1BIT"
+      ]
+    },
+    {
+      "name": "BUS",
+      "chips": [
+        "BUS-1",
+        "BUS-4",
+        "BUS-8"
+      ]
+    },
+    {
+      "name": "DISPLAY",
+      "chips": [
+        "7-SEGMENT",
+        "DOT DISPLAY",
+        "RGB DISPLAY",
+        "LED"
+      ]
+    },
+    {
+      "name": "MEMORY",
+      "chips": [
+        "ROM 256x16",
+        "dev.RAM-8"
+      ]
+    },
+    {
+      "name": "AUDIO",
+      "chips": [
+        "BUZZER"
+      ]
+    }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
+  ],
+  "starred": [
+    "LOGIC",
+    "IN-1",
+    "OUT-1"
+  ],
+  "settings": {
+    "snapping": true,
+    "straightWires": false,
+    "grid": true,
+    "simulationPaused": false,
+    "stepsPerSecond": 8,
+    "stepsPerClock": 8
+  },
+  "inputValues": {
+    "input-a": 0,
+    "input-b": 0,
+    "input-cin": 0
+  },
+  "keyValues": {}
+}

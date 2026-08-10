@@ -7,6 +7,7 @@
     "dev": "node server/dev.mjs",
     "dev:web": "vite",
     "dev:api": "node server/api.mjs",
+    "prebuild": "node scripts/prepare-static-assets.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test"

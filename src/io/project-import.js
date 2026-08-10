@@ -1,10 +1,21 @@
-import { TYPE, instanceFor, normalizeProject, uid } from "../model.js";
+import { TYPE, instanceFor, isInputType, isOutputType, normalizeProject, uid } from "../model.js";
 import { convertUnityChipFile, convertUnityProject } from "../unity-compat.js";
 
 export async function readProjectFile(file) {
   const text = await file.text();
   const raw = JSON.parse(text);
   if (raw?.schema === "digital-logic-sim-web/1" || raw?.root) return normalizeProject(raw);
+  if (raw?.schema === "digital-logic-sim-web/chip/1" && raw.description) {
+    const root = { ...raw.description, id: "root", inputPins: [], outputPins: [] };
+    const hasMovableInterfaceNodes = (root.instances ?? []).some((instance) => isInputType(instance.name) || isOutputType(instance.name));
+    if (hasMovableInterfaceNodes) {
+      delete root.interfaceBindings;
+      delete root.fit;
+    }
+    const project = normalizeProject({ name: raw.name || root.name || "Imported chip", root, customChips: {} });
+    if (!hasMovableInterfaceNodes) exposeImportedChipPins(project);
+    return project;
+  }
   const unityChip = convertUnityChipFile(raw);
   if (unityChip) {
     const project = normalizeProject({ name: unityChip.name, root: { ...unityChip, id: "root" }, customChips: {} });

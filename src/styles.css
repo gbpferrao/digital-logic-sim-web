@@ -216,6 +216,14 @@ h2 { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
 .help-group h3 { margin: 0 0 7px; color: #d0d0d3; font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .help-command { display: grid; grid-template-columns: 110px minmax(0, 1fr); min-height: 28px; align-items: center; gap: 8px; border-top: 1px solid rgb(255 255 255 / 8%); color: #c8c8cb; font-size: 9px; }
 .help-command kbd { display: inline-flex; min-height: 20px; align-items: center; justify-content: center; padding: 0 6px; border: 1px solid #55555a; border-radius: 2px; color: #ededee; background: #1f1f21; font: 700 8px/1 "JetBrains Mono", monospace; letter-spacing: .04em; white-space: nowrap; }
+.help-examples { min-width: 0; }
+.help-examples .help-section-heading { margin-bottom: 0; }
+.help-examples .help-section-heading > .icon-glyph { color: var(--ui-accent); }
+.help-example-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 12px; }
+.help-example-groups > div > strong { color: var(--ui-subtle); font-size: 8px; letter-spacing: .12em; }
+.help-example-list { display: grid; gap: 4px; margin-top: 6px; }
+.help-example-list a { display: block; min-width: 0; padding: 5px 7px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 2px; color: var(--ui-text); background: rgb(0 0 0 / 12%); font-size: 9px; text-decoration: none; }
+.help-example-list a:hover { border-color: var(--ui-control-border-hover); color: var(--ui-accent-strong); background: var(--ui-control-active); }
 .help-meta { padding-bottom: 0; }
 .help-meta-badge { padding: 4px 6px; border: 1px solid #55555a; border-radius: 2px; color: #c8c8cb; background: #1f1f21; font: 700 8px/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
 .help-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 22px; margin: 0; }
@@ -628,7 +636,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); 
   .bottom-library-button { min-width: 96px; }
   .help-modal { padding: 16px; }
   .help-shortcuts { grid-template-columns: 1fr; gap: 16px; }
-  .help-guidance-grid, .help-meta-grid { grid-template-columns: 1fr; }
+  .help-guidance-grid, .help-meta-grid, .help-example-groups { grid-template-columns: 1fr; }
   .canvas-status { gap: 8px; padding: 4px 8px; }
   .status-readouts { gap: 5px; }
   .status-readout { gap: 6px; padding: 0 7px; }

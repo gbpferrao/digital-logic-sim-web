@@ -31,7 +31,7 @@ import {
 } from "./model.js";
 import { PIN_MASK, Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
 import { WorldRenderer } from "./renderer.js";
-import { downloadProject, loadFromBrowser, loadFromServer, readProjectFile, saveToBrowser, saveToServer } from "./storage.js";
+import { STATIC_MODE, downloadProject, loadFromBrowser, loadFromServer, readProjectFile, saveToBrowser, saveToServer } from "./storage.js";
 import { $, actionLabel, escapeHtml, icon, inspectorAction, refreshIcons } from "./ui/dom-icons.js";
 import { createLibraryController } from "./ui/library-controller.js";
 import { createNotificationCenter } from "./ui/notifications.js";
@@ -43,7 +43,7 @@ const APP_METADATA = Object.freeze({
   version: appPackage.version,
   projectSchema: "digital-logic-sim-web/1",
   chipSchema: "digital-logic-sim-web/chip/1",
-  storage: "Local JSON API + browser cache fallback"
+  storage: STATIC_MODE ? "Static site + browser cache; import/export JSON" : "Local JSON API + browser cache fallback"
 });
 
 const canvas = $("#world");
@@ -1849,8 +1849,8 @@ async function saveCurrentProject({ quiet = false, promptIfNeeded = !quiet } = {
     state.projectSaved = true;
     saveToBrowser(project);
     if (project._revision === revisionAtStart) state.savedRevision = revisionAtStart;
-    if (!quiet) notify("Project and custom chips saved to storage.");
-    setStatus("Saved to local JSON storage.");
+    if (!quiet) notify(STATIC_MODE ? "Saved in this browser. Export JSON to share." : "Project and custom chips saved to storage.");
+    setStatus(STATIC_MODE ? "Saved to browser cache; export JSON to share." : "Saved to local JSON storage.");
   } catch (error) {
     saveToBrowser(project);
     state.projectSaved = true;
@@ -3011,6 +3011,7 @@ $("#context-menu").addEventListener("click", (event) => {
 });
 
 async function hydrateProjectFromServer() {
+  if (STATIC_MODE) return;
   try {
     const remote = await loadFromServer({ storageId: cachedProject?.storageId, latest: !cachedProject });
     if (!remote || (cachedProject ? project._revision !== state.savedRevision : project._revision !== 0)) return;

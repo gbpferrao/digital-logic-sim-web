@@ -1,0 +1,339 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "FULL ADDER",
+  "updatedAt": "2026-08-10T12:00:00.000Z",
+  "description": {
+    "id": "chip-full-adder",
+    "name": "FULL ADDER",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 420,
+      "y": 260
+    },
+    "colour": "#5c8d78",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 1,
+        "direction": "input",
+        "x": -540,
+        "y": -120,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 1,
+        "direction": "input",
+        "x": -540,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cin",
+        "name": "CIN",
+        "bits": 1,
+        "direction": "input",
+        "x": -540,
+        "y": 120,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "sum",
+        "name": "SUM",
+        "bits": 1,
+        "direction": "output",
+        "x": 540,
+        "y": -60,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "carry",
+        "name": "CARRY",
+        "bits": 1,
+        "direction": "output",
+        "x": 540,
+        "y": 60,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "ha-ab",
+        "name": "HALF ADDER",
+        "position": {
+          "x": -80,
+          "y": -160
+        },
+        "rotation": 0,
+        "label": "A + B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "ha-cin",
+        "name": "HALF ADDER",
+        "position": {
+          "x": -80,
+          "y": 160
+        },
+        "rotation": 0,
+        "label": "X + CIN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "carry-or",
+        "name": "OR",
+        "position": {
+          "x": 280,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-a",
+        "name": "IN-1",
+        "position": {
+          "x": -440,
+          "y": -120
+        },
+        "rotation": 0,
+        "label": "A",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "a",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-b",
+        "name": "IN-1",
+        "position": {
+          "x": -440,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "b",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-cin",
+        "name": "IN-1",
+        "position": {
+          "x": -440,
+          "y": 120
+        },
+        "rotation": 0,
+        "label": "CIN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "cin",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-sum",
+        "name": "OUT-1",
+        "position": {
+          "x": 440,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "SUM",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "sum",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-carry",
+        "name": "OUT-1",
+        "position": {
+          "x": 440,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "CARRY",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "carry",
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-ha",
+        "source": {
+          "owner": "interface-input-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "ha-ab",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-ha",
+        "source": {
+          "owner": "interface-input-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "ha-ab",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "ha-sum",
+        "source": {
+          "owner": "ha-ab",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "ha-cin",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-ha",
+        "source": {
+          "owner": "interface-input-cin",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "ha-cin",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "ha-carry",
+        "source": {
+          "owner": "ha-ab",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cin-carry",
+        "source": {
+          "owner": "ha-cin",
+          "pin": "carry"
+        },
+        "target": {
+          "owner": "carry-or",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "full-sum",
+        "source": {
+          "owner": "ha-cin",
+          "pin": "sum"
+        },
+        "target": {
+          "owner": "interface-output-sum",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "full-carry",
+        "source": {
+          "owner": "carry-or",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "interface-output-carry",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [],
+    "interfaceBindings": {
+      "inputs": [
+        {
+          "publicId": "a",
+          "instanceId": "interface-input-a",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "b",
+          "instanceId": "interface-input-b",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "cin",
+          "instanceId": "interface-input-cin",
+          "pinId": "0",
+          "direction": "input"
+        }
+      ],
+      "outputs": [
+        {
+          "publicId": "sum",
+          "instanceId": "interface-output-sum",
+          "pinId": "0",
+          "direction": "output"
+        },
+        {
+          "publicId": "carry",
+          "instanceId": "interface-output-carry",
+          "pinId": "0",
+          "direction": "output"
+        }
+      ]
+    },
+    "fit": {
+      "version": 1,
+      "bounds": {
+        "x": -540,
+        "y": -340,
+        "w": 1080,
+        "h": 680
+      }
+    }
+  }
+}

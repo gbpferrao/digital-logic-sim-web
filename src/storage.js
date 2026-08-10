@@ -5,6 +5,7 @@ import { LAST_SERVER_PROJECT_KEY, loadProjectFromServer, saveProjectToServer } f
 export { readProjectFile };
 
 const STORAGE_KEY = "digital-logic-sim-web:project";
+export const STATIC_MODE = import.meta.env?.VITE_STATIC_MODE === "true";
 
 function cleanProject(project) {
   const saved = clone(project);
@@ -17,12 +18,14 @@ function cacheProject(project) {
 }
 
 export async function saveToServer(project) {
+  if (STATIC_MODE) return saveToBrowser(project);
   const saved = await saveProjectToServer(project);
   cacheProject(saved);
   return saved;
 }
 
 export async function loadFromServer(options = {}) {
+  if (STATIC_MODE) return null;
   const project = await loadProjectFromServer(options);
   if (project) cacheProject(project);
   return project;
