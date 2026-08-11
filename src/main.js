@@ -114,6 +114,7 @@ const state = {
   collectionDragName: null,
   lastCollectionDragAt: 0,
   hover: null,
+  hoverTooltip: null,
   pan: null,
   zoomDrag: null,
   simRunning: false,
@@ -1682,6 +1683,8 @@ function toggleGrid() {
 
 function toggleXray() {
   state.xray = !state.xray;
+  if (state.xray) updateCanvasHover(state.mouseWorld);
+  else state.hoverTooltip = null;
   setStatus(`X-ray ${state.xray ? "enabled" : "disabled"}.`);
   render();
 }
@@ -1717,6 +1720,7 @@ function resetEditorStateForProject() {
   state.wireEdit = null;
   state.zoomDrag = null;
   state.hover = null;
+  state.hoverTooltip = null;
   state.undo.length = 0;
   state.redo.length = 0;
   state.savedRevision = state.projectSaved ? 0 : -1;
@@ -2154,7 +2158,14 @@ function hoverFromHit(hit) {
 }
 
 function updateCanvasHover(world) {
-  state.hover = hoverFromHit(canvasHitTarget(world));
+  const hit = canvasHitTarget(world);
+  state.hover = hoverFromHit(hit);
+  const deepTarget = state.xray ? renderer.findXrayHoverTarget(project, world) : null;
+  if (deepTarget) state.hoverTooltip = deepTarget;
+  else if (hit.kind === "instance") {
+    const description = descriptorForInstance(project, hit.value);
+    state.hoverTooltip = { kind: "chip", id: String(hit.value.id), name: String(hit.value.label || description?.name || hit.value.name || "CHIP") };
+  } else state.hoverTooltip = null;
 }
 
 function handlePointerDown(event) {
@@ -2822,7 +2833,7 @@ canvas.addEventListener("pointercancel", (event) => {
 canvas.addEventListener("lostpointercapture", () => {
   if (state.pointerSession) cancelActiveCanvasPointerSession();
 });
-canvas.addEventListener("pointerleave", () => { if (!state.drag && !state.annotationDrag && !state.annotationResize && !state.wirePointDrag && !state.selectionBox && !state.wireStart) { state.hover = null; render(); } });
+canvas.addEventListener("pointerleave", () => { if (!state.drag && !state.annotationDrag && !state.annotationResize && !state.wirePointDrag && !state.selectionBox && !state.wireStart) { state.hover = null; state.hoverTooltip = null; render(); } });
 canvas.addEventListener("dblclick", (event) => {
   cancelPendingInputToggle();
   if (state.pointerSession) cancelActiveCanvasPointerSession({ renderState: false });

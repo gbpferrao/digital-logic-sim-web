@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, xrayInterfaceBridgeGeometry } from "../src/renderer.js";
-import { TYPE } from "../src/model.js";
+import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry } from "../src/renderer.js";
+import { BUILTINS, TYPE } from "../src/model.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
   assert.equal(canvasStroke(1, 1), 2);
@@ -60,4 +60,62 @@ test("xray bridges composite public ports into their movable interface nodes", (
   assert.ok(outputBridge.internalPoint.x < outputBridge.publicPoint.x);
   assert.equal(inputBridge.scale, .5);
   assert.equal(outputBridge.scale, .5);
+});
+
+test("xray hover resolves the deepest visible chip name", () => {
+  const previousResizeObserver = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = class {
+    observe() {}
+  };
+  const canvas = {
+    parentElement: {},
+    getContext: () => ({}),
+    getBoundingClientRect: () => ({ width: 800, height: 600 })
+  };
+  const renderer = new WorldRenderer(canvas);
+  const inner = {
+    kind: "custom",
+    type: TYPE.CUSTOM,
+    name: "Deep group",
+    size: { x: 100, y: 60 },
+    fit: { version: 1, bounds: { x: -50, y: -30, w: 100, h: 60 } },
+    instances: [{ id: "leaf", name: TYPE.AND, position: { x: 0, y: 0 }, rotation: 0 }],
+    inputPins: [],
+    outputPins: [],
+    wires: []
+  };
+  const outer = {
+    kind: "custom",
+    type: TYPE.CUSTOM,
+    name: "Outer group",
+    size: { x: 180, y: 120 },
+    fit: { version: 1, bounds: { x: -90, y: -60, w: 180, h: 120 } },
+    instances: [{ id: "inner", name: inner.name, position: { x: 0, y: 0 }, rotation: 0 }],
+    inputPins: [],
+    outputPins: [],
+    wires: []
+  };
+  const project = {
+    _revision: 0,
+    customChips: { [outer.name]: outer, [inner.name]: inner },
+    root: {
+      kind: "custom",
+      type: TYPE.CUSTOM,
+      name: "Main",
+      size: { x: 220, y: 140 },
+      fit: { version: 1, bounds: { x: -110, y: -70, w: 220, h: 140 } },
+      instances: [{ id: "outer", name: outer.name, position: { x: 0, y: 0 }, rotation: 0 }],
+      inputPins: [],
+      outputPins: [],
+      wires: []
+    }
+  };
+
+  try {
+    assert.equal(renderer.findXrayHoverTarget(project, { x: 0, y: 0 })?.name, BUILTINS[TYPE.AND].name);
+    assert.equal(renderer.findXrayHoverTarget(project, { x: 70, y: 0 })?.name, outer.name);
+  } finally {
+    if (previousResizeObserver) globalThis.ResizeObserver = previousResizeObserver;
+    else delete globalThis.ResizeObserver;
+  }
 });

@@ -211,6 +211,42 @@ function boundsForPoints(points = []) {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
+function pointInBox(point, box, padding = 0) {
+  return Boolean(box
+    && point.x >= box.x - padding
+    && point.x <= box.x + box.w + padding
+    && point.y >= box.y - padding
+    && point.y <= box.y + box.h + padding);
+}
+
+function xrayFrameGeometry(description) {
+  const visualSize = chipVisualSize(description);
+  const fit = reusableFitBounds(description);
+  const inset = Math.max(8, Math.min(14, Math.min(visualSize.x, visualSize.y) * .12));
+  const frame = {
+    x: -visualSize.x / 2 + inset,
+    y: -visualSize.y / 2 + inset,
+    w: Math.max(16, visualSize.x - inset * 2),
+    h: Math.max(16, visualSize.y - inset * 2)
+  };
+  const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
+  if (!Number.isFinite(scale) || scale <= 0) return null;
+  return {
+    visualSize,
+    fit,
+    frame,
+    scale,
+    translate: {
+      x: frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale,
+      y: frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale
+    }
+  };
+}
+
+function chipHoverName(instance, description) {
+  return String(instance?.label || description?.name || instance?.name || "CHIP").trim() || "CHIP";
+}
+
 // A composite's public port and its movable interface node are two views of
 // the same connection. X-ray needs the coordinates on both sides of that
 // boundary so the signal can be drawn as one continuous path.
@@ -449,6 +485,33 @@ export class WorldRenderer {
     if (editorState.placement?.previewItems?.length) this.drawPlacementPreview(ctx, project, editorState);
     if (editorState.wireStart && editorState.mouseWorld) this.drawWirePreview(ctx, project, simulator, editorState);
     if (editorState.selectionBox) this.drawSelectionBox(ctx, editorState.selectionBox);
+    ctx.restore();
+    this.drawHoverTooltip(ctx, editorState.hoverTooltip, editorState.mouseWorld);
+  }
+
+  drawHoverTooltip(ctx, tooltip, mouseWorld = null) {
+    const name = String(tooltip?.name || "").trim();
+    if (!name || !mouseWorld) return;
+    const cursor = this.toScreen(mouseWorld);
+    const paddingX = 8;
+    const height = 24;
+    const maxWidth = Math.max(96, Math.min(320, this.width - 16));
+    ctx.save();
+    ctx.font = "600 11px JetBrains Mono, Consolas, monospace";
+    const width = Math.min(maxWidth, ctx.measureText(name).width + paddingX * 2);
+    // Keep the anchor southeast of the cursor. The viewport clamp only keeps
+    // the bubble readable when the cursor is close to the canvas edge.
+    const x = Math.max(8, Math.min(this.width - width - 8, cursor.x + 12));
+    const y = Math.max(8, Math.min(this.height - height - 8, cursor.y + 12));
+    ctx.fillStyle = "rgba(82, 132, 190, .24)";
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, 4);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = .92;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(name, x + paddingX, y + height / 2, maxWidth - paddingX * 2);
     ctx.restore();
   }
 
@@ -852,17 +915,9 @@ export class WorldRenderer {
 
   drawXrayComposite(ctx, project, description, simulator, depth, path = [], scopePath = []) {
     if (depth <= 0 || !(description.instances ?? []).length) return;
-    const visualSize = chipVisualSize(description);
-    const fit = reusableFitBounds(description);
-    const inset = Math.max(8, Math.min(14, Math.min(visualSize.x, visualSize.y) * .12));
-    const frame = {
-      x: -visualSize.x / 2 + inset,
-      y: -visualSize.y / 2 + inset,
-      w: Math.max(16, visualSize.x - inset * 2),
-      h: Math.max(16, visualSize.y - inset * 2)
-    };
-    const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
-    if (!Number.isFinite(scale) || scale <= 0) return;
+    const frameGeometry = xrayFrameGeometry(description);
+    if (!frameGeometry) return;
+    const { visualSize, fit, frame, scale, translate } = frameGeometry;
     const scopedProject = { ...project, root: description };
     const geometry = this.geometryFor(scopedProject, { rawDescriptionPins: true });
     const bridges = interfaceBindingsFor(description).map((binding) => xrayInterfaceBridgeGeometry(project, description, binding, scale)).filter(Boolean);
@@ -874,7 +929,7 @@ export class WorldRenderer {
     ctx.clip();
     ctx.fillStyle = "rgba(6, 10, 15, .30)";
     ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
-    ctx.translate(frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale, frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale);
+    ctx.translate(translate.x, translate.y);
     ctx.scale(scale, scale);
     ctx.globalAlpha = .86 * previewAlpha;
     this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath, geometry);
@@ -1249,6 +1304,59 @@ export class WorldRenderer {
       for (const { pin, position } of entry.pins) {
         if (Math.hypot(position.x - world.x, position.y - world.y) <= radius / this.camera.zoom) return { owner: String(instance.id), pin: String(pin.id), instance, pinDescription: pin };
       }
+    }
+    return null;
+  }
+
+  findXrayHoverTarget(project, world) {
+    if (!project?.root) return null;
+
+    const visit = (description, point, fallback, path = []) => {
+      const frameGeometry = xrayFrameGeometry(description);
+      if (!frameGeometry || !pointInBox(point, frameGeometry.frame)) return fallback;
+      const innerPoint = {
+        x: (point.x - frameGeometry.translate.x) / frameGeometry.scale,
+        y: (point.y - frameGeometry.translate.y) / frameGeometry.scale
+      };
+      const scopedProject = { ...project, root: description };
+      const children = this.geometryFor(scopedProject, { rawDescriptionPins: true }).instances.slice(0, XRAY_MAX_INSTANCES);
+      for (const entry of [...children].reverse()) {
+        if (!pointInBox(innerPoint, entry.box, 3)) continue;
+        const child = entry.instance;
+        const childDescription = entry.description;
+        const target = { kind: "chip", id: String(child.id), name: chipHoverName(child, childDescription) };
+        if (childDescription?.kind === "custom" && (childDescription.instances ?? []).length) {
+          const identity = String(childDescription.name || childDescription.id || child.name || "custom");
+          if (!path.includes(identity)) {
+            const childPoint = rotatePoint({
+              x: innerPoint.x - child.position.x,
+              y: innerPoint.y - child.position.y
+            }, -(child.rotation ?? 0));
+            const nested = visit(childDescription, childPoint, target, [...path, identity]);
+            if (nested) return nested;
+          }
+        }
+        return target;
+      }
+      return fallback;
+    };
+
+    const geometry = this.geometryFor(project);
+    for (const entry of [...geometry.instances].reverse()) {
+      if (!pointInBox(world, entry.box, 3)) continue;
+      const instance = entry.instance;
+      const description = entry.description;
+      const target = { kind: "chip", id: String(instance.id), name: chipHoverName(instance, description) };
+      if (description?.kind === "custom" && (description.instances ?? []).length) {
+        const identity = String(description.name || description.id || instance.name || "custom");
+        const localPoint = rotatePoint({
+          x: world.x - instance.position.x,
+          y: world.y - instance.position.y
+        }, -(instance.rotation ?? 0));
+        const nested = visit(description, localPoint, target, [identity]);
+        if (nested) return nested;
+      }
+      return target;
     }
     return null;
   }
