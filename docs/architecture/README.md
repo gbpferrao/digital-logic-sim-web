@@ -18,4 +18,7 @@ behavior:
   evidence reports.
 
 Use the system audit for orientation, the specialized notes for a subsystem,
-and the interaction reports when tracing pointer behavior or regressions.
+and the interaction reports when tracing pointer behavior or regressions. The
+interaction reports begin with the current implementation contract; their
+later findings are retained as historical evidence from before the pointer
+session refactor.

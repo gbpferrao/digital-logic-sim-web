@@ -1,8 +1,30 @@
-# Pan and Zoom Interaction Audit
+# Pan and Zoom Interaction Audit and Resolution
 
-Read-only audit of the canvas interaction paths in the current implementation. The scope is middle-mouse pan, Alt+left pan, Alt+right zoom drag, wheel zoom, pointer capture/release, touch behavior, overlays, and CSS event boundaries.
+This document retains the evidence from the pre-refactor pan/zoom audit and
+records the current implementation contract. The older findings below are
+historical rationale, not a report that the same defects remain open.
 
-## Executive summary
+## Current status — 2026-08-11
+
+- Middle-button and Alt+left pan are recognized before canvas object
+  hit-testing, so either gesture can begin over a chip, wire, pin, note, or
+  empty canvas.
+- Alt+right zoom owns a pointer session and clears its context-menu
+  suppression flag when the gesture ends or is cancelled. Wheel zoom remains
+  cursor-anchored.
+- Canvas movement and release use native pointer capture through the shared
+  `pointerSession`; the window-level pointer listeners are reserved for
+  library/annotation placement completion rather than forwarding canvas
+  movement.
+- Lost capture, `pointercancel`, window blur, and document visibility loss all
+  cancel the active canvas session and restore any provisional movement.
+- `touch-action: none` remains an intentional single-pointer canvas contract;
+  pinch zoom and multi-touch navigation are not implemented.
+
+The remaining gap is live browser smoke testing for Pointer Events and the
+overlay boundaries.
+
+## Historical executive summary
 
 The primary interaction defect is a real routing conflict, not a missing browser event:
 
@@ -12,7 +34,7 @@ The primary interaction defect is a real routing conflict, not a missing browser
 - Pointer cancellation is handled, but there is no explicit `window.blur` or `visibilitychange` cleanup for a pointer that disappears during a browser/window transition.
 - `touch-action: none` is correctly preventing browser scrolling, but the application has no multi-touch/pinch policy. Touch input is therefore treated as ordinary primary-pointer canvas interaction rather than as a deliberate navigation gesture.
 
-## Interaction topology
+## Historical interaction topology
 
 ### Canvas event entry points
 
@@ -30,7 +52,7 @@ The primary interaction defect is a real routing conflict, not a missing browser
 
 `src/main.js:2722-2729` handles wheel zoom and calls `renderer.zoomAt` around the cursor.
 
-## Findings
+## Historical findings before the pointer-session refactor
 
 ### P0 — Alt+left pan is blocked over every existing object
 
@@ -123,7 +145,7 @@ Capture is acquired for pan, zoom, selection-box, chip drag, annotation drag/res
 
 Wire-start clicks and pin-to-pin gestures have their own `wireGesture` state (`src/main.js:2181-2183`, `src/main.js:2373-2393`). The distinction between `wireGesture`, `wireStart`, and `activePointerId` is another state split that should be documented or consolidated if interaction work continues.
 
-## Recommended repair order
+## Original recommended repair order
 
 1. Move global navigation recognition ahead of object hit-testing, or remove the `!pointerTarget` requirement for Alt+left pan. Preserve an explicit exception only where an object has a deliberate Alt gesture.
 2. Make zoom/pan gesture cleanup clear all gesture-local flags, including `suppressContextMenu`, on pointerup, pointercancel, blur, and visibility loss.
@@ -132,6 +154,6 @@ Wire-start clicks and pin-to-pin gestures have their own `wireGesture` state (`s
 5. Decide and document the touch contract: either support one-/two-finger navigation explicitly or allow native touch behavior instead of disabling it on the entire canvas.
 6. Add interaction tests around gesture priority and cleanup: Alt+left over each object type, middle drag leaving the canvas, Alt+right followed by ordinary right-click, window blur during pan, and two simultaneous pointers.
 
-## Overall assessment
+## Historical overall assessment
 
 The camera math is small and coherent. The main maintainability problem is interaction arbitration: hit-testing, gesture priority, pointer capture, window fallbacks, overlay DOM boundaries, and editor-mode cancellation are distributed across several paths. The app is not missing basic pan/zoom primitives; it is allowing object tools and navigation tools to compete, with cleanup split between gesture state and global editor cancellation.

@@ -44,15 +44,15 @@ general-purpose rendering engine.
 
 ## Executive diagnosis
 
-The initial payload is already reasonable for this project. The latest
-production build reports:
+The initial payload is already reasonable for this project. The production
+build checked on 2026-08-11 reports:
 
 | Asset | Raw size | Gzip |
 | --- | ---: | ---: |
-| JavaScript | 182.53 KB | 53.13 KB |
-| CSS | 40.10 KB | 7.77 KB |
-| HTML | 23.35 KB | 4.99 KB |
-| Core initial payload | 246.0 KB | 65.89 KB |
+| JavaScript | 205.52 KB | 59.94 KB |
+| CSS | 39.38 KB | 7.81 KB |
+| HTML | 23.85 KB | 5.06 KB |
+| Core initial payload | 268.75 KB | 72.81 KB |
 
 The remaining browser cost is concentrated in repeated work on the main
 thread. Ordinary pointer and simulation paints now use a scheduled canvas lane;

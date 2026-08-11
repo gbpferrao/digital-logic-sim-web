@@ -67,18 +67,21 @@ documents that the application still promises to open.
 | One-off circuit generators | `scripts/annotate-simple-alu.mjs`, `create-tiny-hex-display.mjs`, layout, and Nand2Tetris builders are not runtime imports | They preserve reproducible provenance for generated examples and are used by asset preparation workflows or developers | Keep; add an explicit generator/fixture ownership note before deleting any |
 | Debug hooks | `globalThis.digitalLogicSim` and opt-in `__DLS_PERF_REPORT__` are not product UI | They provide local smoke-test and performance inspection entry points | Keep as intentional development seams, not legacy |
 
-## Documentation drift found
+## Documentation drift found and resolved
 
-The interaction audit documents still mention older names such as
+The interaction audit documents previously mentioned older names such as
 `activePointerId` and `wireGesture` in places where the current source uses
-`pointerSession`. Those notes describe the history and risks of the earlier
-implementation, but they can mislead a developer trying to trace current code.
-The next documentation pass should mark historical references explicitly or
-rewrite them against the current session contract.
+`pointerSession`. This documentation pass now marks those sections as
+historical evidence and adds the current pointer-session contract at the top
+of each report. A developer tracing current behavior should start with those
+current-status sections and use the older findings only to understand why the
+refactor exists.
 
 The current architecture document also previously described the removed hidden
 topbar and the removed `SimulationTimeline` alias; those references were
-updated in this pass.
+updated in the previous implementation pass. The project README and bake
+architecture now also distinguish the visible `RECORD` label from the runtime
+term `SimulationBake`.
 
 ## Recommended order for the next cleanup wave
 

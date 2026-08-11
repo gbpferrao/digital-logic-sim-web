@@ -16,7 +16,7 @@ interface nodes.
 | 0 | D0 |
 | 1 | D1 |
 
-Open the project, toggle the three input devices, then use Step or Bake. Double
+Open the project, toggle the three input devices, then use Step or RECORD. Double
 click the multiplexer to inspect its internal gates and follow the selected
 signal path.
 

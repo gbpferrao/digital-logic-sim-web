@@ -29,5 +29,5 @@ docs/
 ```
 
 The root [`README.md`](../README.md) remains the project entry point for
-running, testing, and hosting the application. This page is the index for the
-deeper documentation set.
+running, testing, hosting, and the current user interaction reference. This
+page is the index for the deeper documentation set.

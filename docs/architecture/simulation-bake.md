@@ -5,6 +5,11 @@ recording session produced by the primary simulation action and the staging
 area consumed by Step, relevant-step navigation, and the scrubber. It has
 three deliberately different layers:
 
+The idle UI label for the primary action is **RECORD**; while a session is
+active it becomes **STOP**. “Bake” is the runtime and documentation term for
+that recorded session, so the visible wording and the implementation contract
+refer to the same object.
+
 1. **Semantic interactions**: input changes, key changes, stateful-device
    edits, manual stepping, and bake start/stop actions. View-only gestures
    such as hover, selection, pan, and zoom are not useful simulation history

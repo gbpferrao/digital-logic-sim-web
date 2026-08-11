@@ -1,4 +1,4 @@
-# Interaction Architecture Audit
+# Interaction Architecture Audit and Resolution
 
 Date: 2026-08-10  
 Scope: canvas selection, box selection, chip/annotation dragging, wire gestures, middle-button pan, Alt-pan, Alt-right zoom drag, wheel zoom, library placement, pointer capture, overlays, and interaction tests.
@@ -23,9 +23,40 @@ This combination explains the reported symptoms: the canvas can become apparentl
 
 The reviews were code-based. The browser-control surface was unavailable during this pass, so the findings were not validated by a live pointer trace. The conclusions below are therefore based on the event topology, state transitions, and file references—not on claiming a successful manual reproduction.
 
-The current working tree already contains a partial pointer-session correction (`activePointerId`, centralized canvas capture/release, outside-target fallback, and Select-mode wire selection). The audit evaluates what remains incomplete around that correction.
+The audit below preserves the original diagnosis as implementation history. The
+pointer-session correction described at the end of this document is now the
+current contract; the older findings should not be read as unresolved defects.
 
-## Current interaction topology
+## Current status — 2026-08-11
+
+The canvas interaction path now has one pointer-session owner:
+
+- `src/ui/pointer-session.js` stores the stable press origin and promotes a
+  press to a drag only after five CSS pixels of movement.
+- `src/main.js` uses `pointerSession` for canvas pan, zoom, selection,
+  placement, chip/note movement, wire gestures, route-point movement, resize,
+  and box selection. Pointer capture is acquired and released through one
+  lifecycle.
+- Middle-button and Alt+left navigation are recognized before object hit
+  testing, so pan works over existing canvas objects as well as empty space.
+- `canvasHitTarget()` is the shared priority query for hover, selection,
+  wiring, context actions, and editing. Box selection includes chips and
+  annotations; wire-point selection remains scoped to wire-edit mode.
+- `lostpointercapture`, `pointercancel`, window blur, and document visibility
+  loss all use the idempotent canvas-session cancellation path. A rejected
+  drag restores the model and refreshes the actual hit geometry.
+- Double-click cancels the pending input toggle/session before opening chip,
+  wire, or annotation editing. The canvas no longer uses the old
+  `activePointerId` or `wireGesture` ownership paths.
+
+The remaining verification gap is live browser Pointer Event smoke testing.
+Library and annotation-toolbar placement still have their own placement
+controllers because they begin outside the canvas; they hand the resulting
+placement back to the same editor state rather than competing for canvas
+selection ownership. Touch remains a single-pointer contract without pinch
+navigation.
+
+## Historical interaction topology
 
 | Concern | Current owner | Evidence | Assessment |
 | --- | --- | --- | --- |
@@ -39,7 +70,7 @@ The current working tree already contains a partial pointer-session correction (
 | Overlay boundaries | `index.html`, `src/styles.css` | toolbar, drawers, popups, status, modal | Mostly intentional, but the event boundary is split between CSS hit-testing and state gates. |
 | Automated protection | `test/` | no pointer interaction tests | The most fragile layer is effectively untested. |
 
-## Findings
+## Historical findings before the pointer-session refactor
 
 ### P0 — Pointer lifecycle can still deadlock the canvas
 
@@ -180,7 +211,7 @@ Repair direction: add a pure transition/interaction-session test layer first, th
 - The current Select-mode wire-click correction is directionally right: selecting a wire and starting a wire branch should be different tool behaviors.
 - Canvas CSS does not contain a broad rule that disables pointer input; overlays intentionally own their own regions.
 
-## Prioritized refactoring plan
+## Original prioritized refactoring plan
 
 ### Phase 1 — Stabilize the existing model (P0)
 

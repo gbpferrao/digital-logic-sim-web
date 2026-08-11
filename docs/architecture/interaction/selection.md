@@ -1,8 +1,30 @@
-# Interaction and Selection Audit
+# Interaction and Selection Audit and Resolution
 
-Read-only audit of the canvas interaction paths in `src/main.js`, `src/renderer.js`, `src/model.js`, and `src/styles.css`.
+This document retains the evidence from the pre-refactor selection audit and
+records the current implementation contract. The older findings below are
+historical rationale, not a report that the same defects remain open.
 
-## Executive summary
+## Current status — 2026-08-11
+
+- A canvas press is represented by `state.pointerSession` and the pure
+  `src/ui/pointer-session.js` contract. Movement must pass the five-pixel
+  threshold before a chip, annotation, route point, resize handle, or empty
+  press becomes a drag operation.
+- `canvasHitTarget(world)` is the shared hit-test priority used by hover,
+  pointerdown, wire editing, and context interactions. It resolves resize
+  handles and wire points before pins, junctions, annotations, instances, and
+  wires.
+- A normal click selects without moving the object. Double-click cancels the
+  pending input toggle/session before entering chip, wire, or annotation edit.
+- Box selection includes root chip instances and annotations. In wire-edit
+  mode the same gesture selects route points on the active wire.
+- Pointer capture cleanup is centralized and also runs for lost capture,
+  pointer cancellation, window blur, and document visibility loss.
+
+The remaining gap is browser-level Pointer Event smoke coverage; the pure
+session contract is covered by `test/interaction-session.test.js`.
+
+## Historical executive summary
 
 The screen-to-world transform is internally consistent: `canvasPoint()` uses the canvas CSS rectangle, while `WorldRenderer` stores CSS-pixel dimensions and applies device-pixel-ratio only to the drawing context. The most likely causes of unreliable interaction are higher-level ownership conflicts:
 
@@ -12,7 +34,7 @@ The screen-to-world transform is internally consistent: `canvasPoint()` uses the
 4. Box selection only selects chip instances; annotations are visually selectable but are not included in box selection.
 5. “Wheel drag” is not a separate interaction: the wheel event zooms, while middle-button dragging pans. If wheel-drag means pressing the mouse wheel, that path exists; if it means scroll-drag, it does not.
 
-## Findings
+## Historical findings before the pointer-session refactor
 
 ### P0 — Selection is coupled to immediate drag ownership
 
@@ -90,7 +112,7 @@ The wheel listener at `src/main.js:2722-2729` always prevents default and zooms 
 
 Therefore “wheel drag” must mean middle-button drag for the current implementation. If users expect pressing and dragging the wheel to pan, the implementation is present. If they expect a wheel/scroll gesture to pan, that behavior is missing by design.
 
-## Recommended implementation order
+## Original recommended implementation order
 
 1. Introduce a single pointer-session dispatcher and make cancellation/release idempotent.
 2. Split pending click from committed drag; capture only after movement threshold.
@@ -99,6 +121,9 @@ Therefore “wheel drag” must mean middle-button drag for the current implemen
 5. Make hit-test priority tool-dependent and test pin/wire/junction overlap cases.
 6. Add interaction tests covering click, click-drag, empty-canvas box selection, middle-button pan, wheel zoom, pointer leaving the canvas, pointer cancel, and double-click.
 
-## Audit boundary
+## Audit boundary and resolution
 
-This report is read-only with respect to application source. No source implementation was changed during the audit.
+The original report was read-only with respect to application source. The
+resolution described above was implemented afterward in `src/main.js` and
+`src/ui/pointer-session.js`; the current source and tests are authoritative if
+this historical evidence diverges from a later browser behavior change.

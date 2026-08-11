@@ -4,8 +4,8 @@ Status: current-state audit, reconciled refactoring plan, and first refactor wav
 
 Historical checkpoint: `a207fe6` (`Checkpoint before X-ray mode`) preserves the known-good state immediately before the X-ray pivot. Earlier architecture work is included in that checkpoint.
 
-Current checkpoint: the Git commit that contains this documentation refresh is
-the known-good checkpoint for the current implementation. The historical hash
+Current checkpoint: the latest Git commit on the active branch is the
+known-good checkpoint for the current implementation. The historical hash
 above remains useful as the architectural-refactor starting point.
 
 Scope: the standalone application in this directory, including the browser editor, canvas renderer, simulator, local JSON API, import adapters, tests, examples, and development scripts.
@@ -44,7 +44,7 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | src/domain/core.js | IDs and deep cloning | Small domain utility boundary |
 | src/domain/catalog.js | Built-in descriptions, types, colors, collections, and catalog metadata | Built-in catalog |
 | src/simulation.js | Signal algebra, runtime graph, built-in chip execution, recursive custom-chip evaluation, snapshots | Simulation domain/runtime |
-| src/simulation-timeline.js | SimulationBake lifecycle, bounded recording sessions, semantic interactions, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy |
+| src/simulation-timeline.js | `SimulationBake` lifecycle, bounded recording sessions, semantic interactions, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy; filename is historical |
 | src/simulation-trace.js | Bounded per-tick propagation/change summaries and trace event normalization | Simulation diagnostics policy |
 | src/simulation-preview.js | Short-lived cloned simulator for non-recording causal feedback | Simulation preview policy |
 | src/simulation-controller.js | Browser-facing bake/preview transitions, stepping, scrubbing, timer, and status coordination | Application simulation controller |
@@ -205,7 +205,7 @@ Current ownership is mostly aligned. The first refactor waves removed several le
 2. main.js loads the browser cache synchronously.
 3. The project is normalized and a Simulator is constructed with an evaluated step-zero snapshot.
 4. The simulation controller clears the bake from that snapshot before library, renderer, inspector, and controls are rendered.
-5. The camera fits the current project. The simulation timer remains stopped until the user starts Bake; projects never autoplay on load.
+5. The camera fits the current project. The simulation timer remains stopped until the user starts RECORD; projects never autoplay on load.
 6. hydrateProjectFromServer asynchronously loads the last/latest server project, replaces the project and simulator, rebuilds the step-zero bake state, then renders again.
 
 This gives fast local-first startup, but the hydration boundary is hidden inside the same module as all editing behavior.
@@ -225,7 +225,7 @@ lanes so they do not pay that full-render cost.
 
 ### Simulation loop
 
-1. The simulation controller starts Bake from evaluated step zero; the same control reads Stop while the timer is active.
+1. The simulation controller starts a bake from evaluated step zero when the user presses RECORD; the same control reads STOP while the timer is active.
 2. The controller syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, records one compact engine/propagation trace event, and records the exact execution head in the open bake.
 3. Only visually meaningful snapshots become bake checkpoints: the signature follows connected signal flow and visible displays, so isolated oscillators and unused pins do not inflate or prolong the bake.
 4. A stability window closes finite bakes automatically; if no checkpoint appears beyond evaluated step zero, the controller canonicalizes the ready bake back to step zero. Stop closes indefinite bakes manually.
