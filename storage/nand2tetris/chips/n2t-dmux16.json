@@ -1,0 +1,2214 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "N2T DMUX16",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "description": {
+    "id": "chip-n2t-dmux16",
+    "name": "N2T DMUX16",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 640,
+      "y": 560
+    },
+    "colour": "#5c8d78",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "in",
+        "name": "IN",
+        "bits": 16,
+        "direction": "input",
+        "x": -530,
+        "y": -22,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "sel",
+        "name": "SEL",
+        "bits": 1,
+        "direction": "input",
+        "x": -530,
+        "y": 22,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 16,
+        "direction": "output",
+        "x": 530,
+        "y": -22,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 16,
+        "direction": "output",
+        "x": 530,
+        "y": 22,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "interface-input-in",
+        "name": "IN-16",
+        "position": {
+          "x": -180,
+          "y": -22
+        },
+        "rotation": 0,
+        "label": "IN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "in",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-sel",
+        "name": "IN-1",
+        "position": {
+          "x": -180,
+          "y": 22
+        },
+        "rotation": 0,
+        "label": "SEL",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "sel",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-a",
+        "name": "OUT-16",
+        "position": {
+          "x": 180,
+          "y": -22
+        },
+        "rotation": 0,
+        "label": "A",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "a",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-b",
+        "name": "OUT-16",
+        "position": {
+          "x": 180,
+          "y": 22
+        },
+        "rotation": 0,
+        "label": "B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "b",
+        "outputPinColours": {}
+      },
+      {
+        "id": "split",
+        "name": "16-1BIT",
+        "position": {
+          "x": -240,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "merge-a",
+        "name": "1-16BIT",
+        "position": {
+          "x": 240,
+          "y": -100
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "merge-b",
+        "name": "1-16BIT",
+        "position": {
+          "x": 240,
+          "y": 100
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-0",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -150
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-1",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -130
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-2",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -110
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-3",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-4",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -70
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-5",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -50
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-6",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -30
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-7",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": -10
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-8",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 10
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-9",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 30
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-10",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 50
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-11",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 70
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-12",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 90
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-13",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 110
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-14",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 130
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "demux-15",
+        "name": "N2T DMUX",
+        "position": {
+          "x": 0,
+          "y": 150
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "source",
+        "source": {
+          "owner": "interface-input-in",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "split",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-0",
+        "source": {
+          "owner": "split",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "demux-0",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-0",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-0",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-0",
+        "source": {
+          "owner": "demux-0",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-0",
+        "source": {
+          "owner": "demux-0",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-1",
+        "source": {
+          "owner": "split",
+          "pin": "15"
+        },
+        "target": {
+          "owner": "demux-1",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-1",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-1",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-1",
+        "source": {
+          "owner": "demux-1",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-1",
+        "source": {
+          "owner": "demux-1",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-2",
+        "source": {
+          "owner": "split",
+          "pin": "14"
+        },
+        "target": {
+          "owner": "demux-2",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-2",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-2",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-2",
+        "source": {
+          "owner": "demux-2",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "2"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-2",
+        "source": {
+          "owner": "demux-2",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "2"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-3",
+        "source": {
+          "owner": "split",
+          "pin": "13"
+        },
+        "target": {
+          "owner": "demux-3",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-3",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-3",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-3",
+        "source": {
+          "owner": "demux-3",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "3"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-3",
+        "source": {
+          "owner": "demux-3",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "3"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-4",
+        "source": {
+          "owner": "split",
+          "pin": "12"
+        },
+        "target": {
+          "owner": "demux-4",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-4",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-4",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-4",
+        "source": {
+          "owner": "demux-4",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "4"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-4",
+        "source": {
+          "owner": "demux-4",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "4"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-5",
+        "source": {
+          "owner": "split",
+          "pin": "11"
+        },
+        "target": {
+          "owner": "demux-5",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-5",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-5",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-5",
+        "source": {
+          "owner": "demux-5",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "5"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-5",
+        "source": {
+          "owner": "demux-5",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "5"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-6",
+        "source": {
+          "owner": "split",
+          "pin": "10"
+        },
+        "target": {
+          "owner": "demux-6",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-6",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-6",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-6",
+        "source": {
+          "owner": "demux-6",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "6"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-6",
+        "source": {
+          "owner": "demux-6",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "6"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-7",
+        "source": {
+          "owner": "split",
+          "pin": "9"
+        },
+        "target": {
+          "owner": "demux-7",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-7",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-7",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-7",
+        "source": {
+          "owner": "demux-7",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "7"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-7",
+        "source": {
+          "owner": "demux-7",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "7"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-8",
+        "source": {
+          "owner": "split",
+          "pin": "8"
+        },
+        "target": {
+          "owner": "demux-8",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-8",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-8",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-8",
+        "source": {
+          "owner": "demux-8",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "8"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-8",
+        "source": {
+          "owner": "demux-8",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "8"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-9",
+        "source": {
+          "owner": "split",
+          "pin": "7"
+        },
+        "target": {
+          "owner": "demux-9",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-9",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-9",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-9",
+        "source": {
+          "owner": "demux-9",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "9"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-9",
+        "source": {
+          "owner": "demux-9",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "9"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-10",
+        "source": {
+          "owner": "split",
+          "pin": "6"
+        },
+        "target": {
+          "owner": "demux-10",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-10",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-10",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-10",
+        "source": {
+          "owner": "demux-10",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "10"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-10",
+        "source": {
+          "owner": "demux-10",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "10"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-11",
+        "source": {
+          "owner": "split",
+          "pin": "5"
+        },
+        "target": {
+          "owner": "demux-11",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-11",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-11",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-11",
+        "source": {
+          "owner": "demux-11",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "11"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-11",
+        "source": {
+          "owner": "demux-11",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "11"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-12",
+        "source": {
+          "owner": "split",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "demux-12",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-12",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-12",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-12",
+        "source": {
+          "owner": "demux-12",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "12"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-12",
+        "source": {
+          "owner": "demux-12",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "12"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-13",
+        "source": {
+          "owner": "split",
+          "pin": "3"
+        },
+        "target": {
+          "owner": "demux-13",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-13",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-13",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-13",
+        "source": {
+          "owner": "demux-13",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "13"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-13",
+        "source": {
+          "owner": "demux-13",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "13"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-14",
+        "source": {
+          "owner": "split",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "demux-14",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-14",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-14",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-14",
+        "source": {
+          "owner": "demux-14",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "14"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-14",
+        "source": {
+          "owner": "demux-14",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "14"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "split-15",
+        "source": {
+          "owner": "split",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "demux-15",
+          "pin": "in"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "sel-15",
+        "source": {
+          "owner": "interface-input-sel",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "demux-15",
+          "pin": "sel"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-15",
+        "source": {
+          "owner": "demux-15",
+          "pin": "a"
+        },
+        "target": {
+          "owner": "merge-a",
+          "pin": "15"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-15",
+        "source": {
+          "owner": "demux-15",
+          "pin": "b"
+        },
+        "target": {
+          "owner": "merge-b",
+          "pin": "15"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "out-a",
+        "source": {
+          "owner": "merge-a",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "interface-output-a",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "out-b",
+        "source": {
+          "owner": "merge-b",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "interface-output-b",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "annotation-n2t-dmux16",
+        "type": "text",
+        "text": "Sixteen one-bit demultiplexers distribute one word to one of two 16-bit lanes.",
+        "position": {
+          "x": -240,
+          "y": -190
+        },
+        "width": 480,
+        "height": 70,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ],
+    "interfaceBindings": {
+      "inputs": [
+        {
+          "publicId": "in",
+          "instanceId": "interface-input-in",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "sel",
+          "instanceId": "interface-input-sel",
+          "pinId": "0",
+          "direction": "input"
+        }
+      ],
+      "outputs": [
+        {
+          "publicId": "a",
+          "instanceId": "interface-output-a",
+          "pinId": "0",
+          "direction": "output"
+        },
+        {
+          "publicId": "b",
+          "instanceId": "interface-output-b",
+          "pinId": "0",
+          "direction": "output"
+        }
+      ]
+    },
+    "fit": {
+      "version": 1,
+      "bounds": {
+        "x": -530,
+        "y": -472,
+        "w": 1060,
+        "h": 944
+      }
+    }
+  },
+  "dependencyNames": [
+    "N2T DMUX",
+    "N2T NOT",
+    "N2T NAND",
+    "N2T AND"
+  ],
+  "dependencies": {
+    "N2T DMUX": {
+      "id": "chip-n2t-dmux",
+      "name": "N2T DMUX",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#5c8d78",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in",
+          "name": "IN",
+          "bits": 1,
+          "direction": "input",
+          "x": -460,
+          "y": -22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "sel",
+          "name": "SEL",
+          "bits": 1,
+          "direction": "input",
+          "x": -460,
+          "y": 22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "a",
+          "name": "A",
+          "bits": 1,
+          "direction": "output",
+          "x": 520,
+          "y": -22,
+          "valueDisplay": "off",
+          "colour": "green"
+        },
+        {
+          "id": "b",
+          "name": "B",
+          "bits": 1,
+          "direction": "output",
+          "x": 520,
+          "y": 22,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-in",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": -22
+          },
+          "rotation": 0,
+          "label": "IN",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-sel",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 22
+          },
+          "rotation": 0,
+          "label": "SEL",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "sel",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-a",
+          "name": "OUT-1",
+          "position": {
+            "x": 180,
+            "y": -22
+          },
+          "rotation": 0,
+          "label": "A",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "a",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-b",
+          "name": "OUT-1",
+          "position": {
+            "x": 180,
+            "y": 22
+          },
+          "rotation": 0,
+          "label": "B",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "b",
+          "outputPinColours": {}
+        },
+        {
+          "id": "not-sel",
+          "name": "N2T NOT",
+          "position": {
+            "x": -100,
+            "y": 60
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "left",
+          "name": "N2T AND",
+          "position": {
+            "x": 80,
+            "y": -60
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "right",
+          "name": "N2T AND",
+          "position": {
+            "x": 80,
+            "y": 60
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "sel-not",
+          "source": {
+            "owner": "interface-input-sel",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "not-sel",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "in-left",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "left",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "not-left",
+          "source": {
+            "owner": "not-sel",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "left",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "in-right",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "right",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "sel-right",
+          "source": {
+            "owner": "interface-input-sel",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "right",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "left-out",
+          "source": {
+            "owner": "left",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-a",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "right-out",
+          "source": {
+            "owner": "right",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-b",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-dmux",
+          "type": "text",
+          "text": "The input is routed to exactly one output according to SEL.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in",
+            "instanceId": "interface-input-in",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "sel",
+            "instanceId": "interface-input-sel",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "a",
+            "instanceId": "interface-output-a",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "b",
+            "instanceId": "interface-output-b",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -460,
+          "y": -282,
+          "w": 980,
+          "h": 564
+        }
+      }
+    },
+    "N2T NOT": {
+      "id": "chip-n2t-not",
+      "name": "N2T NOT",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#706aa4",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in",
+          "name": "IN",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 1,
+          "direction": "output",
+          "x": 320,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-in",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "IN",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-1",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "nand",
+          "name": "N2T NAND",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "in",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "in-copy",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "nand",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-not",
+          "type": "text",
+          "text": "NOT is NAND with the same signal connected to both inputs.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in",
+            "instanceId": "interface-input-in",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -320,
+          "y": -142,
+          "w": 640,
+          "h": 284
+        }
+      }
+    },
+    "N2T NAND": {
+      "id": "chip-n2t-nand",
+      "name": "N2T NAND",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#706aa4",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "a",
+          "name": "A",
+          "bits": 1,
+          "direction": "input",
+          "x": -280,
+          "y": -22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "b",
+          "name": "B",
+          "bits": 1,
+          "direction": "input",
+          "x": -280,
+          "y": 22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 1,
+          "direction": "output",
+          "x": 280,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-a",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": -22
+          },
+          "rotation": 0,
+          "label": "A",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "a",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-b",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 22
+          },
+          "rotation": 0,
+          "label": "B",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "b",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-1",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "nand",
+          "name": "NAND",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "a",
+          "source": {
+            "owner": "interface-input-a",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "b",
+          "source": {
+            "owner": "interface-input-b",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "1"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "nand",
+            "pin": "2"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-nand",
+          "type": "text",
+          "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "a",
+            "instanceId": "interface-input-a",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "b",
+            "instanceId": "interface-input-b",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -280,
+          "y": -102,
+          "w": 560,
+          "h": 204
+        }
+      }
+    },
+    "N2T AND": {
+      "id": "chip-n2t-and",
+      "name": "N2T AND",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#706aa4",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "a",
+          "name": "A",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": -22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "b",
+          "name": "B",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": 22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 1,
+          "direction": "output",
+          "x": 480,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-a",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": -22
+          },
+          "rotation": 0,
+          "label": "A",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "a",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-b",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 22
+          },
+          "rotation": 0,
+          "label": "B",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "b",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-1",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "nand",
+          "name": "N2T NAND",
+          "position": {
+            "x": 0,
+            "y": -50
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "not",
+          "name": "N2T NOT",
+          "position": {
+            "x": 120,
+            "y": -50
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "a",
+          "source": {
+            "owner": "interface-input-a",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "b",
+          "source": {
+            "owner": "interface-input-b",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "nand",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "nand-not",
+          "source": {
+            "owner": "nand",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "not",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "not",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-and",
+          "type": "text",
+          "text": "AND = NOT(NAND).",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "a",
+            "instanceId": "interface-input-a",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "b",
+            "instanceId": "interface-input-b",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -320,
+          "y": -232,
+          "w": 800,
+          "h": 364
+        }
+      }
+    }
+  }
+}

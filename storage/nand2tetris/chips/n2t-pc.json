@@ -19,7 +19,7 @@
         "name": "IN",
         "bits": 16,
         "direction": "input",
-        "x": -975,
+        "x": -800,
         "y": -88,
         "valueDisplay": "off",
         "colour": "gray"
@@ -29,7 +29,7 @@
         "name": "LOAD",
         "bits": 1,
         "direction": "input",
-        "x": -975,
+        "x": -800,
         "y": -44,
         "valueDisplay": "off",
         "colour": "gray"
@@ -39,7 +39,7 @@
         "name": "INC",
         "bits": 1,
         "direction": "input",
-        "x": -975,
+        "x": -800,
         "y": 0,
         "valueDisplay": "off",
         "colour": "gray"
@@ -49,7 +49,7 @@
         "name": "RESET",
         "bits": 1,
         "direction": "input",
-        "x": -975,
+        "x": -800,
         "y": 44,
         "valueDisplay": "off",
         "colour": "gray"
@@ -59,7 +59,7 @@
         "name": "CLOCK",
         "bits": 1,
         "direction": "input",
-        "x": -975,
+        "x": -800,
         "y": 88,
         "valueDisplay": "off",
         "colour": "gray"
@@ -71,7 +71,7 @@
         "name": "OUT",
         "bits": 16,
         "direction": "output",
-        "x": 985,
+        "x": 1240,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -163,53 +163,11 @@
         "outputPinColours": {}
       },
       {
-        "id": "register",
-        "name": "N2T REGISTER",
+        "id": "counter",
+        "name": "N2T COUNTER",
         "position": {
-          "x": 300,
+          "x": 220,
           "y": 0
-        },
-        "rotation": 0,
-        "label": "",
-        "internalData": {},
-        "linkedBusPairId": null,
-        "interfaceId": null,
-        "outputPinColours": {}
-      },
-      {
-        "id": "increment",
-        "name": "N2T INC16",
-        "position": {
-          "x": -120,
-          "y": -140
-        },
-        "rotation": 0,
-        "label": "",
-        "internalData": {},
-        "linkedBusPairId": null,
-        "interfaceId": null,
-        "outputPinColours": {}
-      },
-      {
-        "id": "load-mux",
-        "name": "N2T MUX16",
-        "position": {
-          "x": 0,
-          "y": -40
-        },
-        "rotation": 0,
-        "label": "",
-        "internalData": {},
-        "linkedBusPairId": null,
-        "interfaceId": null,
-        "outputPinColours": {}
-      },
-      {
-        "id": "inc-mux",
-        "name": "N2T MUX16",
-        "position": {
-          "x": 100,
-          "y": 40
         },
         "rotation": 0,
         "label": "",
@@ -222,8 +180,8 @@
         "id": "reset-mux",
         "name": "N2T MUX16",
         "position": {
-          "x": 200,
-          "y": 120
+          "x": -80,
+          "y": -80
         },
         "rotation": 0,
         "label": "",
@@ -236,8 +194,8 @@
         "id": "zero",
         "name": "CONST-0-16",
         "position": {
-          "x": 0,
-          "y": 200
+          "x": -240,
+          "y": 120
         },
         "rotation": 0,
         "label": "",
@@ -247,11 +205,11 @@
         "outputPinColours": {}
       },
       {
-        "id": "one",
-        "name": "CONST-1",
+        "id": "load-or-reset",
+        "name": "N2T OR",
         "position": {
-          "x": 260,
-          "y": -150
+          "x": -80,
+          "y": 100
         },
         "rotation": 0,
         "label": "",
@@ -263,101 +221,10 @@
     ],
     "wires": [
       {
-        "id": "current-increment",
-        "source": {
-          "owner": "register",
-          "pin": "out"
-        },
-        "target": {
-          "owner": "increment",
-          "pin": "in"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "current-load",
-        "source": {
-          "owner": "register",
-          "pin": "out"
-        },
-        "target": {
-          "owner": "load-mux",
-          "pin": "a"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "in-load",
+        "id": "in-reset",
         "source": {
           "owner": "interface-input-in",
           "pin": "0"
-        },
-        "target": {
-          "owner": "load-mux",
-          "pin": "b"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "load-select",
-        "source": {
-          "owner": "interface-input-load",
-          "pin": "0"
-        },
-        "target": {
-          "owner": "load-mux",
-          "pin": "sel"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "load-inc",
-        "source": {
-          "owner": "load-mux",
-          "pin": "out"
-        },
-        "target": {
-          "owner": "inc-mux",
-          "pin": "a"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "increment-inc",
-        "source": {
-          "owner": "increment",
-          "pin": "out"
-        },
-        "target": {
-          "owner": "inc-mux",
-          "pin": "b"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "inc-select",
-        "source": {
-          "owner": "interface-input-inc",
-          "pin": "0"
-        },
-        "target": {
-          "owner": "inc-mux",
-          "pin": "sel"
-        },
-        "points": [],
-        "colour": null
-      },
-      {
-        "id": "inc-reset",
-        "source": {
-          "owner": "inc-mux",
-          "pin": "out"
         },
         "target": {
           "owner": "reset-mux",
@@ -393,39 +260,78 @@
         "colour": null
       },
       {
-        "id": "next-register",
+        "id": "next-counter",
         "source": {
           "owner": "reset-mux",
           "pin": "out"
         },
         "target": {
-          "owner": "register",
+          "owner": "counter",
           "pin": "in"
         },
         "points": [],
         "colour": null
       },
       {
-        "id": "always-load",
+        "id": "load-or",
         "source": {
-          "owner": "one",
+          "owner": "interface-input-load",
           "pin": "0"
         },
         "target": {
-          "owner": "register",
+          "owner": "load-or-reset",
+          "pin": "a"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "reset-or",
+        "source": {
+          "owner": "interface-input-reset",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "load-or-reset",
+          "pin": "b"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "counter-load",
+        "source": {
+          "owner": "load-or-reset",
+          "pin": "out"
+        },
+        "target": {
+          "owner": "counter",
           "pin": "load"
         },
         "points": [],
         "colour": null
       },
       {
-        "id": "clock-register",
+        "id": "counter-inc",
+        "source": {
+          "owner": "interface-input-inc",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "counter",
+          "pin": "inc"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "counter-clock",
         "source": {
           "owner": "interface-input-clock",
           "pin": "0"
         },
         "target": {
-          "owner": "register",
+          "owner": "counter",
           "pin": "clock"
         },
         "points": [],
@@ -434,7 +340,7 @@
       {
         "id": "out",
         "source": {
-          "owner": "register",
+          "owner": "counter",
           "pin": "out"
         },
         "target": {
@@ -451,7 +357,7 @@
       {
         "id": "annotation-n2t-pc",
         "type": "text",
-        "text": "PC priority is RESET, then LOAD, then INC. The register is written every clock with the selected next value.",
+        "text": "The program counter is a counter with a reset path; RESET selects zero before LOAD and INC.",
         "position": {
           "x": -240,
           "y": -190
@@ -508,14 +414,16 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -975,
-        "y": -802,
-        "w": 1960,
-        "h": 1434
+        "x": -800,
+        "y": -727,
+        "w": 2040,
+        "h": 1454
       }
     }
   },
   "dependencyNames": [
+    "N2T COUNTER",
+    "N2T REGISTER16",
     "N2T REGISTER",
     "N2T BIT",
     "N2T MUX",
@@ -531,6 +439,661 @@
     "N2T MUX16"
   ],
   "dependencies": {
+    "N2T COUNTER": {
+      "id": "chip-n2t-counter",
+      "name": "N2T COUNTER",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 720,
+        "y": 440
+      },
+      "colour": "#9b8653",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in",
+          "name": "IN",
+          "bits": 16,
+          "direction": "input",
+          "x": -975,
+          "y": -66,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "load",
+          "name": "LOAD",
+          "bits": 1,
+          "direction": "input",
+          "x": -975,
+          "y": -22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "inc",
+          "name": "INC",
+          "bits": 1,
+          "direction": "input",
+          "x": -975,
+          "y": 22,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "clock",
+          "name": "CLOCK",
+          "bits": 1,
+          "direction": "input",
+          "x": -975,
+          "y": 66,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 16,
+          "direction": "output",
+          "x": 985,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-in",
+          "name": "IN-16",
+          "position": {
+            "x": -180,
+            "y": -66
+          },
+          "rotation": 0,
+          "label": "IN",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-load",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": -22
+          },
+          "rotation": 0,
+          "label": "LOAD",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "load",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-inc",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 22
+          },
+          "rotation": 0,
+          "label": "INC",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "inc",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-clock",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 66
+          },
+          "rotation": 0,
+          "label": "CLOCK",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "clock",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-16",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "current",
+          "name": "N2T REGISTER16",
+          "position": {
+            "x": 260,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "increment",
+          "name": "N2T INC16",
+          "position": {
+            "x": -120,
+            "y": -120
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "load-mux",
+          "name": "N2T MUX16",
+          "position": {
+            "x": 0,
+            "y": -40
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "inc-mux",
+          "name": "N2T MUX16",
+          "position": {
+            "x": 120,
+            "y": 40
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "one",
+          "name": "CONST-1",
+          "position": {
+            "x": 260,
+            "y": -140
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "current-increment",
+          "source": {
+            "owner": "current",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "increment",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "current-load",
+          "source": {
+            "owner": "current",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "load-mux",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "in-load",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "load-mux",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "load-select",
+          "source": {
+            "owner": "interface-input-load",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "load-mux",
+            "pin": "sel"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "load-inc",
+          "source": {
+            "owner": "load-mux",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "inc-mux",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "increment-inc",
+          "source": {
+            "owner": "increment",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "inc-mux",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "inc-select",
+          "source": {
+            "owner": "interface-input-inc",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "inc-mux",
+            "pin": "sel"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "next-register",
+          "source": {
+            "owner": "inc-mux",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "current",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "always-load",
+          "source": {
+            "owner": "one",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "current",
+            "pin": "load"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "clock-register",
+          "source": {
+            "owner": "interface-input-clock",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "current",
+            "pin": "clock"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "current",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-counter",
+          "type": "text",
+          "text": "A register that holds its value, loads a word, or increments it on the next clock.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in",
+            "instanceId": "interface-input-in",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "load",
+            "instanceId": "interface-input-load",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "inc",
+            "instanceId": "interface-input-inc",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "clock",
+            "instanceId": "interface-input-clock",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -975,
+          "y": -782,
+          "w": 1960,
+          "h": 1374
+        }
+      }
+    },
+    "N2T REGISTER16": {
+      "id": "chip-n2t-register16",
+      "name": "N2T REGISTER16",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 560
+      },
+      "colour": "#9b8653",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in",
+          "name": "IN",
+          "bits": 16,
+          "direction": "input",
+          "x": -685,
+          "y": -44,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "load",
+          "name": "LOAD",
+          "bits": 1,
+          "direction": "input",
+          "x": -685,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "clock",
+          "name": "CLOCK",
+          "bits": 1,
+          "direction": "input",
+          "x": -685,
+          "y": 44,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 16,
+          "direction": "output",
+          "x": 685,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-in",
+          "name": "IN-16",
+          "position": {
+            "x": -180,
+            "y": -44
+          },
+          "rotation": 0,
+          "label": "IN",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-load",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "LOAD",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "load",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-clock",
+          "name": "IN-1",
+          "position": {
+            "x": -180,
+            "y": 44
+          },
+          "rotation": 0,
+          "label": "CLOCK",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "clock",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-16",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "register",
+          "name": "N2T REGISTER",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "in",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "register",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "load",
+          "source": {
+            "owner": "interface-input-load",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "register",
+            "pin": "load"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "clock",
+          "source": {
+            "owner": "interface-input-clock",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "register",
+            "pin": "clock"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "register",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-register16",
+          "type": "text",
+          "text": "The named 16-bit register landmark, composed from sixteen one-bit BIT cells.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in",
+            "instanceId": "interface-input-in",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "load",
+            "instanceId": "interface-input-load",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "clock",
+            "instanceId": "interface-input-clock",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -685,
+          "y": -552,
+          "w": 1370,
+          "h": 1104
+        }
+      }
+    },
     "N2T REGISTER": {
       "id": "chip-n2t-register",
       "name": "N2T REGISTER",
@@ -1957,10 +2520,10 @@
       ],
       "wires": [
         {
-          "id": "in",
+          "id": "stored",
           "source": {
-            "owner": "interface-input-in",
-            "pin": "0"
+            "owner": "dff",
+            "pin": "2"
           },
           "target": {
             "owner": "mux",
@@ -1970,10 +2533,10 @@
           "colour": null
         },
         {
-          "id": "stored",
+          "id": "in",
           "source": {
-            "owner": "dff",
-            "pin": "2"
+            "owner": "interface-input-in",
+            "pin": "0"
           },
           "target": {
             "owner": "mux",

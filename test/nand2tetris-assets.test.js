@@ -17,7 +17,7 @@ function outputBit(simulator, id, pin = "0") {
 }
 
 function terminalType(bits, direction) {
-  const width = bits === 16 ? 16 : bits === 8 ? 8 : bits === 4 ? 4 : 1;
+  const width = bits === 16 || bits === 15 ? 16 : bits === 8 ? 8 : bits === 4 ? 4 : 1;
   return direction === "input" ? TYPE[`IN_${width}`] : TYPE[`OUT_${width}`];
 }
 
@@ -47,11 +47,13 @@ function compositeTestProject(customChips, chipName, inputSpecs, outputSpecs, in
 
 test("Nand2Tetris bundle contains the complete hardware progression and software bridge", async () => {
   const manifest = await readJson("manifest.json");
-  assert.equal(manifest.hardwareStages.length, 10);
+  assert.equal(manifest.hardwareStages.length, 11);
   assert.equal(manifest.softwareStages.length, 8);
   assert.ok(manifest.reference.includes("Nand2Tetris"));
-  assert.equal(manifest.chips.filter(entry => !entry.native).length, 44);
-  assert.equal(manifest.chips.filter(entry => entry.native).length, 18);
+  assert.equal(manifest.chips.filter(entry => !entry.native).length, 59);
+  assert.equal(manifest.chips.filter(entry => entry.native).length, 19);
+  const chipNames = new Set(manifest.chips.map(entry => entry.name));
+  for (const stage of manifest.hardwareStages) for (const name of stage.chips) assert.ok(chipNames.has(name), `${name} is present in ${stage.id}`);
   for (const entry of manifest.chips) {
     const chip = await readJson(entry.file);
     assert.equal(chip.schema, "digital-logic-sim-web/chip/1");
@@ -61,7 +63,7 @@ test("Nand2Tetris bundle contains the complete hardware progression and software
 });
 
 test("standalone Nand2Tetris chip JSONs import with their nested dependencies", async () => {
-  for (const file of ["chips/nand.json", "chips/dff.json", "chips/ram8.json", "chips/n2t-nand.json", "chips/n2t-mux.json", "chips/n2t-bit.json", "chips/n2t-alu.json", "chips/n2t-computer.json"]) {
+  for (const file of ["chips/nand.json", "chips/dff.json", "chips/ram8.json", "chips/n2t-nand.json", "chips/n2t-mux.json", "chips/n2t-bit.json", "chips/n2t-alu.json", "chips/n2t-instruction-rom.json", "chips/n2t-jump-control.json", "chips/n2t-cpu-memory.json", "chips/n2t-cpu.json", "chips/n2t-computer.json"]) {
     const raw = await readFile(path.join(root, file), "utf8");
     const project = await readProjectFile({ text: async () => raw });
     assert.ok(project.root.instances.length > 0, file);
@@ -135,6 +137,121 @@ test("the native Hack CPU executes an A-instruction and a D=A instruction", () =
   project.inputValues[clock.id] = 1;
   simulator.step();
   assert.equal(simulator.snapshot.instances[outM.id].signals["0"].bits, 5);
+});
+
+test("the composed Hack CPU executes an A-instruction and a D=A instruction", async () => {
+  const source = await readJson("projects/nand2tetris-hardware-lab.json");
+  const customChips = normalizeProject(source).customChips;
+  const { project, outputInstances } = compositeTestProject(customChips, "N2T CPU", [
+    { id: "inM", bits: 16 }, { id: "instruction", bits: 16 }, { id: "reset", bits: 1 }, { id: "clock", bits: 1 }
+  ], [
+    { id: "outM", bits: 16 }, { id: "writeM", bits: 1 }, { id: "addressM", bits: 15 }, { id: "pc", bits: 15 }
+  ], { inM: 0, instruction: 5, reset: 0, clock: 0 });
+  const simulator = new Simulator(project);
+  const instructionInput = project.root.instances.find(instance => instance.name === TYPE.IN_16 && project.inputValues[instance.id] === 5);
+  const clockInput = project.root.instances.filter(instance => instance.name === TYPE.IN_1)[1];
+  project.inputValues[clockInput.id] = 1;
+  simulator.step();
+  assert.equal(simulator.snapshot.instances[outputInstances[2].id].signals["0"].bits, 5);
+  project.inputValues[clockInput.id] = 0;
+  simulator.step();
+  project.inputValues[instructionInput.id] = 0xec10;
+  project.inputValues[clockInput.id] = 1;
+  simulator.step();
+  assert.equal(simulator.snapshot.instances[outputInstances[0].id].signals["0"].bits, 5);
+});
+
+test("the composed computer fetches instructions from its instruction ROM", async () => {
+  const project = normalizeProject(await readJson("projects/nand2tetris-computer-lab.json"));
+  const rom = project.customChips["N2T ROM32K"];
+  rom.instances.find(instance => instance.name === TYPE.ROM_32K).internalData.memory = [5, 0xec10];
+  project.inputValues.clock = 0;
+  project.inputValues.reset = 0;
+  const simulator = new Simulator(project);
+  project.inputValues.clock = 1;
+  simulator.step();
+  assert.equal(simulator.snapshot.instances.pc.signals["0"].bits, 1);
+  assert.equal(simulator.snapshot.instances.address.signals["0"].bits, 5);
+  project.inputValues.clock = 0;
+  simulator.step();
+  project.inputValues.clock = 1;
+  simulator.step();
+  assert.equal(simulator.snapshot.instances.pc.signals["0"].bits, 2);
+  assert.equal(simulator.snapshot.instances.computer.signals.outM.bits, 5);
+});
+
+test("the composed memory address decoder selects Hack device ranges", async () => {
+  const source = await readJson("projects/nand2tetris-hardware-lab.json");
+  const customChips = normalizeProject(source).customChips;
+  for (const [address, expected] of [[0x0000, [1, 0, 0]], [0x4000, [0, 1, 0]], [0x6000, [0, 0, 1]], [0x6001, [0, 0, 0]]]) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T MEMORY-ADDRESS-DECODER", [
+      { id: "address", bits: 15 }
+    ], [
+      { id: "ram", bits: 1 }, { id: "screen", bits: 1 }, { id: "keyboard", bits: 1 }
+    ], { address });
+    const simulator = new Simulator(project);
+    simulator.step();
+    expected.forEach((value, index) => assert.equal(outputBit(simulator, outputInstances[index].id), value, `address ${address.toString(16)} output ${index}`));
+  }
+});
+
+test("the remaining Nand2Tetris landmarks preserve their contracts", async () => {
+  const source = await readJson("projects/nand2tetris-hardware-lab.json");
+  const customChips = normalizeProject(source).customChips;
+
+  for (const sel of [0, 1]) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T DMUX16", [
+      { id: "in", bits: 16 }, { id: "sel", bits: 1 }
+    ], [{ id: "a", bits: 16 }, { id: "b", bits: 16 }], { in: 0xa55a, sel });
+    const simulator = new Simulator(project);
+    simulator.step();
+    assert.equal(simulator.snapshot.instances[outputInstances[0].id].signals["0"].bits, sel ? 0 : 0xa55a);
+    assert.equal(simulator.snapshot.instances[outputInstances[1].id].signals["0"].bits, sel ? 0xa55a : 0);
+  }
+
+  for (const [input, expected] of [[0, 0], [1, 0xffff], [0x8000, 0x8000], [0x1234, 0xedcc]]) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T NEG16", [
+      { id: "in", bits: 16 }
+    ], [{ id: "out", bits: 16 }], { in: input });
+    const simulator = new Simulator(project);
+    simulator.step();
+    assert.equal(simulator.snapshot.instances[outputInstances[0].id].signals["0"].bits, expected, `NEG16(${input.toString(16)})`);
+  }
+
+  const counter = compositeTestProject(customChips, "N2T COUNTER", [
+    { id: "in", bits: 16 }, { id: "load", bits: 1 }, { id: "inc", bits: 1 }, { id: "clock", bits: 1 }
+  ], [{ id: "out", bits: 16 }], { in: 0x1234, load: 0, inc: 1, clock: 0 });
+  const counterInputs = counter.project.root.instances.filter(instance => [TYPE.IN_1, TYPE.IN_16].includes(instance.name));
+  const counterClock = counterInputs[3];
+  const counterLoad = counterInputs[1];
+  const counterInc = counterInputs[2];
+  const counterSimulator = new Simulator(counter.project);
+  counter.project.inputValues[counterClock.id] = 1;
+  counterSimulator.step();
+  assert.equal(counterSimulator.snapshot.instances[counter.outputInstances[0].id].signals["0"].bits, 1);
+  counter.project.inputValues[counterClock.id] = 0;
+  counterSimulator.step();
+  counter.project.inputValues[counterClock.id] = 1;
+  counterSimulator.step();
+  assert.equal(counterSimulator.snapshot.instances[counter.outputInstances[0].id].signals["0"].bits, 2);
+  counter.project.inputValues[counterClock.id] = 0;
+  counter.project.inputValues[counterLoad.id] = 1;
+  counter.project.inputValues[counterInc.id] = 0;
+  counterSimulator.step();
+  counter.project.inputValues[counterClock.id] = 1;
+  counterSimulator.step();
+  assert.equal(counterSimulator.snapshot.instances[counter.outputInstances[0].id].signals["0"].bits, 0x1234);
+
+  const expectedJump = [false, value => !value.zr && !value.ng, value => value.zr, value => !value.ng, value => value.ng, value => !value.zr, value => value.ng || value.zr, () => true];
+  for (let code = 0; code < 8; code += 1) for (const flags of [{ zr: 0, ng: 0 }, { zr: 1, ng: 0 }, { zr: 0, ng: 1 }]) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T JUMP-CONTROL", [
+      { id: "instruction", bits: 16 }, { id: "zr", bits: 1 }, { id: "ng", bits: 1 }
+    ], [{ id: "jump", bits: 1 }], { instruction: 0x8000 | code, ...flags });
+    const simulator = new Simulator(project);
+    simulator.step();
+    const expected = typeof expectedJump[code] === "function" ? expectedJump[code](flags) : expectedJump[code];
+    assert.equal(outputBit(simulator, outputInstances[0].id), Number(expected), `jump ${code} flags ${JSON.stringify(flags)}`);
+  }
 });
 
 test("the composed routing and arithmetic landmarks preserve their contracts", async () => {

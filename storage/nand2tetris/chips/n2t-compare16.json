@@ -19,7 +19,7 @@
         "name": "A",
         "bits": 16,
         "direction": "input",
-        "x": -975,
+        "x": -1115,
         "y": -22,
         "valueDisplay": "off",
         "colour": "gray"
@@ -29,7 +29,7 @@
         "name": "B",
         "bits": 16,
         "direction": "input",
-        "x": -975,
+        "x": -1115,
         "y": 22,
         "valueDisplay": "off",
         "colour": "gray"
@@ -41,7 +41,7 @@
         "name": "EQ",
         "bits": 1,
         "direction": "output",
-        "x": 735,
+        "x": 875,
         "y": -44,
         "valueDisplay": "off",
         "colour": "green"
@@ -51,7 +51,7 @@
         "name": "NEG",
         "bits": 1,
         "direction": "output",
-        "x": 735,
+        "x": 875,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -61,7 +61,7 @@
         "name": "GT",
         "bits": 1,
         "direction": "output",
-        "x": 735,
+        "x": 875,
         "y": 44,
         "valueDisplay": "off",
         "colour": "green"
@@ -398,15 +398,16 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -975,
-        "y": -662,
-        "w": 1710,
-        "h": 1324
+        "x": -1115,
+        "y": -722,
+        "w": 1990,
+        "h": 1444
       }
     }
   },
   "dependencyNames": [
     "N2T SUB16",
+    "N2T NEG16",
     "N2T NOT16",
     "N2T NOT",
     "N2T NAND",
@@ -436,7 +437,7 @@
           "name": "A",
           "bits": 16,
           "direction": "input",
-          "x": -675,
+          "x": -955,
           "y": -22,
           "valueDisplay": "off",
           "colour": "gray"
@@ -446,7 +447,7 @@
           "name": "B",
           "bits": 16,
           "direction": "input",
-          "x": -675,
+          "x": -955,
           "y": 22,
           "valueDisplay": "off",
           "colour": "gray"
@@ -532,8 +533,8 @@
           "outputPinColours": {}
         },
         {
-          "id": "not-b",
-          "name": "N2T NOT16",
+          "id": "neg-b",
+          "name": "N2T NEG16",
           "position": {
             "x": -100,
             "y": 80
@@ -546,11 +547,11 @@
           "outputPinColours": {}
         },
         {
-          "id": "one",
-          "name": "CONST-1",
+          "id": "zero",
+          "name": "CONST-0",
           "position": {
-            "x": -120,
-            "y": 160
+            "x": -100,
+            "y": 180
           },
           "rotation": 0,
           "label": "",
@@ -595,16 +596,16 @@
             "pin": "0"
           },
           "target": {
-            "owner": "not-b",
+            "owner": "neg-b",
             "pin": "in"
           },
           "points": [],
           "colour": null
         },
         {
-          "id": "not-add",
+          "id": "neg-add",
           "source": {
-            "owner": "not-b",
+            "owner": "neg-b",
             "pin": "out"
           },
           "target": {
@@ -615,9 +616,9 @@
           "colour": null
         },
         {
-          "id": "one-add",
+          "id": "zero-add",
           "source": {
-            "owner": "one",
+            "owner": "zero",
             "pin": "0"
           },
           "target": {
@@ -660,7 +661,7 @@
         {
           "id": "annotation-n2t-sub16",
           "type": "text",
-          "text": "Two's-complement subtraction: A + NOT(B) + 1.",
+          "text": "Subtraction uses two's-complement negation and addition: A + (-B).",
           "position": {
             "x": -240,
             "y": -190
@@ -697,6 +698,240 @@
           {
             "publicId": "cout",
             "instanceId": "interface-output-cout",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -955,
+          "y": -622,
+          "w": 1910,
+          "h": 1364
+        }
+      }
+    },
+    "N2T NEG16": {
+      "id": "chip-n2t-neg16",
+      "name": "N2T NEG16",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#967451",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in",
+          "name": "IN",
+          "bits": 16,
+          "direction": "input",
+          "x": -675,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 16,
+          "direction": "output",
+          "x": 955,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-in",
+          "name": "IN-16",
+          "position": {
+            "x": -180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "IN",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-16",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "not",
+          "name": "N2T NOT16",
+          "position": {
+            "x": -100,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "zero",
+          "name": "CONST-0-16",
+          "position": {
+            "x": -100,
+            "y": 120
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "one",
+          "name": "CONST-1",
+          "position": {
+            "x": -100,
+            "y": 220
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "add",
+          "name": "N2T ADD16",
+          "position": {
+            "x": 140,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "source",
+          "source": {
+            "owner": "interface-input-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "not",
+            "pin": "in"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "not-add",
+          "source": {
+            "owner": "not",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "add",
+            "pin": "a"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "zero-add",
+          "source": {
+            "owner": "zero",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "add",
+            "pin": "b"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "one-add",
+          "source": {
+            "owner": "one",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "add",
+            "pin": "cin"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "add",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-neg16",
+          "type": "text",
+          "text": "Two's-complement negation: invert every bit, then add one.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in",
+            "instanceId": "interface-input-in",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
             "pinId": "0",
             "direction": "output"
           }
@@ -1051,7 +1286,7 @@
           },
           "target": {
             "owner": "gate-0",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1077,7 +1312,7 @@
           },
           "target": {
             "owner": "gate-1",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1103,7 +1338,7 @@
           },
           "target": {
             "owner": "gate-2",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1129,7 +1364,7 @@
           },
           "target": {
             "owner": "gate-3",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1155,7 +1390,7 @@
           },
           "target": {
             "owner": "gate-4",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1181,7 +1416,7 @@
           },
           "target": {
             "owner": "gate-5",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1207,7 +1442,7 @@
           },
           "target": {
             "owner": "gate-6",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1233,7 +1468,7 @@
           },
           "target": {
             "owner": "gate-7",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1259,7 +1494,7 @@
           },
           "target": {
             "owner": "gate-8",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1285,7 +1520,7 @@
           },
           "target": {
             "owner": "gate-9",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1311,7 +1546,7 @@
           },
           "target": {
             "owner": "gate-10",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1337,7 +1572,7 @@
           },
           "target": {
             "owner": "gate-11",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1363,7 +1598,7 @@
           },
           "target": {
             "owner": "gate-12",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1389,7 +1624,7 @@
           },
           "target": {
             "owner": "gate-13",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1415,7 +1650,7 @@
           },
           "target": {
             "owner": "gate-14",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1441,7 +1676,7 @@
           },
           "target": {
             "owner": "gate-15",
-            "pin": "0"
+            "pin": "in"
           },
           "points": [],
           "colour": null
@@ -1466,8 +1701,8 @@
             "pin": "16"
           },
           "target": {
-            "owner": "out",
-            "pin": "undefined"
+            "owner": "interface-output-out",
+            "pin": "0"
           },
           "points": [],
           "colour": null
@@ -5001,7 +5236,7 @@
           },
           "target": {
             "owner": "gate-0",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5014,7 +5249,7 @@
           },
           "target": {
             "owner": "gate-0",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5040,7 +5275,7 @@
           },
           "target": {
             "owner": "gate-1",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5053,7 +5288,7 @@
           },
           "target": {
             "owner": "gate-1",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5079,7 +5314,7 @@
           },
           "target": {
             "owner": "gate-2",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5092,7 +5327,7 @@
           },
           "target": {
             "owner": "gate-2",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5118,7 +5353,7 @@
           },
           "target": {
             "owner": "gate-3",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5131,7 +5366,7 @@
           },
           "target": {
             "owner": "gate-3",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5157,7 +5392,7 @@
           },
           "target": {
             "owner": "gate-4",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5170,7 +5405,7 @@
           },
           "target": {
             "owner": "gate-4",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5196,7 +5431,7 @@
           },
           "target": {
             "owner": "gate-5",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5209,7 +5444,7 @@
           },
           "target": {
             "owner": "gate-5",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5235,7 +5470,7 @@
           },
           "target": {
             "owner": "gate-6",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5248,7 +5483,7 @@
           },
           "target": {
             "owner": "gate-6",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5274,7 +5509,7 @@
           },
           "target": {
             "owner": "gate-7",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5287,7 +5522,7 @@
           },
           "target": {
             "owner": "gate-7",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5313,7 +5548,7 @@
           },
           "target": {
             "owner": "gate-8",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5326,7 +5561,7 @@
           },
           "target": {
             "owner": "gate-8",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5352,7 +5587,7 @@
           },
           "target": {
             "owner": "gate-9",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5365,7 +5600,7 @@
           },
           "target": {
             "owner": "gate-9",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5391,7 +5626,7 @@
           },
           "target": {
             "owner": "gate-10",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5404,7 +5639,7 @@
           },
           "target": {
             "owner": "gate-10",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5430,7 +5665,7 @@
           },
           "target": {
             "owner": "gate-11",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5443,7 +5678,7 @@
           },
           "target": {
             "owner": "gate-11",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5469,7 +5704,7 @@
           },
           "target": {
             "owner": "gate-12",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5482,7 +5717,7 @@
           },
           "target": {
             "owner": "gate-12",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5508,7 +5743,7 @@
           },
           "target": {
             "owner": "gate-13",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5521,7 +5756,7 @@
           },
           "target": {
             "owner": "gate-13",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5547,7 +5782,7 @@
           },
           "target": {
             "owner": "gate-14",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5560,7 +5795,7 @@
           },
           "target": {
             "owner": "gate-14",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5586,7 +5821,7 @@
           },
           "target": {
             "owner": "gate-15",
-            "pin": "0"
+            "pin": "a"
           },
           "points": [],
           "colour": null
@@ -5599,7 +5834,7 @@
           },
           "target": {
             "owner": "gate-15",
-            "pin": "1"
+            "pin": "b"
           },
           "points": [],
           "colour": null
@@ -5624,8 +5859,8 @@
             "pin": "16"
           },
           "target": {
-            "owner": "out",
-            "pin": "undefined"
+            "owner": "interface-output-out",
+            "pin": "0"
           },
           "points": [],
           "colour": null

@@ -16,6 +16,7 @@ const TYPE = {
   AND: "AND",
   OR: "OR",
   XOR: "XOR",
+  TRI_STATE: "3-STATE BUFFER",
   DFF: "DFF",
   CLOCK: "CLOCK",
   IN: bits => `IN-${bits}`,
@@ -173,6 +174,18 @@ function connectOutput(ctx, id, sourceOwner, sourcePin, outputId) {
   ctx.link(id, ctx.pin(sourceOwner, sourcePin), ctx.out(outputId));
 }
 
+function reduceOr(ctx, label, sources, x = 0, y = 0) {
+  if (!sources.length) return null;
+  let current = sources[0];
+  for (let index = 1; index < sources.length; index += 1) {
+    const gate = child(ctx, `${label}-or-${index}`, "N2T OR", x + index * 70, y);
+    connect(ctx, `${label}-a-${index}`, current.owner, current.pin, gate, "a");
+    connect(ctx, `${label}-b-${index}`, sources[index].owner, sources[index].pin, gate, "b");
+    current = { owner: gate, pin: "out" };
+  }
+  return current;
+}
+
 function bitPinForSplit(bit) { return String(16 - bit); }
 function bitPinForMerge(bit) { return String(bit); }
 
@@ -183,10 +196,10 @@ function defineUnaryBitwise(name, gateName, note) {
     connectInput(ctx, "source", "in", "split", "0");
     for (let bit = 0; bit < 16; bit += 1) {
       const gate = child(ctx, `gate-${bit}`, gateName, 0, (bit - 7.5) * 20);
-      connect(ctx, `split-${bit}`, "split", bitPinForSplit(bit), gate, "0");
+      connect(ctx, `split-${bit}`, "split", bitPinForSplit(bit), gate, "in");
       connect(ctx, `merge-${bit}`, gate, "out", "merge", bitPinForMerge(bit));
     }
-    connect(ctx, "merge-out", "merge", "16", "out");
+    connectOutput(ctx, "merge-out", "merge", "16", "out");
   }, { colour: COLOUR.logic, note });
 }
 
@@ -199,11 +212,11 @@ function defineBinaryBitwise(name, gateName, note) {
     connectInput(ctx, "b-source", "b", "split-b", "0");
     for (let bit = 0; bit < 16; bit += 1) {
       const gate = child(ctx, `gate-${bit}`, gateName, 0, (bit - 7.5) * 20);
-      connect(ctx, `a-${bit}`, "split-a", bitPinForSplit(bit), gate, "0");
-      connect(ctx, `b-${bit}`, "split-b", bitPinForSplit(bit), gate, "1");
+      connect(ctx, `a-${bit}`, "split-a", bitPinForSplit(bit), gate, "a");
+      connect(ctx, `b-${bit}`, "split-b", bitPinForSplit(bit), gate, "b");
       connect(ctx, `merge-${bit}`, gate, "out", "merge", bitPinForMerge(bit));
     }
-    connect(ctx, "merge-out", "merge", "16", "out");
+    connectOutput(ctx, "merge-out", "merge", "16", "out");
   }, { colour: COLOUR.logic, note, height: 560 });
 }
 
@@ -275,6 +288,13 @@ register("N2T XNOR", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput(
 register("N2T BUFFER", [logicInput("in", "IN")], [logicOutput("out", "OUT")], (ctx) => {
   ctx.link("direct", ctx.in("in"), ctx.out("out"));
 }, { colour: COLOUR.logic, note: "A direct signal path, useful when making the data flow explicit." });
+
+register("N2T TRI-STATE", [logicInput("in", "IN"), logicInput("enable", "ENABLE")], [logicOutput("out", "OUT")], (ctx) => {
+  const tri = child(ctx, "tri", TYPE.TRI_STATE, 0, 0);
+  connectInput(ctx, "in", "in", tri, "0");
+  connectInput(ctx, "enable", "enable", tri, "1");
+  connectOutput(ctx, "out", tri, "2", "out");
+}, { colour: COLOUR.logic, note: "A controlled output driver: disabled means the output releases the shared line." });
 
 register("N2T MUX", [logicInput("a", "A"), logicInput("b", "B"), logicInput("sel", "SEL")], [logicOutput("out", "OUT")], (ctx) => {
   const not = child(ctx, "not-sel", "N2T NOT", -160, 80);
@@ -410,6 +430,22 @@ register("N2T MUX16", [logicInput("a", "A", 16), logicInput("b", "B", 16), logic
   ctx.link("out", ctx.pin(merge, "16"), ctx.out("out"));
 }, { colour: COLOUR.routing, note: "A sixteen-lane MUX with one shared selection signal.", height: 560 });
 
+register("N2T DMUX16", [logicInput("in", "IN", 16), logicInput("sel", "SEL")], [logicOutput("a", "A", 16), logicOutput("b", "B", 16)], (ctx) => {
+  const split = child(ctx, "split", TYPE.SPLIT16, -240, 0);
+  const mergeA = child(ctx, "merge-a", TYPE.MERGE16, 240, -100);
+  const mergeB = child(ctx, "merge-b", TYPE.MERGE16, 240, 100);
+  connectInput(ctx, "source", "in", split, "0");
+  for (let bit = 0; bit < 16; bit += 1) {
+    const demux = child(ctx, `demux-${bit}`, "N2T DMUX", 0, (bit - 7.5) * 20);
+    connect(ctx, `split-${bit}`, split, bitPinForSplit(bit), demux, "in");
+    connectInput(ctx, `sel-${bit}`, "sel", demux, "sel");
+    connect(ctx, `a-${bit}`, demux, "a", mergeA, bitPinForMerge(bit));
+    connect(ctx, `b-${bit}`, demux, "b", mergeB, bitPinForMerge(bit));
+  }
+  connect(ctx, "out-a", mergeA, "16", ctx.out("a").owner, ctx.out("a").pin);
+  connect(ctx, "out-b", mergeB, "16", ctx.out("b").owner, ctx.out("b").pin);
+}, { colour: COLOUR.routing, note: "Sixteen one-bit demultiplexers distribute one word to one of two 16-bit lanes.", height: 560 });
+
 register("N2T HALF ADDER", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput("sum", "SUM"), logicOutput("carry", "CARRY")], (ctx) => {
   const xor = child(ctx, "xor", "N2T XOR", 0, -50);
   const and = child(ctx, "and", "N2T AND", 0, 50);
@@ -465,17 +501,29 @@ register("N2T INC16", [logicInput("in", "IN", 16)], [logicOutput("out", "OUT", 1
   connectOutput(ctx, "out", add, "out", "out");
 }, { colour: COLOUR.arithmetic, note: "Increment is addition by one, with a 16-bit zero as the second operand." });
 
-register("N2T SUB16", [logicInput("a", "A", 16), logicInput("b", "B", 16)], [logicOutput("out", "OUT", 16), logicOutput("cout", "COUT")], (ctx) => {
-  const not = child(ctx, "not-b", "N2T NOT16", -100, 80);
-  const one = child(ctx, "one", "CONST-1", -120, 160);
+register("N2T NEG16", [logicInput("in", "IN", 16)], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const not = child(ctx, "not", "N2T NOT16", -100, 0);
+  const zero = child(ctx, "zero", "CONST-0-16", -100, 120);
+  const one = child(ctx, "one", "CONST-1", -100, 220);
   const add = child(ctx, "add", "N2T ADD16", 140, 0);
-  connectInput(ctx, "a", "a", add, "a");
-  connectInput(ctx, "b", "b", not, "in");
-  connect(ctx, "not-add", not, "out", add, "b");
+  connectInput(ctx, "source", "in", not, "in");
+  connect(ctx, "not-add", not, "out", add, "a");
+  connect(ctx, "zero-add", zero, "0", add, "b");
   connect(ctx, "one-add", one, "0", add, "cin");
   connectOutput(ctx, "out", add, "out", "out");
+}, { colour: COLOUR.arithmetic, note: "Two's-complement negation: invert every bit, then add one." });
+
+register("N2T SUB16", [logicInput("a", "A", 16), logicInput("b", "B", 16)], [logicOutput("out", "OUT", 16), logicOutput("cout", "COUT")], (ctx) => {
+  const neg = child(ctx, "neg-b", "N2T NEG16", -100, 80);
+  const zero = child(ctx, "zero", "CONST-0", -100, 180);
+  const add = child(ctx, "add", "N2T ADD16", 140, 0);
+  connectInput(ctx, "a", "a", add, "a");
+  connectInput(ctx, "b", "b", neg, "in");
+  connect(ctx, "neg-add", neg, "out", add, "b");
+  connect(ctx, "zero-add", zero, "0", add, "cin");
+  connectOutput(ctx, "out", add, "out", "out");
   connectOutput(ctx, "cout", add, "cout", "cout");
-}, { colour: COLOUR.arithmetic, note: "Two's-complement subtraction: A + NOT(B) + 1." });
+}, { colour: COLOUR.arithmetic, note: "Subtraction uses two's-complement negation and addition: A + (-B)." });
 
 register("N2T COMPARE16", [logicInput("a", "A", 16), logicInput("b", "B", 16)], [logicOutput("equal", "EQ"), logicOutput("negative", "NEG"), logicOutput("greater", "GT")], (ctx) => {
   const sub = child(ctx, "sub", "N2T SUB16", -120, 0);
@@ -558,8 +606,8 @@ register("N2T ALU", [
 register("N2T BIT", [logicInput("in", "IN"), logicInput("load", "LOAD"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT")], (ctx) => {
   const mux = child(ctx, "mux", "N2T MUX", -40, 0);
   const dff = child(ctx, "dff", TYPE.DFF, 120, 0);
-  connectInput(ctx, "in", "in", mux, "a");
-  connect(ctx, "stored", dff, "2", mux, "b");
+  connect(ctx, "stored", dff, "2", mux, "a");
+  connectInput(ctx, "in", "in", mux, "b");
   connectInput(ctx, "load", "load", mux, "sel");
   connect(ctx, "next", mux, "out", dff, "0");
   connectInput(ctx, "clock", "clock", dff, "1");
@@ -580,6 +628,14 @@ register("N2T REGISTER", [logicInput("in", "IN", 16), logicInput("load", "LOAD")
   ctx.link("out", ctx.pin(merge, "16"), ctx.out("out"));
 }, { colour: COLOUR.state, note: "Sixteen BIT cells in parallel form the 16-bit register.", height: 560 });
 
+register("N2T REGISTER16", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const register = child(ctx, "register", "N2T REGISTER", 0, 0);
+  connectInput(ctx, "in", "in", register, "in");
+  connectInput(ctx, "load", "load", register, "load");
+  connectInput(ctx, "clock", "clock", register, "clock");
+  connectOutput(ctx, "out", register, "out", "out");
+}, { colour: COLOUR.state, note: "The named 16-bit register landmark, composed from sixteen one-bit BIT cells.", height: 560 });
+
 register("N2T A REGISTER", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
   const register = child(ctx, "register", "N2T REGISTER", 0, 0);
   connectInput(ctx, "in", "in", register, "in");
@@ -596,14 +652,12 @@ register("N2T D REGISTER", [logicInput("in", "IN", 16), logicInput("load", "LOAD
   connectOutput(ctx, "out", register, "out", "out");
 }, { colour: COLOUR.state, note: "The D register stores general-purpose computation results." });
 
-register("N2T PC", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("inc", "INC"), logicInput("reset", "RESET"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
-  const current = child(ctx, "register", "N2T REGISTER", 300, 0);
-  const increment = child(ctx, "increment", "N2T INC16", -120, -140);
+register("N2T COUNTER", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("inc", "INC"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const current = child(ctx, "current", "N2T REGISTER16", 260, 0);
+  const increment = child(ctx, "increment", "N2T INC16", -120, -120);
   const loadMux = child(ctx, "load-mux", "N2T MUX16", 0, -40);
-  const incMux = child(ctx, "inc-mux", "N2T MUX16", 100, 40);
-  const resetMux = child(ctx, "reset-mux", "N2T MUX16", 200, 120);
-  const zero = child(ctx, "zero", "CONST-0-16", 0, 200);
-  const one = child(ctx, "one", "CONST-1", 260, -150);
+  const incMux = child(ctx, "inc-mux", "N2T MUX16", 120, 40);
+  const one = child(ctx, "one", "CONST-1", 260, -140);
   connect(ctx, "current-increment", current, "out", increment, "in");
   connect(ctx, "current-load", current, "out", loadMux, "a");
   connectInput(ctx, "in-load", "in", loadMux, "b");
@@ -611,14 +665,28 @@ register("N2T PC", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logi
   connect(ctx, "load-inc", loadMux, "out", incMux, "a");
   connect(ctx, "increment-inc", increment, "out", incMux, "b");
   connectInput(ctx, "inc-select", "inc", incMux, "sel");
-  connect(ctx, "inc-reset", incMux, "out", resetMux, "a");
-  connect(ctx, "zero-reset", zero, "0", resetMux, "b");
-  connectInput(ctx, "reset-select", "reset", resetMux, "sel");
-  connect(ctx, "next-register", resetMux, "out", current, "in");
+  connect(ctx, "next-register", incMux, "out", current, "in");
   connect(ctx, "always-load", one, "0", current, "load");
   connectInput(ctx, "clock-register", "clock", current, "clock");
   connectOutput(ctx, "out", current, "out", "out");
-}, { colour: COLOUR.state, note: "PC priority is RESET, then LOAD, then INC. The register is written every clock with the selected next value." , width: 720 });
+}, { colour: COLOUR.state, note: "A register that holds its value, loads a word, or increments it on the next clock." , width: 720 });
+
+register("N2T PC", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("inc", "INC"), logicInput("reset", "RESET"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const counter = child(ctx, "counter", "N2T COUNTER", 220, 0);
+  const resetMux = child(ctx, "reset-mux", "N2T MUX16", -80, -80);
+  const zero = child(ctx, "zero", "CONST-0-16", -240, 120);
+  const loadOrReset = child(ctx, "load-or-reset", "N2T OR", -80, 100);
+  connectInput(ctx, "in-reset", "in", resetMux, "a");
+  connect(ctx, "zero-reset", zero, "0", resetMux, "b");
+  connectInput(ctx, "reset-select", "reset", resetMux, "sel");
+  connect(ctx, "next-counter", resetMux, "out", counter, "in");
+  connectInput(ctx, "load-or", "load", loadOrReset, "a");
+  connectInput(ctx, "reset-or", "reset", loadOrReset, "b");
+  connect(ctx, "counter-load", loadOrReset, "out", counter, "load");
+  connectInput(ctx, "counter-inc", "inc", counter, "inc");
+  connectInput(ctx, "counter-clock", "clock", counter, "clock");
+  connectOutput(ctx, "out", counter, "out", "out");
+}, { colour: COLOUR.state, note: "The program counter is a counter with a reset path; RESET selects zero before LOAD and INC." , width: 720 });
 
 function memoryWrapper(name, nativeName, addressBits, note, colour = COLOUR.memory) {
   return register(name, [logicInput("address", "ADDRESS", addressBits), logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("reset", "RESET"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
@@ -646,6 +714,33 @@ register("N2T ROM32K", [logicInput("address", "ADDRESS", 15)], [logicOutput("out
   connectOutput(ctx, "out", rom, "1", "out");
 }, { colour: COLOUR.memory, note: "Read-only 32K x 16-bit instruction storage." });
 
+register("N2T INSTRUCTION-ROM", [logicInput("address", "ADDRESS", 15)], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const rom = child(ctx, "rom", "N2T ROM32K", 0, 0);
+  connectInput(ctx, "address", "address", rom, "address");
+  connectOutput(ctx, "out", rom, "out", "out");
+}, { colour: COLOUR.memory, note: "The instruction-memory boundary: the program counter addresses a read-only 16-bit word." });
+
+register("N2T INSTRUCTION-REGISTER", [logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("clock", "CLOCK")], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const register = child(ctx, "register", "N2T REGISTER16", 0, 0);
+  connectInput(ctx, "in", "in", register, "in");
+  connectInput(ctx, "load", "load", register, "load");
+  connectInput(ctx, "clock", "clock", register, "clock");
+  connectOutput(ctx, "out", register, "out", "out");
+}, { colour: COLOUR.computer, note: "A clocked instruction latch for laboratories that want to separate fetch from decode." });
+
+register("N2T CONSTANT-GENERATOR", [logicInput("instruction", "INSTRUCTION", 16)], [logicOutput("constant", "CONSTANT", 16), logicOutput("isA", "IS A")], (ctx) => {
+  const split = child(ctx, "split", TYPE.SPLIT16, -180, 0);
+  const merge = child(ctx, "merge", TYPE.MERGE16, 180, 0);
+  const zero = child(ctx, "zero", "CONST-0", 0, 180);
+  const not = child(ctx, "is-a", "N2T NOT", 0, -160);
+  connectInput(ctx, "instruction", "instruction", split, "0");
+  for (let bit = 0; bit < 15; bit += 1) connect(ctx, `constant-${bit}`, split, bitPinForSplit(bit), merge, bitPinForMerge(bit));
+  connect(ctx, "constant-high-zero", zero, "0", merge, "15");
+  connect(ctx, "constant", merge, "16", ctx.out("constant").owner, ctx.out("constant").pin);
+  connect(ctx, "opcode", split, "1", not, "in");
+  connect(ctx, "is-a", not, "out", ctx.out("isA").owner, ctx.out("isA").pin);
+}, { colour: COLOUR.computer, note: "An A-instruction carries a 15-bit literal; the generator widens it to a 16-bit data word and exposes the opcode test." , width: 700 });
+
 register("N2T KEYBOARD", [], [logicOutput("out", "OUT", 16)], (ctx) => {
   const keyboard = child(ctx, "keyboard", TYPE.KEYBOARD, 0, 0);
   connectOutput(ctx, "out", keyboard, "0", "out");
@@ -660,32 +755,227 @@ register("N2T INSTRUCTION DECODER", [logicInput("instruction", "INSTRUCTION", 16
   fields.forEach(([id, splitPin]) => connectOutput(ctx, `field-${id}`, split, String(splitPin), id));
 }, { colour: COLOUR.computer, note: "The instruction bit positions are surfaced as named control signals for the CPU." , width: 700, height: 560 });
 
+register("N2T CONTROL-SIGNAL-DECODER", [logicInput("instruction", "INSTRUCTION", 16)], [
+  logicOutput("isC", "IS C"), logicOutput("isA", "IS A"), logicOutput("a", "A"), logicOutput("zx", "ZX"), logicOutput("nx", "NX"), logicOutput("zy", "ZY"), logicOutput("ny", "NY"), logicOutput("f", "F"), logicOutput("no", "NO"), logicOutput("destA", "DEST A"), logicOutput("destD", "DEST D"), logicOutput("destM", "DEST M"), logicOutput("jump2", "J2"), logicOutput("jump1", "J1"), logicOutput("jump0", "J0")
+], (ctx) => {
+  const decoder = child(ctx, "decoder", "N2T INSTRUCTION DECODER", 0, 0);
+  const notC = child(ctx, "not-c", "N2T NOT", 180, -160);
+  connectInput(ctx, "instruction", "instruction", decoder, "instruction");
+  connect(ctx, "is-c-not", decoder, "isC", notC, "in");
+  ["isC", "a", "zx", "nx", "zy", "ny", "f", "no", "destA", "destD", "destM", "jump2", "jump1", "jump0"]
+    .forEach(id => connectOutput(ctx, `field-${id}`, decoder, id, id));
+  connectOutput(ctx, "is-a", notC, "out", "isA");
+}, { colour: COLOUR.computer, note: "The raw instruction fields plus the complementary A-instruction signal used by control paths.", width: 760, height: 600 });
+
+register("N2T ALU-CONTROL", [logicInput("instruction", "INSTRUCTION", 16)], [
+  logicOutput("zx", "ZX"), logicOutput("nx", "NX"), logicOutput("zy", "ZY"), logicOutput("ny", "NY"), logicOutput("f", "F"), logicOutput("no", "NO")
+], (ctx) => {
+  const decoder = child(ctx, "decoder", "N2T CONTROL-SIGNAL-DECODER", 0, 0);
+  connectInput(ctx, "instruction", "instruction", decoder, "instruction");
+  ["zx", "nx", "zy", "ny", "f", "no"].forEach(id => connectOutput(ctx, id, decoder, id, id));
+}, { colour: COLOUR.computer, note: "The comp field becomes the six control signals consumed by the ALU." });
+
+register("N2T WRITE-DESTINATION-CONTROL", [logicInput("instruction", "INSTRUCTION", 16)], [
+  logicOutput("loadA", "LOAD A"), logicOutput("loadD", "LOAD D"), logicOutput("writeM", "WRITE M")
+], (ctx) => {
+  const decoder = child(ctx, "decoder", "N2T CONTROL-SIGNAL-DECODER", 0, 0);
+  const loadA = child(ctx, "load-a", "N2T OR", 220, -100);
+  const loadD = child(ctx, "load-d", "N2T AND", 220, 0);
+  const writeM = child(ctx, "write-m", "N2T AND", 220, 100);
+  connectInput(ctx, "instruction", "instruction", decoder, "instruction");
+  connect(ctx, "is-a-load", decoder, "isA", loadA, "a");
+  connect(ctx, "dest-a-load", decoder, "destA", loadA, "b");
+  connect(ctx, "is-c-load", decoder, "isC", loadD, "a");
+  connect(ctx, "dest-d-load", decoder, "destD", loadD, "b");
+  connect(ctx, "is-c-write", decoder, "isC", writeM, "a");
+  connect(ctx, "dest-m-write", decoder, "destM", writeM, "b");
+  connectOutput(ctx, "load-a", loadA, "out", "loadA");
+  connectOutput(ctx, "load-d", loadD, "out", "loadD");
+  connectOutput(ctx, "write-m", writeM, "out", "writeM");
+}, { colour: COLOUR.computer, note: "Destination bits become safe register and memory enables; A-instructions always load A." , width: 760 });
+
+register("N2T JUMP-CONTROL", [logicInput("instruction", "INSTRUCTION", 16), logicInput("zr", "ZR"), logicInput("ng", "NG")], [logicOutput("jump", "JUMP")], (ctx) => {
+  const decoder = child(ctx, "decoder", "N2T CONTROL-SIGNAL-DECODER", -260, 0);
+  const notZr = child(ctx, "not-zr", "N2T NOT", -80, -180);
+  const notNg = child(ctx, "not-ng", "N2T NOT", -80, -100);
+  const positive = child(ctx, "positive", "N2T AND", 80, -160);
+  const nonPositive = child(ctx, "non-positive", "N2T OR", 80, 120);
+  const conditions = child(ctx, "conditions", "N2T MUX8WAY", 280, 0);
+  const isC = child(ctx, "is-c", "N2T AND", 460, 0);
+  const zero = child(ctx, "zero", "CONST-0", 0, 240);
+  const one = child(ctx, "one", "CONST-1", 0, 300);
+  connectInput(ctx, "instruction", "instruction", decoder, "instruction");
+  connectInput(ctx, "zr", "zr", notZr, "in");
+  connectInput(ctx, "ng", "ng", notNg, "in");
+  connect(ctx, "positive-not-zr", notZr, "out", positive, "a");
+  connect(ctx, "positive-not-ng", notNg, "out", positive, "b");
+  connectInput(ctx, "non-positive-ng", "ng", nonPositive, "a");
+  connectInput(ctx, "non-positive-zr", "zr", nonPositive, "b");
+  connect(ctx, "jump-000", zero, "0", conditions, "a");
+  connect(ctx, "jump-001", positive, "out", conditions, "b");
+  connectInput(ctx, "jump-010", "zr", conditions, "c");
+  connect(ctx, "jump-011", notNg, "out", conditions, "d");
+  connectInput(ctx, "jump-100", "ng", conditions, "e");
+  connect(ctx, "jump-101", notZr, "out", conditions, "f");
+  connect(ctx, "jump-110", nonPositive, "out", conditions, "g");
+  connect(ctx, "jump-111", one, "0", conditions, "h");
+  ["0", "1", "2"].forEach(id => connect(ctx, `select-${id}`, decoder, `jump${id}`, conditions, `sel${id}`));
+  connect(ctx, "is-c", decoder, "isC", isC, "a");
+  connect(ctx, "condition-result", conditions, "out", isC, "b");
+  connectOutput(ctx, "jump", isC, "out", "jump");
+}, { colour: COLOUR.computer, note: "Jump bits select one of the eight Hack conditions; A-instructions are forced not to jump.", width: 900, height: 620 });
+
 register("N2T CPU", [logicInput("inM", "IN M", 16), logicInput("instruction", "INSTRUCTION", 16), logicInput("reset", "RESET"), logicInput("clock", "CLOCK")], [logicOutput("outM", "OUT M", 16), logicOutput("writeM", "WRITE M"), logicOutput("addressM", "ADDRESS M", 15), logicOutput("pc", "PC", 15)], (ctx) => {
-  const cpu = child(ctx, "cpu", TYPE.CPU, 0, 0);
-  connectInput(ctx, "inM", "inM", cpu, "0");
-  connectInput(ctx, "instruction", "instruction", cpu, "1");
-  connectInput(ctx, "reset", "reset", cpu, "2");
-  connectInput(ctx, "clock", "clock", cpu, "3");
-  connectOutput(ctx, "outM", cpu, "4", "outM");
-  connectOutput(ctx, "writeM", cpu, "5", "writeM");
-  connectOutput(ctx, "addressM", cpu, "6", "addressM");
-  connectOutput(ctx, "pc", cpu, "7", "pc");
-}, { colour: COLOUR.computer, note: "The native engine contract executes Hack A- and C-instructions while keeping the observable CPU pins explicit.", width: 760, height: 520 });
+  const signals = child(ctx, "signals", "N2T CONTROL-SIGNAL-DECODER", -520, -180);
+  const aluControl = child(ctx, "alu-control", "N2T ALU-CONTROL", -320, -300);
+  const writeControl = child(ctx, "write-control", "N2T WRITE-DESTINATION-CONTROL", -320, 220);
+  const jumpControl = child(ctx, "jump-control", "N2T JUMP-CONTROL", 260, 300);
+  const constant = child(ctx, "constant", "N2T CONSTANT-GENERATOR", -300, -40);
+  const aInput = child(ctx, "a-input", "N2T MUX16", -40, -120);
+  const aRegister = child(ctx, "a-register", "N2T A REGISTER", 160, -120);
+  const dRegister = child(ctx, "d-register", "N2T D REGISTER", 160, 80);
+  const ySelect = child(ctx, "y-select", "N2T MUX16", -40, 100);
+  const alu = child(ctx, "alu", "N2T ALU", 420, -20);
+  const notJump = child(ctx, "not-jump", "N2T NOT", 460, 260);
+  const pc = child(ctx, "pc", "N2T PC", 700, 240);
+
+  connectInput(ctx, "signals-instruction", "instruction", signals, "instruction");
+  connectInput(ctx, "alu-control-instruction", "instruction", aluControl, "instruction");
+  connectInput(ctx, "write-control-instruction", "instruction", writeControl, "instruction");
+  connectInput(ctx, "jump-control-instruction", "instruction", jumpControl, "instruction");
+  connectInput(ctx, "constant-instruction", "instruction", constant, "instruction");
+  connect(ctx, "constant-a", constant, "constant", aInput, "a");
+  connect(ctx, "alu-a", alu, "out", aInput, "b");
+  connect(ctx, "is-c-a", signals, "isC", aInput, "sel");
+  connect(ctx, "a-input-register", aInput, "out", aRegister, "in");
+  connect(ctx, "load-a-register", writeControl, "loadA", aRegister, "load");
+  connectInput(ctx, "clock-a-register", "clock", aRegister, "clock");
+  connect(ctx, "a-y-select", aRegister, "out", ySelect, "a");
+  connectInput(ctx, "memory-y-select", "inM", ySelect, "b");
+  connect(ctx, "a-bit-y-select", signals, "a", ySelect, "sel");
+  connect(ctx, "d-alu", dRegister, "out", alu, "x");
+  connect(ctx, "y-alu", ySelect, "out", alu, "y");
+  ["zx", "nx", "zy", "ny", "f", "no"].forEach(id => connect(ctx, `alu-control-${id}`, aluControl, id, alu, id));
+  connect(ctx, "alu-d-register", alu, "out", dRegister, "in");
+  connect(ctx, "load-d-register", writeControl, "loadD", dRegister, "load");
+  connectInput(ctx, "clock-d-register", "clock", dRegister, "clock");
+  connect(ctx, "alu-out-m", alu, "out", ctx.out("outM").owner, ctx.out("outM").pin);
+  connect(ctx, "write-m", writeControl, "writeM", ctx.out("writeM").owner, ctx.out("writeM").pin);
+  connect(ctx, "address-m", aRegister, "out", ctx.out("addressM").owner, ctx.out("addressM").pin);
+  connect(ctx, "jump-zr", alu, "zr", jumpControl, "zr");
+  connect(ctx, "jump-ng", alu, "ng", jumpControl, "ng");
+  connect(ctx, "jump-not", jumpControl, "jump", notJump, "in");
+  connect(ctx, "pc-in", alu, "out", pc, "in");
+  connect(ctx, "pc-load", jumpControl, "jump", pc, "load");
+  connect(ctx, "pc-inc", notJump, "out", pc, "inc");
+  connectInput(ctx, "pc-reset", "reset", pc, "reset");
+  connectInput(ctx, "pc-clock", "clock", pc, "clock");
+  connect(ctx, "pc-out", pc, "out", ctx.out("pc").owner, ctx.out("pc").pin);
+}, { colour: COLOUR.computer, note: "A composed Hack CPU: instruction fields drive the ALU, registers, write enables, jump logic, and program counter.", width: 1500, height: 900 });
+
+register("N2T MEMORY-ADDRESS-DECODER", [logicInput("address", "ADDRESS", 15)], [logicOutput("ram", "RAM"), logicOutput("screen", "SCREEN"), logicOutput("keyboard", "KEYBOARD")], (ctx) => {
+  const split = child(ctx, "split", TYPE.SPLIT16, -260, 0);
+  const notRamBit = child(ctx, "not-ram-bit", "N2T NOT", -80, -160);
+  const notScreenBit = child(ctx, "not-screen-bit", "N2T NOT", -80, -60);
+  const screen = child(ctx, "screen", "N2T AND", 100, -100);
+  const keyboardBase = child(ctx, "keyboard-base", "N2T AND", 100, 80);
+  const keyboard = child(ctx, "keyboard", "N2T AND", 300, 80);
+  const lowerNot = child(ctx, "lower-zero", "N2T NOT", 100, 220);
+  const lowerOr = reduceOr(ctx, "lower-address", Array.from({ length: 13 }, (_, bit) => ({ owner: split, pin: bitPinForSplit(bit) })), -160, 300);
+
+  connectInput(ctx, "address", "address", split, "0");
+  connect(ctx, "ram-bit", split, "2", notRamBit, "in");
+  connect(ctx, "screen-bit", split, "3", notScreenBit, "in");
+  connectOutput(ctx, "ram", notRamBit, "out", "ram");
+  connect(ctx, "screen-high", split, "2", screen, "a");
+  connect(ctx, "screen-low", notScreenBit, "out", screen, "b");
+  connectOutput(ctx, "screen", screen, "out", "screen");
+  connect(ctx, "keyboard-high", split, "2", keyboardBase, "a");
+  connect(ctx, "keyboard-mid", split, "3", keyboardBase, "b");
+  connect(ctx, "keyboard-base-zero", keyboardBase, "out", keyboard, "a");
+  connect(ctx, "keyboard-lower-zero", lowerNot, "out", keyboard, "b");
+  connect(ctx, "lower-address", lowerOr.owner, lowerOr.pin, lowerNot, "in");
+  connectOutput(ctx, "keyboard", keyboard, "out", "keyboard");
+}, { colour: COLOUR.computer, note: "Hack address ranges: bit 14 selects the upper device space, bit 13 separates screen from keyboard, and lower bits identify the keyboard address.", width: 1000, height: 700 });
+
+register("N2T CPU-MEMORY-BUS", [
+  logicInput("cpuOutM", "CPU OUT M", 16), logicInput("cpuAddress", "CPU ADDRESS", 15), logicInput("cpuWrite", "CPU WRITE"), logicInput("memoryOut", "MEMORY OUT", 16)
+], [
+  logicOutput("memoryIn", "MEMORY IN", 16), logicOutput("memoryAddress", "MEMORY ADDRESS", 15), logicOutput("memoryLoad", "MEMORY LOAD"), logicOutput("cpuInM", "CPU IN M", 16)
+], (ctx) => {
+  ctx.link("cpu-out-memory-in", ctx.in("cpuOutM"), ctx.out("memoryIn"));
+  ctx.link("cpu-address-memory-address", ctx.in("cpuAddress"), ctx.out("memoryAddress"));
+  ctx.link("cpu-write-memory-load", ctx.in("cpuWrite"), ctx.out("memoryLoad"));
+  ctx.link("memory-out-cpu-in", ctx.in("memoryOut"), ctx.out("cpuInM"));
+}, { colour: COLOUR.computer, note: "The explicit data/control boundary between CPU and memory devices." , width: 800 });
+
+register("N2T CPU-MEMORY", [
+  logicInput("address", "ADDRESS", 15), logicInput("in", "IN", 16), logicInput("load", "LOAD"), logicInput("reset", "RESET"), logicInput("clock", "CLOCK")
+], [logicOutput("out", "OUT", 16)], (ctx) => {
+  const decoder = child(ctx, "decoder", "N2T MEMORY-ADDRESS-DECODER", -420, 0);
+  const ram = child(ctx, "ram", "N2T RAM16K", -120, -180);
+  const screen = child(ctx, "screen", "N2T SCREEN", -120, 40);
+  const keyboard = child(ctx, "keyboard", "N2T KEYBOARD", -120, 240);
+  const zero = child(ctx, "zero", "CONST-0-16", 120, 360);
+  const ramLoad = child(ctx, "ram-load", "N2T AND", -120, -360);
+  const screenLoad = child(ctx, "screen-load", "N2T AND", 80, -360);
+  const ramSelect = child(ctx, "ram-select", "N2T MUX16", 260, -140);
+  const screenSelect = child(ctx, "screen-select", "N2T MUX16", 260, 20);
+  const keyboardSelect = child(ctx, "keyboard-select", "N2T MUX16", 260, 180);
+  const ramScreen = child(ctx, "ram-screen", "N2T OR16", 460, -60);
+  const allDevices = child(ctx, "all-devices", "N2T OR16", 620, 80);
+
+  connectInput(ctx, "address-decoder", "address", decoder, "address");
+  connectInput(ctx, "address-ram", "address", ram, "address");
+  connectInput(ctx, "address-screen", "address", screen, "address");
+  connectInput(ctx, "in-ram", "in", ram, "in");
+  connectInput(ctx, "in-screen", "in", screen, "in");
+  connectInput(ctx, "reset-ram", "reset", ram, "reset");
+  connectInput(ctx, "reset-screen", "reset", screen, "reset");
+  connectInput(ctx, "clock-ram", "clock", ram, "clock");
+  connectInput(ctx, "clock-screen", "clock", screen, "clock");
+  connectInput(ctx, "load-ram", "load", ramLoad, "a");
+  connect(ctx, "select-ram-load", decoder, "ram", ramLoad, "b");
+  connect(ctx, "ram-load-device", ramLoad, "out", ram, "load");
+  connectInput(ctx, "load-screen", "load", screenLoad, "a");
+  connect(ctx, "select-screen-load", decoder, "screen", screenLoad, "b");
+  connect(ctx, "screen-load-device", screenLoad, "out", screen, "load");
+
+  [
+    ["ram", ram, "out", ramSelect, "sel", decoder],
+    ["screen", screen, "out", screenSelect, "sel", decoder],
+    ["keyboard", keyboard, "out", keyboardSelect, "sel", decoder]
+  ].forEach(([name, source, sourcePin, mux, selectPin, selectSource]) => {
+    connect(ctx, `${name}-zero`, zero, "0", mux, "a");
+    connect(ctx, `${name}-data`, source, sourcePin, mux, "b");
+    connect(ctx, `${name}-select`, selectSource, name, mux, selectPin);
+  });
+  connect(ctx, "ram-screen-ram", ramSelect, "out", ramScreen, "a");
+  connect(ctx, "ram-screen-screen", screenSelect, "out", ramScreen, "b");
+  connect(ctx, "all-devices-left", ramScreen, "out", allDevices, "a");
+  connect(ctx, "all-devices-right", keyboardSelect, "out", allDevices, "b");
+  connectOutput(ctx, "out", allDevices, "out", "out");
+}, { colour: COLOUR.computer, note: "A composed memory map: the decoder enables RAM, screen, or keyboard data and the selected device is returned to the CPU.", width: 1200, height: 900 });
 
 register("N2T COMPUTER", [logicInput("reset", "RESET"), logicInput("clock", "CLOCK")], [logicOutput("outM", "OUT M", 16), logicOutput("addressM", "ADDRESS M", 15), logicOutput("writeM", "WRITE M"), logicOutput("pc", "PC", 15), logicOutput("memoryOut", "MEMORY OUT", 16)], (ctx) => {
   const cpu = child(ctx, "cpu", "N2T CPU", -160, 0);
-  const rom = child(ctx, "rom", "N2T ROM32K", -160, -180);
-  const memory = child(ctx, "memory", "N2T MEMORY", 160, 100);
+  const rom = child(ctx, "rom", "N2T INSTRUCTION-ROM", -160, -180);
+  const bus = child(ctx, "bus", "N2T CPU-MEMORY-BUS", 40, 0);
+  const memory = child(ctx, "memory", "N2T CPU-MEMORY", 300, 100);
   connectInput(ctx, "reset-cpu", "reset", cpu, "reset");
   connectInput(ctx, "clock-cpu", "clock", cpu, "clock");
   connectInput(ctx, "reset-memory", "reset", memory, "reset");
   connectInput(ctx, "clock-memory", "clock", memory, "clock");
   connect(ctx, "pc-rom", cpu, "pc", rom, "address");
   connect(ctx, "rom-cpu", rom, "out", cpu, "instruction");
-  connect(ctx, "address-memory", cpu, "addressM", memory, "address");
-  connect(ctx, "out-memory", cpu, "outM", memory, "in");
-  connect(ctx, "write-memory", cpu, "writeM", memory, "load");
-  connect(ctx, "memory-cpu", memory, "out", cpu, "inM");
+  connect(ctx, "cpu-out-bus", cpu, "outM", bus, "cpuOutM");
+  connect(ctx, "cpu-address-bus", cpu, "addressM", bus, "cpuAddress");
+  connect(ctx, "cpu-write-bus", cpu, "writeM", bus, "cpuWrite");
+  connect(ctx, "memory-out-bus", memory, "out", bus, "memoryOut");
+  connect(ctx, "bus-memory-in", bus, "memoryIn", memory, "in");
+  connect(ctx, "bus-memory-address", bus, "memoryAddress", memory, "address");
+  connect(ctx, "bus-memory-load", bus, "memoryLoad", memory, "load");
+  connect(ctx, "bus-cpu-in", bus, "cpuInM", cpu, "inM");
   connectOutput(ctx, "outM", cpu, "outM", "outM");
   connectOutput(ctx, "addressM", cpu, "addressM", "addressM");
   connectOutput(ctx, "writeM", cpu, "writeM", "writeM");
@@ -695,15 +985,16 @@ register("N2T COMPUTER", [logicInput("reset", "RESET"), logicInput("clock", "CLO
 
 const hardwareStages = [
   { id: "00-nand", title: "NAND foundation", chips: ["N2T NAND"], capability: "One universal two-input gate; every later Boolean construction can be reduced to it." },
-  { id: "01-logic", title: "Elementary Boolean logic", chips: ["N2T NOT", "N2T AND", "N2T OR", "N2T XOR", "N2T NOR", "N2T XNOR", "N2T BUFFER"], capability: "Truth tables become reusable, inspectable gates." },
+  { id: "01-logic", title: "Elementary Boolean logic", chips: ["N2T NOT", "N2T AND", "N2T OR", "N2T XOR", "N2T NOR", "N2T XNOR", "N2T BUFFER", "N2T TRI-STATE"], capability: "Truth tables become reusable, inspectable gates and controlled shared-line drivers." },
   { id: "02-routing", title: "Selection and routing", chips: ["N2T MUX", "N2T DMUX", "N2T OR8WAY", "N2T MUX4WAY", "N2T MUX8WAY", "N2T DMUX4WAY", "N2T DMUX8WAY"], capability: "One signal can be selected, distributed, or gathered through a small routing hierarchy." },
-  { id: "03-multibit", title: "Multi-bit logic", chips: ["N2T NOT16", "N2T AND16", "N2T OR16", "N2T XOR16", "N2T MUX16"], capability: "The same one-bit logic is lifted into parallel 16-bit words." },
-  { id: "04-arithmetic", title: "Arithmetic", chips: ["N2T HALF ADDER", "N2T FULL ADDER", "N2T ADD16", "N2T INC16", "N2T SUB16", "N2T COMPARE16", "N2T ALU"], capability: "Words can add, increment, subtract, compare, and perform controlled ALU operations." },
-  { id: "05-state", title: "Sequential state", chips: ["DFF", "N2T BIT", "N2T REGISTER", "N2T A REGISTER", "N2T D REGISTER", "N2T PC"], capability: "A clock turns combinational paths into persistent state and controlled time flow." },
+  { id: "03-multibit", title: "Multi-bit logic", chips: ["N2T NOT16", "N2T AND16", "N2T OR16", "N2T XOR16", "N2T MUX16", "N2T DMUX16"], capability: "The same one-bit logic is lifted into parallel 16-bit words." },
+  { id: "04-arithmetic", title: "Arithmetic", chips: ["N2T HALF ADDER", "N2T FULL ADDER", "N2T ADD16", "N2T INC16", "N2T NEG16", "N2T SUB16", "N2T COMPARE16", "N2T ALU"], capability: "Words can add, increment, negate, subtract, compare, and perform controlled ALU operations." },
+  { id: "05-state", title: "Sequential state", chips: ["DFF", "N2T BIT", "N2T REGISTER", "N2T REGISTER16", "N2T COUNTER", "N2T A REGISTER", "N2T D REGISTER", "N2T PC"], capability: "A clock turns combinational paths into persistent state, counters, and controlled time flow." },
   { id: "06-memory", title: "Memory hierarchy", chips: ["N2T RAM8", "N2T RAM64", "N2T RAM512", "N2T RAM4K", "N2T RAM16K", "N2T ROM32K", "N2T SCREEN", "N2T KEYBOARD", "N2T MEMORY"], capability: "Address bits select progressively larger memory structures and device-mapped regions." },
-  { id: "07-instruction", title: "Instruction representation", chips: ["N2T INSTRUCTION DECODER"], capability: "A 16-bit instruction becomes named control fields: computation, destinations, and jumps." },
-  { id: "08-cpu", title: "CPU building blocks", chips: ["N2T CPU"], capability: "A Hack-shaped CPU executes A- and C-instructions and exposes the memory protocol." },
-  { id: "09-computer", title: "Complete computer boundary", chips: ["N2T COMPUTER"], capability: "Instruction ROM, CPU, and data memory form one inspectable computer-like system." }
+  { id: "07-instruction", title: "Instruction representation", chips: ["N2T INSTRUCTION-ROM", "N2T INSTRUCTION-REGISTER", "N2T INSTRUCTION DECODER", "N2T CONSTANT-GENERATOR", "N2T CONTROL-SIGNAL-DECODER"], capability: "A 16-bit instruction is stored, split into fields, and turned into named control signals and constants." },
+  { id: "08-cpu", title: "CPU building blocks", chips: ["N2T A REGISTER", "N2T D REGISTER", "N2T ALU-CONTROL", "N2T WRITE-DESTINATION-CONTROL", "N2T JUMP-CONTROL", "N2T CPU"], capability: "A composed Hack CPU executes A- and C-instructions and exposes the memory protocol." },
+  { id: "09-memory-cpu", title: "CPU and memory", chips: ["N2T CPU-MEMORY-BUS", "N2T MEMORY-ADDRESS-DECODER", "N2T CPU-MEMORY"], capability: "CPU requests are carried across an explicit bus and routed to RAM, screen, or keyboard address ranges." },
+  { id: "10-computer", title: "Complete computer boundary", chips: ["N2T COMPUTER"], capability: "Instruction ROM, composed CPU, and decoded data memory form one inspectable computer-like system." }
 ];
 
 const softwareStages = [
@@ -890,7 +1181,7 @@ async function writeJson(file, value) {
 const normalizedProject = projectWithRoot("Nand2Tetris Hardware Progression", emptyRoot("Nand2Tetris Hardware Progression"));
 const normalizedCustom = new Map(Object.entries(normalizedProject.customChips));
 const nativeChipNames = [
-  "NAND", "DFF", "CONST-0", "CONST-1", "CONST-0-16", "CONST-1-16", "REGISTER-16", "PROGRAM COUNTER",
+  "NAND", "DFF", "CONST-0", "CONST-1", "CONST-0-16", "CONST-1-16", "REGISTER-16", "PROGRAM COUNTER", "3-STATE BUFFER",
   "RAM8", "RAM64", "RAM512", "RAM4K", "RAM16K", "ROM32K", "SCREEN", "KEYBOARD", "MEMORY", "HACK CPU"
 ];
 const nativeChipNameSet = new Set(nativeChipNames);
@@ -951,6 +1242,7 @@ for (const stage of softwareStages) {
 
 const nativePrimitives = [
   { name: "NAND", role: "existing-native", reason: "universal Boolean primitive" },
+  { name: "3-STATE BUFFER", role: "existing-native", reason: "electrical shared-line driver; Boolean gates alone cannot model release to Z" },
   { name: "DFF", role: "new-native", reason: "clocked one-bit state" },
   { name: "CONST-0", role: "new-native", reason: "explicit logic zero source" },
   { name: "CONST-1", role: "new-native", reason: "explicit logic one source" },

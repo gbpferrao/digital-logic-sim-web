@@ -11,9 +11,11 @@ This folder is the simulator-facing companion to the chip progression plan. It f
 
 ## Hardware landmarks
 
-`NAND -> logic -> routing -> 16-bit logic -> arithmetic -> state -> memory -> instruction decoder -> CPU -> computer`
+`NAND -> logic -> routing -> 16-bit logic -> arithmetic -> state -> memory -> instruction fields -> control -> composed CPU -> decoded memory -> computer`
 
-The custom chips are ordinary nested simulator descriptions. New engine primitives are limited to the contracts that are awkward or needlessly expensive to reproduce at the current canvas level: rising-edge `DFF`, explicit constants, bounded 16-bit memories, ROM32K, the Hack memory boundary, and an executable Hack CPU contract. The surrounding chips remain inspectable compositions.
+The custom chips are ordinary nested simulator descriptions. The teaching path includes explicit `DMUX16`, `NEG16`, `REGISTER16`, `COUNTER`, instruction ROM/register/decoder layers, control layers, a CPU-memory bus, an address decoder, a composed CPU, and a composed CPU-memory boundary. New engine primitives remain limited to contracts that are awkward or needlessly expensive to reproduce at the current canvas level: rising-edge `DFF`, explicit constants, bounded 16-bit memories, ROM32K, screen/keyboard devices, and a native Hack CPU reference.
+
+The native Hack CPU and native memory devices are retained as fast reference contracts. They are not silently used by the `N2T CPU` or `N2T CPU-MEMORY` teaching compositions, except at the documented RAM, screen, keyboard, and ROM leaves.
 
 ## Software boundary
 

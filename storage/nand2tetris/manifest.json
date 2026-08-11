@@ -25,9 +25,10 @@
         "N2T XOR",
         "N2T NOR",
         "N2T XNOR",
-        "N2T BUFFER"
+        "N2T BUFFER",
+        "N2T TRI-STATE"
       ],
-      "capability": "Truth tables become reusable, inspectable gates.",
+      "capability": "Truth tables become reusable, inspectable gates and controlled shared-line drivers.",
       "chipFiles": [
         "n2t-not.json",
         "n2t-and.json",
@@ -35,7 +36,8 @@
         "n2t-xor.json",
         "n2t-nor.json",
         "n2t-xnor.json",
-        "n2t-buffer.json"
+        "n2t-buffer.json",
+        "n2t-tri-state.json"
       ]
     },
     {
@@ -69,7 +71,8 @@
         "N2T AND16",
         "N2T OR16",
         "N2T XOR16",
-        "N2T MUX16"
+        "N2T MUX16",
+        "N2T DMUX16"
       ],
       "capability": "The same one-bit logic is lifted into parallel 16-bit words.",
       "chipFiles": [
@@ -77,7 +80,8 @@
         "n2t-and16.json",
         "n2t-or16.json",
         "n2t-xor16.json",
-        "n2t-mux16.json"
+        "n2t-mux16.json",
+        "n2t-dmux16.json"
       ]
     },
     {
@@ -88,16 +92,18 @@
         "N2T FULL ADDER",
         "N2T ADD16",
         "N2T INC16",
+        "N2T NEG16",
         "N2T SUB16",
         "N2T COMPARE16",
         "N2T ALU"
       ],
-      "capability": "Words can add, increment, subtract, compare, and perform controlled ALU operations.",
+      "capability": "Words can add, increment, negate, subtract, compare, and perform controlled ALU operations.",
       "chipFiles": [
         "n2t-half-adder.json",
         "n2t-full-adder.json",
         "n2t-add16.json",
         "n2t-inc16.json",
+        "n2t-neg16.json",
         "n2t-sub16.json",
         "n2t-compare16.json",
         "n2t-alu.json"
@@ -110,15 +116,19 @@
         "DFF",
         "N2T BIT",
         "N2T REGISTER",
+        "N2T REGISTER16",
+        "N2T COUNTER",
         "N2T A REGISTER",
         "N2T D REGISTER",
         "N2T PC"
       ],
-      "capability": "A clock turns combinational paths into persistent state and controlled time flow.",
+      "capability": "A clock turns combinational paths into persistent state, counters, and controlled time flow.",
       "chipFiles": [
         "dff.json",
         "n2t-bit.json",
         "n2t-register.json",
+        "n2t-register16.json",
+        "n2t-counter.json",
         "n2t-a-register.json",
         "n2t-d-register.json",
         "n2t-pc.json"
@@ -155,31 +165,64 @@
       "id": "07-instruction",
       "title": "Instruction representation",
       "chips": [
-        "N2T INSTRUCTION DECODER"
+        "N2T INSTRUCTION-ROM",
+        "N2T INSTRUCTION-REGISTER",
+        "N2T INSTRUCTION DECODER",
+        "N2T CONSTANT-GENERATOR",
+        "N2T CONTROL-SIGNAL-DECODER"
       ],
-      "capability": "A 16-bit instruction becomes named control fields: computation, destinations, and jumps.",
+      "capability": "A 16-bit instruction is stored, split into fields, and turned into named control signals and constants.",
       "chipFiles": [
-        "n2t-instruction-decoder.json"
+        "n2t-instruction-rom.json",
+        "n2t-instruction-register.json",
+        "n2t-instruction-decoder.json",
+        "n2t-constant-generator.json",
+        "n2t-control-signal-decoder.json"
       ]
     },
     {
       "id": "08-cpu",
       "title": "CPU building blocks",
       "chips": [
+        "N2T A REGISTER",
+        "N2T D REGISTER",
+        "N2T ALU-CONTROL",
+        "N2T WRITE-DESTINATION-CONTROL",
+        "N2T JUMP-CONTROL",
         "N2T CPU"
       ],
-      "capability": "A Hack-shaped CPU executes A- and C-instructions and exposes the memory protocol.",
+      "capability": "A composed Hack CPU executes A- and C-instructions and exposes the memory protocol.",
       "chipFiles": [
+        "n2t-a-register.json",
+        "n2t-d-register.json",
+        "n2t-alu-control.json",
+        "n2t-write-destination-control.json",
+        "n2t-jump-control.json",
         "n2t-cpu.json"
       ]
     },
     {
-      "id": "09-computer",
+      "id": "09-memory-cpu",
+      "title": "CPU and memory",
+      "chips": [
+        "N2T CPU-MEMORY-BUS",
+        "N2T MEMORY-ADDRESS-DECODER",
+        "N2T CPU-MEMORY"
+      ],
+      "capability": "CPU requests are carried across an explicit bus and routed to RAM, screen, or keyboard address ranges.",
+      "chipFiles": [
+        "n2t-cpu-memory-bus.json",
+        "n2t-memory-address-decoder.json",
+        "n2t-cpu-memory.json"
+      ]
+    },
+    {
+      "id": "10-computer",
       "title": "Complete computer boundary",
       "chips": [
         "N2T COMPUTER"
       ],
-      "capability": "Instruction ROM, CPU, and data memory form one inspectable computer-like system.",
+      "capability": "Instruction ROM, composed CPU, and decoded data memory form one inspectable computer-like system.",
       "chipFiles": [
         "n2t-computer.json"
       ]
@@ -254,6 +297,12 @@
     {
       "name": "N2T BUFFER",
       "file": "chips/n2t-buffer.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T TRI-STATE",
+      "file": "chips/n2t-tri-state.json",
       "native": false,
       "dependencies": []
     },
@@ -390,6 +439,17 @@
       ]
     },
     {
+      "name": "N2T DMUX16",
+      "file": "chips/n2t-dmux16.json",
+      "native": false,
+      "dependencies": [
+        "N2T DMUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
       "name": "N2T HALF ADDER",
       "file": "chips/n2t-half-adder.json",
       "native": false,
@@ -444,10 +504,27 @@
       ]
     },
     {
+      "name": "N2T NEG16",
+      "file": "chips/n2t-neg16.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT16",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T AND"
+      ]
+    },
+    {
       "name": "N2T SUB16",
       "file": "chips/n2t-sub16.json",
       "native": false,
       "dependencies": [
+        "N2T NEG16",
         "N2T NOT16",
         "N2T NOT",
         "N2T NAND",
@@ -465,6 +542,7 @@
       "native": false,
       "dependencies": [
         "N2T SUB16",
+        "N2T NEG16",
         "N2T NOT16",
         "N2T NOT",
         "N2T NAND",
@@ -523,6 +601,20 @@
       ]
     },
     {
+      "name": "N2T REGISTER16",
+      "file": "chips/n2t-register16.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
       "name": "N2T A REGISTER",
       "file": "chips/n2t-a-register.json",
       "native": false,
@@ -551,10 +643,33 @@
       ]
     },
     {
+      "name": "N2T COUNTER",
+      "file": "chips/n2t-counter.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER16",
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR",
+        "N2T INC16",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T MUX16"
+      ]
+    },
+    {
       "name": "N2T PC",
       "file": "chips/n2t-pc.json",
       "native": false,
       "dependencies": [
+        "N2T COUNTER",
+        "N2T REGISTER16",
         "N2T REGISTER",
         "N2T BIT",
         "N2T MUX",
@@ -619,6 +734,38 @@
       "dependencies": []
     },
     {
+      "name": "N2T INSTRUCTION-ROM",
+      "file": "chips/n2t-instruction-rom.json",
+      "native": false,
+      "dependencies": [
+        "N2T ROM32K"
+      ]
+    },
+    {
+      "name": "N2T INSTRUCTION-REGISTER",
+      "file": "chips/n2t-instruction-register.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER16",
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T CONSTANT-GENERATOR",
+      "file": "chips/n2t-constant-generator.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
       "name": "N2T KEYBOARD",
       "file": "chips/n2t-keyboard.json",
       "native": false,
@@ -631,10 +778,126 @@
       "dependencies": []
     },
     {
+      "name": "N2T CONTROL-SIGNAL-DECODER",
+      "file": "chips/n2t-control-signal-decoder.json",
+      "native": false,
+      "dependencies": [
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T ALU-CONTROL",
+      "file": "chips/n2t-alu-control.json",
+      "native": false,
+      "dependencies": [
+        "N2T CONTROL-SIGNAL-DECODER",
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T WRITE-DESTINATION-CONTROL",
+      "file": "chips/n2t-write-destination-control.json",
+      "native": false,
+      "dependencies": [
+        "N2T CONTROL-SIGNAL-DECODER",
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T OR",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T JUMP-CONTROL",
+      "file": "chips/n2t-jump-control.json",
+      "native": false,
+      "dependencies": [
+        "N2T CONTROL-SIGNAL-DECODER",
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR",
+        "N2T MUX8WAY",
+        "N2T MUX4WAY",
+        "N2T MUX"
+      ]
+    },
+    {
       "name": "N2T CPU",
       "file": "chips/n2t-cpu.json",
       "native": false,
+      "dependencies": [
+        "N2T CONTROL-SIGNAL-DECODER",
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T ALU-CONTROL",
+        "N2T WRITE-DESTINATION-CONTROL",
+        "N2T OR",
+        "N2T AND",
+        "N2T JUMP-CONTROL",
+        "N2T MUX8WAY",
+        "N2T MUX4WAY",
+        "N2T MUX",
+        "N2T CONSTANT-GENERATOR",
+        "N2T MUX16",
+        "N2T A REGISTER",
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T D REGISTER",
+        "N2T ALU",
+        "N2T NOT16",
+        "N2T AND16",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR8WAY",
+        "N2T PC",
+        "N2T COUNTER",
+        "N2T REGISTER16",
+        "N2T INC16"
+      ]
+    },
+    {
+      "name": "N2T MEMORY-ADDRESS-DECODER",
+      "file": "chips/n2t-memory-address-decoder.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T CPU-MEMORY-BUS",
+      "file": "chips/n2t-cpu-memory-bus.json",
+      "native": false,
       "dependencies": []
+    },
+    {
+      "name": "N2T CPU-MEMORY",
+      "file": "chips/n2t-cpu-memory.json",
+      "native": false,
+      "dependencies": [
+        "N2T MEMORY-ADDRESS-DECODER",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR",
+        "N2T RAM16K",
+        "N2T SCREEN",
+        "N2T KEYBOARD",
+        "N2T MUX16",
+        "N2T MUX",
+        "N2T OR16"
+      ]
     },
     {
       "name": "N2T COMPUTER",
@@ -642,8 +905,45 @@
       "native": false,
       "dependencies": [
         "N2T CPU",
+        "N2T CONTROL-SIGNAL-DECODER",
+        "N2T INSTRUCTION DECODER",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T ALU-CONTROL",
+        "N2T WRITE-DESTINATION-CONTROL",
+        "N2T OR",
+        "N2T AND",
+        "N2T JUMP-CONTROL",
+        "N2T MUX8WAY",
+        "N2T MUX4WAY",
+        "N2T MUX",
+        "N2T CONSTANT-GENERATOR",
+        "N2T MUX16",
+        "N2T A REGISTER",
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T D REGISTER",
+        "N2T ALU",
+        "N2T NOT16",
+        "N2T AND16",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR8WAY",
+        "N2T PC",
+        "N2T COUNTER",
+        "N2T REGISTER16",
+        "N2T INC16",
+        "N2T INSTRUCTION-ROM",
         "N2T ROM32K",
-        "N2T MEMORY"
+        "N2T CPU-MEMORY-BUS",
+        "N2T CPU-MEMORY",
+        "N2T MEMORY-ADDRESS-DECODER",
+        "N2T RAM16K",
+        "N2T SCREEN",
+        "N2T KEYBOARD",
+        "N2T OR16"
       ]
     },
     {
@@ -691,6 +991,12 @@
     {
       "name": "PROGRAM COUNTER",
       "file": "chips/program-counter.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "3-STATE BUFFER",
+      "file": "chips/3-state-buffer.json",
       "native": true,
       "dependencies": []
     },
@@ -760,6 +1066,11 @@
       "name": "NAND",
       "role": "existing-native",
       "reason": "universal Boolean primitive"
+    },
+    {
+      "name": "3-STATE BUFFER",
+      "role": "existing-native",
+      "reason": "electrical shared-line driver; Boolean gates alone cannot model release to Z"
     },
     {
       "name": "DFF",

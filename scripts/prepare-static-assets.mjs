@@ -17,7 +17,7 @@ const manifest = { schema: "digital-logic-sim-web/examples/1", projects: [], chi
 for (const [kind, sourceDirectory] of Object.entries(sourceDirectories)) {
   const targetDirectory = path.join(publicExamples, kind);
   await mkdir(targetDirectory, { recursive: true });
-  for (const file of (await readdir(sourceDirectory)).filter((name) => name.endsWith(".json") && !(kind === "chips" && name === "test.json")).sort()) {
+  for (const file of (await readdir(sourceDirectory)).filter((name) => name.endsWith(".json")).sort()) {
     const source = path.join(sourceDirectory, file);
     const target = path.join(targetDirectory, file);
     await cp(source, target);

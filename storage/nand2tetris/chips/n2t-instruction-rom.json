@@ -1,0 +1,316 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "N2T INSTRUCTION-ROM",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "description": {
+    "id": "chip-n2t-instruction-rom",
+    "name": "N2T INSTRUCTION-ROM",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 640,
+      "y": 440
+    },
+    "colour": "#857654",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "address",
+        "name": "ADDRESS",
+        "bits": 15,
+        "direction": "input",
+        "x": -320,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "out",
+        "name": "OUT",
+        "bits": 16,
+        "direction": "output",
+        "x": 320,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "interface-input-address",
+        "name": "IN-16",
+        "position": {
+          "x": -180,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "ADDRESS",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "address",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-out",
+        "name": "OUT-16",
+        "position": {
+          "x": 180,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "OUT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "out",
+        "outputPinColours": {}
+      },
+      {
+        "id": "rom",
+        "name": "N2T ROM32K",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "address",
+        "source": {
+          "owner": "interface-input-address",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "rom",
+          "pin": "address"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "out",
+        "source": {
+          "owner": "rom",
+          "pin": "out"
+        },
+        "target": {
+          "owner": "interface-output-out",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "annotation-n2t-instruction-rom",
+        "type": "text",
+        "text": "The instruction-memory boundary: the program counter addresses a read-only 16-bit word.",
+        "position": {
+          "x": -240,
+          "y": -190
+        },
+        "width": 480,
+        "height": 70,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ],
+    "interfaceBindings": {
+      "inputs": [
+        {
+          "publicId": "address",
+          "instanceId": "interface-input-address",
+          "pinId": "0",
+          "direction": "input"
+        }
+      ],
+      "outputs": [
+        {
+          "publicId": "out",
+          "instanceId": "interface-output-out",
+          "pinId": "0",
+          "direction": "output"
+        }
+      ]
+    },
+    "fit": {
+      "version": 1,
+      "bounds": {
+        "x": -320,
+        "y": -130,
+        "w": 640,
+        "h": 260
+      }
+    }
+  },
+  "dependencyNames": [
+    "N2T ROM32K"
+  ],
+  "dependencies": {
+    "N2T ROM32K": {
+      "id": "chip-n2t-rom32k",
+      "name": "N2T ROM32K",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#857654",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "address",
+          "name": "ADDRESS",
+          "bits": 15,
+          "direction": "input",
+          "x": -280,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 16,
+          "direction": "output",
+          "x": 280,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "interface-input-address",
+          "name": "IN-16",
+          "position": {
+            "x": -180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "ADDRESS",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "address",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-16",
+          "position": {
+            "x": 180,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        },
+        {
+          "id": "rom",
+          "name": "ROM32K",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "address",
+          "source": {
+            "owner": "interface-input-address",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "rom",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "out",
+          "source": {
+            "owner": "rom",
+            "pin": "1"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "annotation-n2t-rom32k",
+          "type": "text",
+          "text": "Read-only 32K x 16-bit instruction storage.",
+          "position": {
+            "x": -240,
+            "y": -190
+          },
+          "width": 480,
+          "height": 70,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "address",
+            "instanceId": "interface-input-address",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -280,
+          "y": -90,
+          "w": 560,
+          "h": 180
+        }
+      }
+    }
+  }
+}

@@ -341,7 +341,7 @@
         },
         "target": {
           "owner": "gate-0",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -367,7 +367,7 @@
         },
         "target": {
           "owner": "gate-1",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -393,7 +393,7 @@
         },
         "target": {
           "owner": "gate-2",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -419,7 +419,7 @@
         },
         "target": {
           "owner": "gate-3",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -445,7 +445,7 @@
         },
         "target": {
           "owner": "gate-4",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -471,7 +471,7 @@
         },
         "target": {
           "owner": "gate-5",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -497,7 +497,7 @@
         },
         "target": {
           "owner": "gate-6",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -523,7 +523,7 @@
         },
         "target": {
           "owner": "gate-7",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -549,7 +549,7 @@
         },
         "target": {
           "owner": "gate-8",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -575,7 +575,7 @@
         },
         "target": {
           "owner": "gate-9",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -601,7 +601,7 @@
         },
         "target": {
           "owner": "gate-10",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -627,7 +627,7 @@
         },
         "target": {
           "owner": "gate-11",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -653,7 +653,7 @@
         },
         "target": {
           "owner": "gate-12",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -679,7 +679,7 @@
         },
         "target": {
           "owner": "gate-13",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -705,7 +705,7 @@
         },
         "target": {
           "owner": "gate-14",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -731,7 +731,7 @@
         },
         "target": {
           "owner": "gate-15",
-          "pin": "0"
+          "pin": "in"
         },
         "points": [],
         "colour": null
@@ -756,8 +756,8 @@
           "pin": "16"
         },
         "target": {
-          "owner": "out",
-          "pin": "undefined"
+          "owner": "interface-output-out",
+          "pin": "0"
         },
         "points": [],
         "colour": null

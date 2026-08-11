@@ -145,10 +145,10 @@
     ],
     "wires": [
       {
-        "id": "in",
+        "id": "stored",
         "source": {
-          "owner": "interface-input-in",
-          "pin": "0"
+          "owner": "dff",
+          "pin": "2"
         },
         "target": {
           "owner": "mux",
@@ -158,10 +158,10 @@
         "colour": null
       },
       {
-        "id": "stored",
+        "id": "in",
         "source": {
-          "owner": "dff",
-          "pin": "2"
+          "owner": "interface-input-in",
+          "pin": "0"
         },
         "target": {
           "owner": "mux",
