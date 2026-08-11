@@ -1,4 +1,5 @@
 import {
+  FREE_ENDPOINT_OWNER,
   GRID,
   BUILTINS,
   annotationPalette,
@@ -577,19 +578,20 @@ export class WorldRenderer {
       const hovered = editorState.hover?.kind === "wire" && editorState.hover.id === wire.id;
       const target = editorState.wireTarget?.owner === "wire" && editorState.wireTarget?.pin === String(wire.id);
       const editing = editorState.wireEdit?.wireId === wire.id;
+      const selected = String(wire.id) === String(editorState.selectedWireId);
       const previewAlpha = editorState.preview ? .66 : 1;
       ctx.save();
       ctx.lineCap = editing ? "butt" : "round";
       ctx.lineJoin = editing ? "miter" : "round";
-      ctx.lineWidth = wireStroke(wire.id === editorState.selectedWireId || hovered || target || editing ? 3.2 : signal.tri === 0 ? 2.4 : 1.8, this.camera.zoom);
+      ctx.lineWidth = wireStroke(selected || hovered || target || editing ? 3.2 : signal.tri === 0 ? 2.4 : 1.8, this.camera.zoom);
       ctx.strokeStyle = target && editorState.wireTargetValid === false ? "#f47883" : target ? "#7df2a8" : hovered || editing ? "#b8d7ff" : colour;
-      ctx.globalAlpha = (wire.id === editorState.selectedWireId || hovered || target || editing ? 1 : .88) * previewAlpha;
+      ctx.globalAlpha = (selected || hovered || target || editing ? 1 : .88) * previewAlpha;
       ctx.setLineDash(editing ? [10 / this.camera.zoom, 7 / this.camera.zoom] : []);
       traceWirePath(ctx, points, { rounded: !editing, radius: 4 / this.camera.zoom });
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
-      if (wire.id === editorState.selectedWireId || editing) {
+      if (selected || editing) {
         ctx.strokeStyle = "#b8d7ff";
         ctx.lineWidth = wireStroke(5, this.camera.zoom);
         ctx.globalAlpha = .25 * previewAlpha;
@@ -608,6 +610,29 @@ export class WorldRenderer {
             ctx.fillStyle = "#0f1824";
             ctx.beginPath(); ctx.arc(point.x, point.y, 1.7 / this.camera.zoom, 0, TAU); ctx.fill();
           }
+        }
+      }
+      for (const [side, endpoint, position] of [
+        ["source", wire.source, points[0]],
+        ["target", wire.target, points[points.length - 1]]
+      ]) {
+        if (String(endpoint?.owner) !== FREE_ENDPOINT_OWNER || !position) continue;
+        const endpointHovered = editorState.hover?.kind === "wire-end"
+          && editorState.hover.wireId === String(wire.id)
+          && editorState.hover.side === side;
+        const endpointSelected = selected || editing;
+        ctx.fillStyle = endpointHovered ? "#ffffff" : endpointSelected ? "#9bc8ff" : "#788899";
+        ctx.strokeStyle = endpointHovered || endpointSelected ? "#ffffff" : "#162333";
+        ctx.lineWidth = canvasStroke(endpointHovered ? 1.6 : 1, this.camera.zoom);
+        ctx.beginPath();
+        ctx.arc(position.x, position.y, (endpointHovered ? 6.5 : endpointSelected ? 5.5 : 4.5) / this.camera.zoom, 0, TAU);
+        ctx.fill();
+        ctx.stroke();
+        if (!endpointHovered && !endpointSelected) {
+          ctx.fillStyle = "#162333";
+          ctx.beginPath();
+          ctx.arc(position.x, position.y, 1.6 / this.camera.zoom, 0, TAU);
+          ctx.fill();
         }
       }
       ctx.restore();
@@ -763,6 +788,11 @@ export class WorldRenderer {
   }
 
   endpointPosition(project, endpoint, instanceOverride = null, junctionOverride = null, options = {}) {
+    if (String(endpoint.owner) === FREE_ENDPOINT_OWNER) {
+      const x = Number(endpoint.position?.x);
+      const y = Number(endpoint.position?.y);
+      return { x: Number.isFinite(x) ? x : 0, y: Number.isFinite(y) ? y : 0 };
+    }
     if (String(endpoint.owner) === "wire") return endpoint.position ? { ...endpoint.position } : { x: 0, y: 0 };
     if (String(endpoint.owner) === "junction") {
       const junction = (junctionOverride ?? project.root.junctions ?? []).find((item) => String(item.id) === String(endpoint.pin));
@@ -1410,6 +1440,22 @@ export class WorldRenderer {
       for (let index = 0; index < (wire.points ?? []).length; index += 1) {
         const point = wire.points[index];
         if (Math.hypot(point.x - world.x, point.y - world.y) <= threshold / this.camera.zoom) return { wire, index };
+      }
+    }
+    return null;
+  }
+
+  findWireEndpoint(project, world, threshold = 12) {
+    const entries = [...this.geometryFor(project).wires].reverse();
+    for (const { wire, points } of entries) {
+      if (String(wire.source?.owner) === FREE_ENDPOINT_OWNER && points[0]
+        && Math.hypot(points[0].x - world.x, points[0].y - world.y) <= threshold / this.camera.zoom) {
+        return { wire, side: "source", endpoint: wire.source, position: points[0] };
+      }
+      const targetPosition = points[points.length - 1];
+      if (String(wire.target?.owner) === FREE_ENDPOINT_OWNER && targetPosition
+        && Math.hypot(targetPosition.x - world.x, targetPosition.y - world.y) <= threshold / this.camera.zoom) {
+        return { wire, side: "target", endpoint: wire.target, position: targetPosition };
       }
     }
     return null;

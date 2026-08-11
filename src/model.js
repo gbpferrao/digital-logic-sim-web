@@ -3,6 +3,8 @@ import { BUILTINS, COLLECTIONS, COLORS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, 
 
 export { BUILTINS, COLLECTIONS, CUSTOM_COLLECTION, GRID, MIN_CHIP_SIZE, TYPE, clone, uid };
 
+export const FREE_ENDPOINT_OWNER = "free";
+
 const DEFAULT_ANNOTATION_COLOUR = "#d7eaff";
 export const REUSABLE_FIT_VERSION = 1;
 export const REUSABLE_FIT_PADDING = GRID * 2;
@@ -237,8 +239,35 @@ function normalizeDescription(raw, options = {}) {
     id: String(item.id ?? uid("element")), name: item.name, position: { x: 0, y: 0, ...(item.position ?? {}) }, rotation: item.rotation ?? 0,
     label: item.label ?? "", internalData: item.internalData ?? {}, linkedBusPairId: item.linkedBusPairId ?? null, interfaceId: item.interfaceId == null ? null : String(item.interfaceId), outputPinColours: item.outputPinColours ?? {}
   }));
+  const normalizeWireEndpoint = (item) => {
+    const endpoint = { ...(item ?? {}) };
+    const owner = String(endpoint.owner ?? "");
+    const result = { ...endpoint, owner, pin: String(endpoint.pin ?? (owner === FREE_ENDPOINT_OWNER ? uid("free") : "")) };
+    if (owner === FREE_ENDPOINT_OWNER) {
+      const x = Number(endpoint.position?.x);
+      const y = Number(endpoint.position?.y);
+      result.position = {
+        x: Number.isFinite(x) ? x : 0,
+        y: Number.isFinite(y) ? y : 0
+      };
+      result.direction = ["input", "output", "passive"].includes(String(endpoint.direction)) ? String(endpoint.direction) : "passive";
+      const bits = Number(endpoint.bits);
+      if (Number.isFinite(bits) && bits > 0) result.bits = bits;
+    } else if (endpoint.junction) {
+      Object.assign(result, {
+        junction: true,
+        direction: endpoint.direction,
+        bits: endpoint.bits
+      });
+    }
+    return result;
+  };
   description.wires = (raw?.wires ?? []).map((wire) => ({
-    id: String(wire.id ?? uid("wire")), source: { ...wire.source }, target: { ...wire.target }, points: (wire.points ?? []).map((point) => ({ x: point.x, y: point.y })), colour: wire.colour ?? null
+    id: String(wire.id ?? uid("wire")),
+    source: normalizeWireEndpoint(wire.source),
+    target: normalizeWireEndpoint(wire.target),
+    points: (wire.points ?? []).map((point) => ({ x: point.x, y: point.y })),
+    colour: wire.colour ?? null
   }));
   description.junctions = (raw?.junctions ?? []).map((junction) => ({ id: String(junction.id ?? uid("junction")), position: { x: Number(junction.position?.x) || 0, y: Number(junction.position?.y) || 0 }, bits: Number(junction.bits) || 1 }));
   description.displays = raw?.displays ?? [];
@@ -527,6 +556,11 @@ function descriptionPinPosition(description, pin) {
 
 function descriptionEndpointPosition(project, description, endpoint, options = {}) {
   const owner = String(endpoint?.owner);
+  if (owner === FREE_ENDPOINT_OWNER) {
+    const x = Number(endpoint?.position?.x);
+    const y = Number(endpoint?.position?.y);
+    return { x: Number.isFinite(x) ? x : 0, y: Number.isFinite(y) ? y : 0 };
+  }
   if (owner === "root") {
     const pin = [...(description.inputPins ?? []), ...(description.outputPins ?? [])].find((item) => String(item.id) === String(endpoint.pin));
     return pin ? descriptionPinPosition(description, pin) : { x: 0, y: 0 };

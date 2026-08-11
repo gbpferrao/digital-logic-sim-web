@@ -18,7 +18,7 @@ function overlaps(a, b) {
 
 function endpointOwnerExists(description, endpoint) {
   const owner = String(endpoint?.owner ?? "");
-  if (["root", "junction", "wire"].includes(owner)) return true;
+  if (["root", "junction", "wire", "free"].includes(owner)) return true;
   return (description.instances ?? []).some((instance) => String(instance.id) === owner);
 }
 

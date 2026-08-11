@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry, xrayWireAlpha } from "../src/renderer.js";
-import { BUILTINS, TYPE, createProject, instanceFor } from "../src/model.js";
+import { BUILTINS, FREE_ENDPOINT_OWNER, TYPE, createProject, instanceFor } from "../src/model.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
   assert.equal(canvasStroke(1, 1), 2);
@@ -52,6 +52,29 @@ test("geometry rollback refreshes restored chip and wire hit targets", () => {
   assert.deepEqual(restoredWirePoints, committedWirePoints);
   assert.equal(renderer.findInstance(project, { x: input.position.x, y: input.position.y }), input);
   assert.equal(renderer.findInstance(project, { x: 160, y: 0 }), null);
+});
+
+test("free wire endpoints use persisted positions and expose draggable hit targets", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.geometryCaches = new Map();
+  renderer.geometryCache = null;
+  renderer.geometryCacheHits = 0;
+  renderer.geometryCacheMisses = 0;
+  renderer.camera = { zoom: 1 };
+
+  const project = createProject("free-wire");
+  project.root.wires.push({
+    id: "free-wire",
+    source: { owner: FREE_ENDPOINT_OWNER, pin: "free-source", position: { x: -40, y: 0 }, direction: "passive" },
+    target: { owner: FREE_ENDPOINT_OWNER, pin: "free-target", position: { x: 40, y: 0 }, direction: "passive" },
+    points: [{ x: 0, y: 20 }]
+  });
+
+  const geometry = renderer.geometryFor(project);
+  assert.deepEqual(geometry.wireById.get("free-wire").points, [{ x: -40, y: 0 }, { x: 0, y: 20 }, { x: 40, y: 0 }]);
+  assert.equal(renderer.findWireEndpoint(project, { x: -40, y: 0 })?.side, "source");
+  assert.equal(renderer.findWireEndpoint(project, { x: 40, y: 0 })?.side, "target");
+  assert.equal(renderer.findWireEndpoint(project, { x: 0, y: 20 }), null);
 });
 
 test("xray continuation wires share one signal opacity contract", () => {

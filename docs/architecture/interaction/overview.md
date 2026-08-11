@@ -41,7 +41,9 @@ The canvas interaction path now has one pointer-session owner:
   testing, so pan works over existing canvas objects as well as empty space.
 - `canvasHitTarget()` is the shared priority query for hover, selection,
   wiring, context actions, and editing. Box selection includes chips and
-  annotations; wire-point selection remains scoped to wire-edit mode.
+  annotations; wire-point selection remains scoped to wire-edit mode. Free
+  wire-end hit targets are resolved before pins and wire bodies so their drag
+  gesture owns endpoint repositioning.
 - `lostpointercapture`, `pointercancel`, window blur, and document visibility
   loss all use the idempotent canvas-session cancellation path. A rejected
   drag restores the model and refreshes the actual hit geometry.
@@ -265,6 +267,8 @@ The first two phases of the plan are now implemented in the canvas path:
 - Input toggles are delayed just long enough for a double-click to cancel them, so double-click editing does not require an accidental first-click toggle.
 - Box selection now includes annotations as well as chips.
 - Canvas-level window pointer fallbacks and the old `activePointer*`/`wireGesture` pointer ownership state are removed.
+
+Wire gestures now also support a free endpoint. Starting a drag from empty canvas creates a wire with an explicit `free` endpoint position, so the wire can be drawn before either end is attached to a pin. The renderer draws that endpoint as a node and `canvasHitTarget()` returns it as `wire-end`; dragging it updates the endpoint position in place instead of starting another wire. Free endpoints are passive in the simulator and become input/output endpoints only when a wire is completed against a compatible pin.
 
 The pure session tests are in `test/interaction-session.test.js`. The remaining verification gap is live browser Pointer Event smoke testing; the available environment has no browser runtime, so this should be checked manually in the running app when available.
 

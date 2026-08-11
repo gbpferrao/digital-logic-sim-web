@@ -1,5 +1,6 @@
 import {
   BUILTINS,
+  FREE_ENDPOINT_OWNER,
   TYPE,
   clone,
   descriptorForInstance,
@@ -157,6 +158,7 @@ function runtimeFor(description, project, depth = 0) {
 function endpointState(runtime, endpoint) {
   const owner = String(endpoint.owner);
   const pinId = String(endpoint.pin);
+  if (owner === FREE_ENDPOINT_OWNER) return disconnected();
   if (owner === "junction") return runtime.junctions.get(pinId) ?? disconnected();
   if (owner === "root") return runtime.rootInputs.get(pinId) ?? runtime.rootOutputs.get(pinId) ?? disconnected();
   const item = runtime.instances.get(owner);
@@ -167,6 +169,7 @@ function endpointState(runtime, endpoint) {
 function writeEndpoint(runtime, endpoint, value) {
   const owner = String(endpoint.owner);
   const pinId = String(endpoint.pin);
+  if (owner === FREE_ENDPOINT_OWNER) return;
   if (owner === "junction") {
     const current = runtime.junctions.get(pinId) ?? disconnected();
     runtime.junctions.set(pinId, mergeState(current, value, endpoint.bits ?? 1));

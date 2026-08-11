@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { BUILTINS, TYPE, createProject, customFromRoot, instanceFor, normalizeProject } from "../src/model.js";
-import { Simulator, simulationScopeKey } from "../src/simulation.js";
+import { BUILTINS, FREE_ENDPOINT_OWNER, TYPE, createProject, customFromRoot, instanceFor, normalizeProject } from "../src/model.js";
+import { Simulator, disconnected, simulationScopeKey } from "../src/simulation.js";
 
 function addNandCircuit(aValue, bValue) {
   const project = createProject("test");
@@ -53,6 +53,23 @@ test("all reference built-ins can execute one simulation step", () => {
     project._revision = 1;
     assert.doesNotThrow(() => new Simulator(project).step(), name);
   }
+});
+
+test("free wire endpoints round-trip and remain electrically disconnected", () => {
+  const project = createProject("free-wire");
+  project.root.wires.push({
+    id: "free-wire",
+    source: { owner: FREE_ENDPOINT_OWNER, pin: "free-source", position: { x: -30, y: 10 }, direction: "passive" },
+    target: { owner: FREE_ENDPOINT_OWNER, pin: "free-target", position: { x: 30, y: 10 }, direction: "passive" },
+    points: []
+  });
+
+  const normalized = normalizeProject(JSON.parse(JSON.stringify(project)));
+  assert.deepEqual(normalized.root.wires[0].source.position, { x: -30, y: 10 });
+  assert.equal(normalized.root.wires[0].target.owner, FREE_ENDPOINT_OWNER);
+  const simulator = new Simulator(normalized);
+  assert.doesNotThrow(() => simulator.step());
+  assert.deepEqual(simulator.stateFor(normalized.root.wires[0].source), disconnected());
 });
 
 test("simulator exposes an evaluated step-zero snapshot and reset returns to it", () => {

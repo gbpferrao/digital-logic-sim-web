@@ -2,6 +2,7 @@ import appPackage from "../package.json";
 import "./styles.css";
 import {
   BUILTINS,
+  FREE_ENDPOINT_OWNER,
   GRID,
   TYPE,
   annotationPalette,
@@ -109,6 +110,7 @@ const state = {
   annotationDrag: null,
   annotationResize: null,
   wirePointDrag: null,
+  wireEndpointDrag: null,
   wireEdit: null,
   selectionBox: null,
   chipDrag: null,
@@ -511,6 +513,15 @@ function makeInstance(name, position) {
 
 function pinEndpointInfo(endpoint) {
   const owner = String(endpoint.owner);
+  if (owner === FREE_ENDPOINT_OWNER) {
+    const bits = Number(endpoint.bits);
+    return {
+      instance: null,
+      description: project.root,
+      pin: { id: String(endpoint.pin), bits: Number.isFinite(bits) && bits > 0 ? bits : null },
+      direction: ["input", "output", "passive"].includes(String(endpoint.direction)) ? String(endpoint.direction) : "passive"
+    };
+  }
   if (owner === "wire") {
     const wire = project.root.wires.find((item) => String(item.id) === String(endpoint.pin));
     const source = wire && pinEndpointInfo(wire.source);
@@ -535,17 +546,44 @@ function pinEndpointInfo(endpoint) {
   return instance && description && pin ? { instance, description, pin, direction: pin.direction } : null;
 }
 
+function isFreeEndpoint(endpoint) {
+  return String(endpoint?.owner) === FREE_ENDPOINT_OWNER;
+}
+
+function materializeFreeEndpoint(endpoint, direction, bits) {
+  if (!isFreeEndpoint(endpoint)) return endpoint;
+  return { ...endpoint, owner: FREE_ENDPOINT_OWNER, pin: String(endpoint.pin), direction, bits };
+}
+
 function canConnect(first, second) {
   const a = pinEndpointInfo(first);
   const b = pinEndpointInfo(second);
   if (!a || !b) return { ok: false, message: "This pin cannot be connected." };
   if (first.owner === second.owner && String(first.pin) === String(second.pin)) return { ok: false, message: "A pin cannot connect to itself." };
   if (String(first.owner) === "wire" && String(second.owner) === "wire") return { ok: false, message: "A wire cannot connect directly to another wire." };
-  if (first.owner === second.owner && !["root", "junction"].includes(String(first.owner))) return { ok: false, message: "A chip cannot connect directly to itself." };
-  if (a.pin.bits !== b.pin.bits) return { ok: false, message: `Bit width mismatch: ${a.pin.bits} bits and ${b.pin.bits} bits.` };
-  if (a.direction === b.direction) return { ok: false, message: "Connect an output pin to an input pin." };
-  const source = a.direction === "output" ? first : second;
-  const target = a.direction === "input" ? first : second;
+  if (first.owner === second.owner && !["root", "junction", FREE_ENDPOINT_OWNER].includes(String(first.owner))) return { ok: false, message: "A chip cannot connect directly to itself." };
+  if (a.pin.bits != null && b.pin.bits != null && a.pin.bits !== b.pin.bits) return { ok: false, message: `Bit width mismatch: ${a.pin.bits} bits and ${b.pin.bits} bits.` };
+  const aPassive = a.direction === "passive";
+  const bPassive = b.direction === "passive";
+  if (!aPassive && !bPassive && a.direction === b.direction) return { ok: false, message: "Connect an output pin to an input pin." };
+  let source;
+  let target;
+  if (aPassive && bPassive) {
+    source = first;
+    target = second;
+  } else if (aPassive) {
+    source = b.direction === "input" ? first : second;
+    target = b.direction === "input" ? second : first;
+  } else if (bPassive) {
+    source = a.direction === "input" ? second : first;
+    target = a.direction === "input" ? first : second;
+  } else {
+    source = a.direction === "output" ? first : second;
+    target = a.direction === "input" ? first : second;
+  }
+  const bits = a.pin.bits ?? b.pin.bits ?? 1;
+  source = materializeFreeEndpoint(source, "output", bits);
+  target = materializeFreeEndpoint(target, "input", bits);
   const duplicate = project.root.wires.some((wire) => wire.source.owner === source.owner && wire.source.pin === source.pin && wire.target.owner === target.owner && wire.target.pin === target.pin);
   if (duplicate) return { ok: false, message: "That connection already exists." };
   const aIsBus = a.instance && (isBusOrigin(a.instance.name) || isBusTerminus(a.instance.name));
@@ -558,7 +596,14 @@ function canConnect(first, second) {
 
 function serializableEndpoint(endpoint) {
   const result = { owner: String(endpoint.owner), pin: String(endpoint.pin) };
-  if (endpoint.junction) Object.assign(result, { junction: true, direction: endpoint.direction, bits: endpoint.bits });
+  if (isFreeEndpoint(endpoint)) {
+    result.position = {
+      x: Number.isFinite(Number(endpoint.position?.x)) ? Number(endpoint.position.x) : 0,
+      y: Number.isFinite(Number(endpoint.position?.y)) ? Number(endpoint.position.y) : 0
+    };
+    result.direction = ["input", "output", "passive"].includes(String(endpoint.direction)) ? String(endpoint.direction) : "passive";
+    if (Number.isFinite(Number(endpoint.bits)) && Number(endpoint.bits) > 0) result.bits = Number(endpoint.bits);
+  } else if (endpoint.junction) Object.assign(result, { junction: true, direction: endpoint.direction, bits: endpoint.bits });
   return result;
 }
 
@@ -568,7 +613,7 @@ function snap(point, input = state.pointer) {
 }
 
 function beginAnnotationPlacement(type = "text") {
-  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox) cancelTransientInteraction();
+  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox) cancelTransientInteraction();
   const width = type === "label" ? 180 : 280;
   const height = type === "label" ? 22 : 110;
   state.annotationPlacement = { type, width, height, position: { ...state.mouseWorld } };
@@ -633,7 +678,7 @@ function placeAnnotationAt(world) {
 function beginPlacement(name) {
   const description = getDescription(project, name);
   if (!description) return;
-  if (state.annotationPlacement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox) cancelTransientInteraction();
+  if (state.annotationPlacement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox) cancelTransientInteraction();
   state.placement = { mode: "new", name, description, rotation: 0, previewItems: [], validity: { valid: true, message: "" } };
   setTool("place");
   state.selectedIds.clear();
@@ -746,15 +791,47 @@ function clearSelection(message = null) {
   render();
 }
 
+function endpointKey(endpoint) {
+  return `${String(endpoint?.owner)}:${String(endpoint?.pin)}`;
+}
+
+function createFreeEndpoint(world, bits = null) {
+  const endpoint = {
+    owner: FREE_ENDPOINT_OWNER,
+    pin: uid("free"),
+    position: snap({ x: world.x, y: world.y }),
+    direction: "passive"
+  };
+  if (Number.isFinite(Number(bits)) && Number(bits) > 0) endpoint.bits = Number(bits);
+  return endpoint;
+}
+
+function orientedWirePoints(first, second, result) {
+  const points = clone(state.wirePoints);
+  return endpointKey(result.source) === endpointKey(first) && endpointKey(result.target) === endpointKey(second)
+    ? points
+    : points.reverse();
+}
+
 function startWire(endpoint) {
   if (state.wireEdit) exitWireEdit();
   setTool("wire");
-  state.wireStart = { ...endpoint, owner: String(endpoint.owner), pin: String(endpoint.pin) };
+  state.wireStart = {
+    ...endpoint,
+    owner: String(endpoint.owner),
+    pin: String(endpoint.pin),
+    ...(endpoint.position ? { position: { ...endpoint.position } } : {})
+  };
   state.wirePoints = [];
   state.wireTarget = null;
   state.wireTargetValid = null;
   setStatus(endpoint.wireConnection ? "Wire branch started." : "Wire started.");
   render();
+}
+
+function startFreeWire(world) {
+  startWire(createFreeEndpoint(world));
+  setStatus("Free wire started. Drag to a pin or another point.");
 }
 
 function completeWire(endpoint) {
@@ -769,7 +846,7 @@ function completeWire(endpoint) {
     return;
   }
   mutate("Wire connected.", () => {
-    project.root.wires.push({ id: uid("wire"), source: serializableEndpoint(result.source), target: serializableEndpoint(result.target), points: clone(state.wirePoints) });
+    project.root.wires.push({ id: uid("wire"), source: serializableEndpoint(result.source), target: serializableEndpoint(result.target), points: orientedWirePoints(state.wireStart, endpoint, result) });
   });
   finishWirePlacement();
 }
@@ -867,13 +944,13 @@ function completeWireToWire(wire, world) {
   if (!split) return;
   mutate("Wire branch connected.", () => {
     applyWireSplit(wire, split);
-    project.root.wires.push({ id: uid("wire"), source: serializableEndpoint(split.junctionEndpoint), target: serializableEndpoint(result.target), points: clone(state.wirePoints) });
+    project.root.wires.push({ id: uid("wire"), source: serializableEndpoint(split.junctionEndpoint), target: serializableEndpoint(result.target), points: orientedWirePoints(state.wireStart, endpoint, result) });
   });
   finishWirePlacement();
 }
 
 function cancelCanvasInteractionBeforeEdit() {
-  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.pan || state.zoomDrag || state.pointerSession) {
+  if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.pan || state.zoomDrag || state.pointerSession) {
     cancelTransientInteraction();
   }
 }
@@ -891,6 +968,7 @@ function enterWireEdit(wire) {
   state.wireTarget = null;
   selectWire(wire);
   state.wirePointDrag = null;
+  state.wireEndpointDrag = null;
   state.selectedWirePointKeys.clear();
   state.wireEdit = { wireId: wire.id, index: -1, before: null, moved: false };
   setStatus("Wire edit mode active.");
@@ -901,6 +979,7 @@ function exitWireEdit(restore = false) {
   if (!state.wireEdit) return;
   if (restore && state.wirePointDrag) restoreWirePointDrag();
   state.wirePointDrag = null;
+  state.wireEndpointDrag = null;
   if (restore && state.wireEdit.before) {
     const wire = project.root.wires.find((item) => item.id === state.wireEdit.wireId);
     const beforeWire = state.wireEdit.before.root?.wires?.find((item) => item.id === state.wireEdit.wireId);
@@ -993,6 +1072,56 @@ function applyWirePointDrag(world, event) {
   if (Math.hypot(delta.x, delta.y) > 1) state.wirePointDrag.moved = true;
 }
 
+function startWireEndpointDrag(hit, world) {
+  const wire = hit?.wire;
+  const side = hit?.side;
+  if (!wire || !["source", "target"].includes(side) || !isFreeEndpoint(wire[side])) return;
+  if (state.wireEdit && String(state.wireEdit.wireId) !== String(wire.id)) exitWireEdit();
+  selectWire(wire);
+  state.selectedWirePointKeys.clear();
+  const startPosition = {
+    ...(wire[side].position ?? hit.position ?? { x: world.x, y: world.y })
+  };
+  const before = clone(project);
+  delete before._revision;
+  state.wireEndpointDrag = {
+    wireId: String(wire.id),
+    side,
+    world: { ...world },
+    startPosition,
+    before,
+    moved: false,
+    straightAxis: null
+  };
+}
+
+function restoreWireEndpointDrag() {
+  if (!state.wireEndpointDrag) return;
+  const wire = project.root.wires.find((item) => String(item.id) === state.wireEndpointDrag.wireId);
+  const endpoint = wire?.[state.wireEndpointDrag.side];
+  if (!endpoint) return;
+  endpoint.position = { ...state.wireEndpointDrag.startPosition };
+  renderer.invalidateGeometry?.();
+}
+
+function applyWireEndpointDrag(world, event) {
+  if (!state.wireEndpointDrag) return;
+  const drag = state.wireEndpointDrag;
+  const wire = project.root.wires.find((item) => String(item.id) === drag.wireId);
+  const endpoint = wire?.[drag.side];
+  if (!wire || !endpoint || !isFreeEndpoint(endpoint)) return;
+  const points = renderer.wirePoints(project, wire);
+  const reference = drag.side === "source" ? points[1] : points[points.length - 2];
+  const desired = {
+    x: drag.startPosition.x + world.x - drag.world.x,
+    y: drag.startPosition.y + world.y - drag.world.y
+  };
+  const constrained = forceStraight(desired, reference ?? drag.startPosition, event);
+  endpoint.position = snap(constrained, event);
+  if (Math.hypot(endpoint.position.x - drag.startPosition.x, endpoint.position.y - drag.startPosition.y) > 1) drag.moved = true;
+  renderer.invalidateGeometry?.();
+}
+
 function deleteWireEditPoint(index = null) {
   if (!state.wireEdit) return false;
   const wire = project.root.wires.find((item) => item.id === state.wireEdit.wireId);
@@ -1025,10 +1154,12 @@ function cancelActiveCanvasPointerSession({ renderState = true } = {}) {
   if (state.annotationDrag) restoreAnnotationDrag();
   if (state.annotationResize) restoreAnnotationResize();
   if (state.wirePointDrag) restoreWirePointDrag();
+  if (state.wireEndpointDrag) restoreWireEndpointDrag();
   state.drag = null;
   state.annotationDrag = null;
   state.annotationResize = null;
   state.wirePointDrag = null;
+  state.wireEndpointDrag = null;
   state.selectionBox = null;
   state.pan = null;
   state.zoomDrag = null;
@@ -1528,6 +1659,7 @@ function enterCustomView(instance) {
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
   state.wireEdit = null;
   state.wirePointDrag = null;
+  state.wireEndpointDrag = null;
   $("#app").classList.remove("library-open", "inspector-open");
   restoreCamera(viewKey());
   setStatus(`Editing ${description.name}.`);
@@ -1549,6 +1681,7 @@ function exitCustomView() {
  simulator.syncProject(project);
   simulationController.resetBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
+  state.wireEndpointDrag = null;
   restoreCamera(frame.parentViewKey || viewKey());
   setStatus(`Returned to ${frame.name}.`);
   render();
@@ -1740,6 +1873,7 @@ function resetEditorStateForProject() {
   state.annotationDrag = null;
   state.annotationResize = null;
   state.wirePointDrag = null;
+  state.wireEndpointDrag = null;
   state.selectionBox = null;
   state.chipDrag = null;
   state.lastChipDragAt = 0;
@@ -1880,7 +2014,7 @@ function updateCanvasInspectButton() {
     ? project.root.instances.find((item) => state.selectedIds.has(String(item.id)))
     : null;
   const description = instance && descriptorForInstance(project, instance);
-  const blocked = state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox;
+  const blocked = state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox;
   if (!instance || !description || blocked) {
     button.classList.add("hidden");
     return;
@@ -2182,6 +2316,8 @@ function canvasHitTarget(world) {
       const point = renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
       if (point) return { kind: "wire-point", value: point };
     }
+    const wireEndpoint = renderer.findWireEndpoint(project, world, 12);
+    if (wireEndpoint) return { kind: "wire-end", value: wireEndpoint };
     const pin = renderer.findPin(project, world);
     if (pin) return { kind: "pin", value: pin };
     const junction = renderer.findJunction(project, world);
@@ -2199,6 +2335,7 @@ function canvasHitTarget(world) {
 function hoverFromHit(hit) {
   if (hit.kind === "annotation-resize") return { kind: "annotation-resize", id: String(hit.value.id) };
   if (hit.kind === "wire-point") return { kind: "wire-point", wireId: String(hit.value.wire.id), index: hit.value.index };
+  if (hit.kind === "wire-end") return { kind: "wire-end", wireId: String(hit.value.wire.id), side: hit.value.side };
   if (hit.kind === "pin") return { kind: "pin", owner: String(hit.value.owner), pin: String(hit.value.pin) };
   if (hit.kind === "junction") return { kind: "junction", id: String(hit.value.pin) };
   if (hit.kind === "annotation") return { kind: "annotation", id: String(hit.value.id) };
@@ -2213,7 +2350,8 @@ function sameHoverTarget(left, right) {
     && left?.owner === right?.owner
     && left?.pin === right?.pin
     && left?.wireId === right?.wireId
-    && left?.index === right?.index;
+    && left?.index === right?.index
+    && left?.side === right?.side;
 }
 
 function sameHoverTooltip(left, right) {
@@ -2296,7 +2434,7 @@ function handlePointerDown(event) {
       beginCanvasPointer(event, "zoom", { originWorld: world });
       return;
     }
-    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit || state.selectionBox) {
+    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox) {
       cancelTransientInteraction();
       state.suppressContextMenu = true;
       return;
@@ -2337,6 +2475,11 @@ function handlePointerDown(event) {
     beginCanvasPointer(event, hit.kind === "empty" ? "wire-route-press" : "wire-target-press", { originWorld: world, target: hit.value });
     return;
   }
+  if (hit.kind === "wire-end") {
+    beginCanvasPointer(event, "wire-end-press", { originWorld: world, target: hit.value });
+    startWireEndpointDrag(hit.value, world);
+    return;
+  }
   if (hit.kind === "wire-point") {
     const point = hit.value;
     const key = wirePointKey(point.wire.id, point.index);
@@ -2373,7 +2516,8 @@ function handlePointerDown(event) {
       }
       return;
     }
-    setStatus("Wire tool active.");
+    beginCanvasPointer(event, "wire-free-start-press", { originWorld: world });
+    startFreeWire(world);
     return;
   }
   if (hit.kind === "annotation") {
@@ -2427,7 +2571,7 @@ function handlePointerDown(event) {
 function handlePointerMove(event) {
   if (!ownsCanvasPointer(event)) return;
   updatePointerModifiers(event);
-  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag) renderer.invalidateGeometry?.();
+  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireEndpointDrag) renderer.invalidateGeometry?.();
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
   state.mouseScreen = { ...screen };
   const session = state.pointerSession;
@@ -2442,6 +2586,8 @@ function handlePointerMove(event) {
     } else if (session.kind === "wire-point-press") {
       startWirePointDrag(session.target, session.originWorld);
       session.kind = "wire-point-drag";
+    } else if (session.kind === "wire-end-press") {
+      session.kind = "wire-end-drag";
     } else if (session.kind === "annotation-resize-press") {
       session.kind = "annotation-resize";
     } else if (session.kind === "empty-press") {
@@ -2492,6 +2638,10 @@ function handlePointerMove(event) {
     applyWirePointDrag(world, event);
     scheduleCanvasRender(); return;
   }
+  if (state.wireEndpointDrag && (!session || session.moved)) {
+    applyWireEndpointDrag(world, event);
+    scheduleCanvasRender(); return;
+  }
   if (state.selectionBox) {
     state.selectionBox.current = { ...world };
     scheduleCanvasRender(); return;
@@ -2537,12 +2687,14 @@ function handlePointerUp(event) {
     render();
     return;
   }
-  if (state.wireStart && ["wire-start-press", "wire-target-press", "wire-route-press"].includes(session.kind)) {
+  if (state.wireStart && ["wire-start-press", "wire-target-press", "wire-route-press", "wire-free-start-press"].includes(session.kind)) {
     const target = wireTargetAt(world);
     state.wireTarget = target.endpoint;
     if (target.endpoint) {
       if (target.wire) completeWireToWire(target.wire, world);
       else completeWire(target.endpoint);
+    } else if (session.kind === "wire-free-start-press" && session.moved) {
+      completeWire(createFreeEndpoint(world, state.wireStart.bits));
     } else if (session.kind === "wire-route-press") {
       const start = state.wirePoints.at(-1) ?? renderer.endpointPosition(project, state.wireStart);
       state.wirePoints.push(snap(forceStraight(world, start, event), event));
@@ -2554,6 +2706,17 @@ function handlePointerUp(event) {
       state.wireTargetValid = null;
       setStatus("Wire remains active.");
     }
+    finishPointer();
+    render();
+    return;
+  }
+  if (state.wireEndpointDrag) {
+    if (state.wireEndpointDrag.moved) {
+      state.undo.push(state.wireEndpointDrag.before);
+      state.redo.length = 0;
+      touch("Loose wire endpoint moved.");
+    }
+    state.wireEndpointDrag = null;
     finishPointer();
     render();
     return;
@@ -2658,7 +2821,7 @@ function handleKeyDown(event) {
     if (state.pendingInputToggle) cancelPendingInputToggle();
     if (!$("#help-modal").classList.contains("hidden")) { closeHelp(); return; }
     if (!$("#context-menu").classList.contains("hidden")) { hideContextMenu(); return; }
-    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.chipDrag || state.annotationToolDrag || state.pan || state.zoomDrag || state.pointerSession) {
+    if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireEndpointDrag || state.wireStart || state.wireEdit || state.selectionBox || state.chipDrag || state.annotationToolDrag || state.pan || state.zoomDrag || state.pointerSession) {
       cancelTransientInteraction();
       return;
     }
@@ -2816,8 +2979,8 @@ $("#bottom-save-chip").addEventListener("click", () => { closeBottomMenu(); crea
 $("#bottom-xray").addEventListener("click", () => { closeBottomMenu(); toggleXray(); });
 $("#bottom-export").addEventListener("click", () => { closeBottomMenu(); downloadProject(project); notify("Project JSON exported."); });
 $("#bottom-import").addEventListener("click", () => { closeBottomMenu(); $("#import-file").click(); });
-$("#select-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("select", "Select tool active."); render(); });
-$("#wire-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("wire", "Wire tool active."); render(); });
+$("#select-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("select", "Select tool active."); render(); });
+$("#wire-tool").addEventListener("click", () => { if (state.annotationPlacement || state.placement || state.drag || state.annotationDrag || state.annotationResize || state.wireEndpointDrag || state.wireStart || state.wireEdit) cancelTransientInteraction(); setTool("wire", "Wire tool active."); render(); });
 $("#xray-toggle").addEventListener("click", toggleXray);
 document.querySelectorAll("[data-annotation-tool]").forEach((button) => {
   button.addEventListener("pointerdown", beginAnnotationToolDrag);
@@ -2961,7 +3124,7 @@ canvas.addEventListener("lostpointercapture", () => {
   if (state.pointerSession) cancelActiveCanvasPointerSession();
 });
 canvas.addEventListener("pointerleave", () => {
-  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.selectionBox || state.wireStart) return;
+  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.wireEndpointDrag || state.selectionBox || state.wireStart) return;
   state.hoverPointerActive = false;
   cancelPendingHoverResolution();
   state.hover = null;
