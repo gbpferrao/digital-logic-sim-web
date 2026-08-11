@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canvasStroke, isMinorGridVisible, wireStroke } from "../src/renderer.js";
+import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke } from "../src/renderer.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
   assert.equal(canvasStroke(1, 1), 2);
@@ -20,4 +20,11 @@ test("minor grid lines disappear once their screen spacing becomes cramped", () 
   assert.equal(isMinorGridVisible(.4), true);
   assert.equal(isMinorGridVisible(.39), false);
   assert.equal(isMinorGridVisible(.1), false);
+});
+
+test("camera zoom supports very large worlds without dropping below the safe floor", () => {
+  assert.equal(MIN_ZOOM, .001);
+  assert.equal(clampZoom(.00001), MIN_ZOOM);
+  assert.equal(clampZoom(100), 8);
+  assert.ok(adaptiveGridStep(.001) * .001 >= 8);
 });

@@ -33,10 +33,24 @@ const XRAY_MAX_WIRES = 240;
 const CANVAS_STROKE_SCALE = 2;
 const CANVAS_WIRE_SCALE = .75;
 const MIN_VIEWPORT_STROKE = 1;
+export const MIN_ZOOM = .001;
+export const MAX_ZOOM = 8;
 export const GRID_MINOR_MIN_SCREEN_SPACING = 8;
 
 export function isMinorGridVisible(zoom = 1) {
   return Number(zoom) * GRID >= GRID_MINOR_MIN_SCREEN_SPACING;
+}
+
+export function clampZoom(zoom = 1) {
+  const value = Number(zoom);
+  return Number.isFinite(value) ? Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value)) : 1;
+}
+
+export function adaptiveGridStep(zoom = 1) {
+  const safeZoom = clampZoom(zoom);
+  let step = GRID;
+  while (step * safeZoom < GRID_MINOR_MIN_SCREEN_SPACING) step *= 5;
+  return step;
 }
 
 function rgba(hex, alpha = 1) {
@@ -64,7 +78,7 @@ function signalColour(signal, { high = "#7df2a8", low = "#7b858f", floating = "#
 // stroke when zoomed far out.
 function worldStroke(width, zoom = 1) {
   const safeWidth = Number.isFinite(Number(width)) ? Math.max(0, Number(width)) : 0;
-  const safeZoom = Number.isFinite(Number(zoom)) ? Math.max(.1, Number(zoom)) : 1;
+  const safeZoom = clampZoom(zoom);
   return Math.max(safeWidth, MIN_VIEWPORT_STROKE / safeZoom);
 }
 
@@ -239,7 +253,7 @@ export class WorldRenderer {
   }
 
   worldViewport(padding = 48) {
-    const zoom = Math.max(.1, this.camera.zoom);
+    const zoom = clampZoom(this.camera.zoom);
     const margin = padding / zoom;
     return {
       x: this.camera.x - this.width / zoom / 2 - margin,
@@ -301,16 +315,18 @@ export class WorldRenderer {
   }
 
   toWorld(screenX, screenY) {
-    return { x: (screenX - this.width / 2) / this.camera.zoom + this.camera.x, y: (screenY - this.height / 2) / this.camera.zoom + this.camera.y };
+    const zoom = clampZoom(this.camera.zoom);
+    return { x: (screenX - this.width / 2) / zoom + this.camera.x, y: (screenY - this.height / 2) / zoom + this.camera.y };
   }
 
   toScreen(world) {
-    return { x: (world.x - this.camera.x) * this.camera.zoom + this.width / 2, y: (world.y - this.camera.y) * this.camera.zoom + this.height / 2 };
+    const zoom = clampZoom(this.camera.zoom);
+    return { x: (world.x - this.camera.x) * zoom + this.width / 2, y: (world.y - this.camera.y) * zoom + this.height / 2 };
   }
 
   zoomAt(screenX, screenY, factor) {
     const before = this.toWorld(screenX, screenY);
-    this.camera.zoom = Math.max(0.1, Math.min(8, this.camera.zoom * factor));
+    this.camera.zoom = clampZoom(this.camera.zoom * factor);
     const after = this.toWorld(screenX, screenY);
     this.camera.x += before.x - after.x;
     this.camera.y += before.y - after.y;
@@ -333,7 +349,7 @@ export class WorldRenderer {
     const maxY = Math.max(...boxes.map((b) => b.y + b.h), ...interfacePoints.map((p) => p.y + 20));
     const w = Math.max(100, maxX - minX);
     const h = Math.max(100, maxY - minY);
-    this.camera = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, zoom: Math.min((this.width - margin) / w, (this.height - margin) / h, 1.4) };
+    this.camera = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, zoom: clampZoom(Math.min((this.width - margin) / w, (this.height - margin) / h, 1.4)) };
   }
 
   drawEmptyState(ctx, zoom = this.camera.zoom) {
@@ -377,6 +393,7 @@ export class WorldRenderer {
     this.lastSimulator = simulator;
     this.lastState = editorState;
     if (!project || !this.ctx) return;
+    this.camera.zoom = clampZoom(this.camera.zoom);
     if (editorState.drag || editorState.annotationDrag || editorState.annotationResize || editorState.wirePointDrag) this.invalidateGeometry();
     const geometry = this.geometryFor(project);
     const viewport = this.worldViewport();
@@ -410,25 +427,28 @@ export class WorldRenderer {
 
   drawGrid(ctx, visible) {
     if (!visible) return;
-    const left = this.camera.x - this.width / this.camera.zoom / 2 - GRID;
-    const right = this.camera.x + this.width / this.camera.zoom / 2 + GRID;
-    const top = this.camera.y - this.height / this.camera.zoom / 2 - GRID;
-    const bottom = this.camera.y + this.height / this.camera.zoom / 2 + GRID;
-    const startX = Math.floor(left / GRID) * GRID;
-    const startY = Math.floor(top / GRID) * GRID;
-    ctx.lineWidth = 1 / this.camera.zoom;
-    const minorVisible = isMinorGridVisible(this.camera.zoom);
+    const zoom = clampZoom(this.camera.zoom);
+    const gridStep = adaptiveGridStep(zoom);
+    const left = this.camera.x - this.width / zoom / 2 - gridStep;
+    const right = this.camera.x + this.width / zoom / 2 + gridStep;
+    const top = this.camera.y - this.height / zoom / 2 - gridStep;
+    const bottom = this.camera.y + this.height / zoom / 2 + gridStep;
+    const startX = Math.floor(left / gridStep) * gridStep;
+    const startY = Math.floor(top / gridStep) * gridStep;
+    const majorStep = gridStep * 5;
+    ctx.lineWidth = 1 / zoom;
+    const minorVisible = isMinorGridVisible(zoom);
     // Once the smaller grid fades out, keep the remaining macro grid quiet
     // instead of leaving a single, unexpectedly prominent grid level.
     const macroColour = minorVisible ? GRID_COLOURS.highlight : GRID_COLOURS.line;
-    for (let x = startX; x <= right; x += GRID) {
-      const major = Math.round(x / GRID) % 5 === 0;
+    for (let x = startX; x <= right; x += gridStep) {
+      const major = Math.round(x / majorStep) * majorStep === x;
       if (!major && !minorVisible) continue;
       ctx.strokeStyle = major ? macroColour : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
     }
-    for (let y = startY; y <= bottom; y += GRID) {
-      const major = Math.round(y / GRID) % 5 === 0;
+    for (let y = startY; y <= bottom; y += gridStep) {
+      const major = Math.round(y / majorStep) * majorStep === y;
       if (!major && !minorVisible) continue;
       ctx.strokeStyle = major ? macroColour : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
@@ -784,7 +804,16 @@ export class WorldRenderer {
       this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")], [...signalScope, String(instance.id)]);
     }
     const displayLabel = ["led", "sevenSegment", "dot", "rgb"].includes(description.special);
-    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered || selected, displayLabel ? "top" : "center");
+    const nestedComposite = description.kind === "custom" && (description.instances ?? []).length > 0;
+    const caption = instance.label || description.name;
+    this.drawChipCaption(
+      ctx,
+      caption,
+      labelBounds.x,
+      labelBounds.y,
+      hovered || selected,
+      nestedComposite ? "top-left" : displayLabel ? "top" : "center"
+    );
     ctx.restore();
     if (selected || hovered || invalid) {
       ctx.save();
@@ -975,14 +1004,16 @@ export class WorldRenderer {
     ctx.save();
     ctx.globalAlpha = hovered ? 1 : .36;
     ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
+    const topLeft = placement === "top-left";
+    ctx.textAlign = topLeft ? "left" : "center";
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 0, 0, .65)";
     ctx.shadowBlur = 2;
-    const firstLineY = placement === "top"
+    const firstLineY = placement === "top" || topLeft
       ? -height / 2 + 5 + lineHeight / 2
       : -((lines.length - 1) * lineHeight) / 2;
-    lines.forEach((line, index) => ctx.fillText(line, 0, firstLineY + index * lineHeight));
+    const firstLineX = topLeft ? -width / 2 + 7 : 0;
+    lines.forEach((line, index) => ctx.fillText(line, firstLineX, firstLineY + index * lineHeight));
     ctx.restore();
   }
 

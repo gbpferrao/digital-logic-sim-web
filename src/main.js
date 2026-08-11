@@ -150,6 +150,13 @@ function toggleCollectionPopup(name, anchor = null) { libraryController?.toggleC
 function updateChipDragPreview(event) { libraryController?.updateChipDragPreview(event); }
 function finishChipDrag(event, cancelled = false) { libraryController?.finishChipDrag(event, cancelled); }
 
+function formatZoomReadout(zoom) {
+  const percentage = Math.max(0, Number(zoom) || 0) * 100;
+  if (percentage >= 10) return `${Math.round(percentage)}%`;
+  if (percentage >= 1) return `${percentage.toFixed(1)}%`;
+  return `${percentage.toFixed(2)}%`;
+}
+
 const GRID_STEP = 10;
 
 function isMultiMode(input = state.pointer) {
@@ -1942,7 +1949,7 @@ function renderCanvasFrame({ simulation = false, coordinates = true } = {}) {
   performanceDiagnostics.measure("renderer.draw", () => renderer.draw(project, visibleSimulator, state));
   updateCanvasInspectButton();
   if (coordinates) {
-    $("#zoom-readout").textContent = `${Math.round(renderer.camera.zoom * 100)}%`;
+    $("#zoom-readout").textContent = formatZoomReadout(renderer.camera.zoom);
     $("#coordinate-readout").textContent = `${Math.round(state.mouseWorld.x)}, ${Math.round(state.mouseWorld.y)}`;
   }
   if (simulation) {
