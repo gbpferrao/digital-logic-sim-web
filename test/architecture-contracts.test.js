@@ -147,7 +147,7 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   assert.match(renderer, /path\.includes\(identity\)/);
 });
 
-test("direct signal tweaks use a non-recording causal preview track", async () => {
+test("direct signal tweaks preview while idle and append during an open bake", async () => {
   const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
   const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");
   const preview = await readFile(path.join(process.cwd(), "src", "simulation-preview.js"), "utf8");
@@ -156,6 +156,7 @@ test("direct signal tweaks use a non-recording causal preview track", async () =
   assert.match(main, /simulationController = createSimulationController\(/);
   assert.match(main, /const visibleSimulator = state\.preview\?\.simulator \?\? simulator/);
   assert.match(controller, /function startCausalPreview\(message, source = null, interaction = null\)/);
+  assert.match(controller, /if \(state\.bake\.isBaking && interaction\)/);
   assert.match(controller, /const sourceSnapshot = source\?\.snapshot \?\? previewSimulator\.snapshot/);
   assert.match(toggleInput, /simulationController\.startCausalPreview/);
   assert.match(toggleInput, /const sourceSimulator = state\.preview\?\.simulator \?\? simulator/);

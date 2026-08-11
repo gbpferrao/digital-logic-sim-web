@@ -472,6 +472,15 @@ export function createSimulationController({
   function startCausalPreview(message, source = null, interaction = null) {
     const currentProject = project();
     const currentSimulator = simulator();
+    if (state.bake.isBaking && interaction) {
+      const recorded = recordInteraction({
+        ...interaction,
+        step: interaction.step ?? currentSimulator.stepCount
+      });
+      setStatus(`${message}; interaction recorded at step ${recorded.step}.`);
+      render();
+      return recorded;
+    }
     const previewSimulator = state.preview?.simulator ?? currentSimulator;
     const sourceSnapshot = source?.snapshot ?? previewSimulator.snapshot;
     const sourceStep = source?.step ?? previewSimulator.stepCount;

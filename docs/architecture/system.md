@@ -229,7 +229,7 @@ lanes so they do not pay that full-render cost.
 2. The controller syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, records one compact engine/propagation trace event, and records the exact execution head in the open bake.
 3. Only visually meaningful snapshots become bake checkpoints: the signature follows connected signal flow and visible displays, so isolated oscillators and unused pins do not inflate or prolong the bake.
 4. A stability window closes finite bakes automatically; if no checkpoint appears beyond evaluated step zero, the controller canonicalizes the ready bake back to step zero. Stop closes indefinite bakes manually.
-5. Paused scrubbing restores a checkpoint, and the editable step field plus visible-step controls navigate only the current bake. Direct input/key tweaks use a cloned non-recording preview; their semantic actions are carried into the next Bake or Step, which commits a new official timeline and trace.
+5. Paused scrubbing restores a checkpoint, and the editable step field plus visible-step controls navigate only the current bake. Idle/ready direct input/key tweaks use a cloned non-recording preview; when a bake is open, the same semantic action is appended at the current step and the next official tick continues the existing timeline and trace.
 
 The runtime is separated from the UI by three seams: `simulation.js` owns signal/runtime semantics, `simulation-timeline.js` owns recorded history, and `simulation-controller.js` owns browser-facing lifecycle policy. `main.js` supplies rendering, status, audio, and persistence callbacks.
 

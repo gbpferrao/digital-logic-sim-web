@@ -8,6 +8,9 @@ behavior:
 - [`simulation-bake.md`](simulation-bake.md) describes the simulation history
   contract consumed by baking, stepping, relevant-step navigation, and
   scrubbing.
+- [`recording-mechanism.md`](recording-mechanism.md) follows the recording
+  data flow through official ticks, snapshots, trace events, previews,
+  branching, bounds, and current gaps.
 - [`xray.md`](xray.md) describes the bounded recursive view of composite-chip
   internals.
 - [`performance.md`](performance.md) records the browser performance plan and

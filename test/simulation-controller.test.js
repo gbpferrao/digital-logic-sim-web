@@ -93,3 +93,42 @@ test("controller records semantic actions, engine ticks, propagation counts, and
 
   assert.ok(state.bake.interactions.some((event) => event.kind === "input-change"));
 });
+
+test("live interactions are recorded inside an open bake without stopping it", () => {
+  const { project, simulator, state, controller } = createFixtureController();
+
+  controller.startBake();
+  if (state.simTimer !== null) {
+    clearTimeout(state.simTimer);
+    state.simTimer = null;
+  }
+  controller.runStep({ renderFrame: false, playAudio: false });
+  const stepBeforeInteraction = simulator.stepCount;
+  const frameCountBeforeInteraction = state.bake.length;
+  const traceCountBeforeInteraction = state.bake.traceEvents.length;
+  project.inputValues[Object.keys(project.inputValues)[0]] = 0;
+
+  controller.startCausalPreview(
+    "input changed",
+    { snapshot: simulator.snapshot, step: simulator.stepCount },
+    { kind: "input-change", source: "canvas", target: "input-1", before: 1, after: 0 }
+  );
+
+  assert.equal(state.simRunning, true);
+  assert.equal(state.bake.isBaking, true);
+  assert.equal(state.preview, null);
+  assert.equal(simulator.stepCount, stepBeforeInteraction);
+  assert.equal(state.bake.length, frameCountBeforeInteraction);
+  assert.equal(state.bake.traceEvents.length, traceCountBeforeInteraction);
+  assert.equal(state.bake.interactions.at(-1).kind, "input-change");
+  assert.equal(state.bake.interactions.at(-1).step, stepBeforeInteraction);
+
+  controller.runStep({ renderFrame: false, playAudio: false });
+  assert.equal(simulator.stepCount, stepBeforeInteraction + 1);
+  assert.equal(state.bake.traceEvents.length, traceCountBeforeInteraction + 1);
+  assert.equal(state.bake.traceEvents.at(-1).kind, "engine-tick");
+  assert.ok(state.bake.traceEvents.at(-1).propagations > 0);
+  assert.equal(state.bake.isBaking, true);
+
+  controller.finishBake("manual");
+});

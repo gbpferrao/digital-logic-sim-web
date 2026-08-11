@@ -103,15 +103,25 @@ secondary status bar.
 
 ## Causal preview contract
 
-Changing an input device or key interaction captures the pre-change simulator
-snapshot, clears the official bake, and starts a cloned `SimulationPreview`.
-The renderer temporarily reads that cloned simulator so the user can watch
-the consequence settle. Starting Bake or Step clears the preview and returns
-the viewport to the official simulator before recording.
+When no official bake is open, changing an input device or key interaction
+captures the pre-change simulator snapshot, clears any old official bake, and
+starts a cloned `SimulationPreview`. The renderer temporarily reads that
+cloned simulator so the user can watch the consequence settle. Starting Bake
+or Step clears the preview and returns the viewport to the official simulator
+before recording.
 
-This preview is intentionally separate from baking: it is immediate,
-non-recording feedback for a tweak, while a bake is an explicit, navigable,
-user-committed history.
+When an official bake is already open, the same interaction is recorded
+directly in the active bake at the current exact execution step. It does not
+start a preview, clear the checkpoint rail, or stop the simulation timer. The
+changed input/key value is consumed by the next official tick, which records
+its normal engine trace, propagation diagnostics, and snapshot. This keeps a
+single recording continuous while retaining the semantic action that caused
+the next tick.
+
+The preview is therefore intentionally separate from an active bake: it is
+immediate, non-recording feedback for an idle/ready tweak, while an open bake
+is explicit, navigable, user-committed history that can include live input/key
+events.
 
 ## Automatic completion
 

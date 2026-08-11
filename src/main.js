@@ -1006,9 +1006,14 @@ function deleteWireEditPoint(index = null) {
   if (!indexes.length) return false;
   mutate(`Wire route point${indexes.length === 1 ? "" : "s"} deleted.`, () => {
     for (const pointIndex of indexes) wire.points.splice(pointIndex, 1);
+    // Deletion changes the route while wire edit mode is still active. Force
+    // the next canvas frame to use the shortened path immediately.
+    renderer.invalidateGeometry();
   });
   state.wireEdit = { wireId: wire.id, index: -1, before: null, moved: false };
   state.selectedWirePointKeys.clear();
+  updateCanvasHover(state.mouseWorld, state.mouseScreen);
+  renderer.invalidateGeometry();
   render();
   return true;
 }
