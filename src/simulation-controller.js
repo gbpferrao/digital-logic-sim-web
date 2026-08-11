@@ -1,10 +1,12 @@
 import { descriptorForInstance } from "./model.js";
 import { PIN_MASK } from "./simulation.js";
-import { SimulationBake, createTimelineFrame } from "./simulation-timeline.js";
+import { DEFAULT_BAKE_MAX_INTERACTIONS, SimulationBake, createTimelineFrame } from "./simulation-timeline.js";
 import { SimulationPreview } from "./simulation-preview.js";
+import { summarizeSnapshotChanges } from "./simulation-trace.js";
 
 const identityMeasure = (_label, action) => action();
 const noop = () => {};
+export const DEFAULT_BAKE_MAX_TICKS = 4096;
 
 /**
  * Coordinates the browser-facing simulation lifecycle.
@@ -33,6 +35,7 @@ export function createSimulationController({
 
   const state = getState();
   if (!state?.bake) throw new TypeError("Simulation controller needs a SimulationBake in state.");
+  let pendingInteractions = [];
 
   function project() { return getProject(); }
   function simulator() { return getSimulator(); }
@@ -146,29 +149,33 @@ export function createSimulationController({
     return JSON.stringify({ signals, displays });
   }
 
-  function simulationFrame(snapshot = simulator().snapshot) {
+  function simulationFrame(snapshot = simulator().snapshot, metadata = {}) {
     return createTimelineFrame({
       step: simulator().stepCount,
       snapshot,
-      signature: measure("simulation.signature", () => visualSignature(snapshot))
+      signature: measure("simulation.signature", () => visualSignature(snapshot)),
+      ...metadata
     });
   }
 
-  function beginBake() {
+  function beginBake(source = "simulation") {
     clearPreview();
     const currentProject = project();
     const currentSimulator = simulator();
     currentSimulator.syncProject(currentProject);
     currentSimulator.reset();
-    const frame = simulationFrame();
+    const frame = simulationFrame(undefined, { cause: "initial", source: "bake" });
     state.bake.begin(frame, { stabilityWindow: stabilityWindow() });
+    for (const interaction of pendingInteractions) state.bake.recordInteraction(interaction);
+    pendingInteractions = [];
+    state.bake.recordInteraction({ kind: "bake-start", source, step: currentSimulator.stepCount });
     state.stepCount = currentSimulator.stepCount;
     currentProject._simSnapshot = currentSimulator.snapshot;
     return frame;
   }
 
-  function ensureBake() {
-    if (!state.bake.hasBake) beginBake();
+  function ensureBake(source = "step-control") {
+    if (!state.bake.hasBake) beginBake(source);
     state.stepCount = simulator().stepCount;
   }
 
@@ -178,9 +185,13 @@ export function createSimulationController({
     const currentSimulator = simulator();
     currentSimulator.syncProject(currentProject);
     currentSimulator.reset();
-    const frame = simulationFrame();
+    const frame = simulationFrame(undefined, { cause: "initial", source: "reset" });
     state.bake.clear();
-    if (state.simRunning) state.bake.begin(frame, { stabilityWindow: stabilityWindow() });
+    if (state.simRunning) {
+      state.bake.begin(frame, { stabilityWindow: stabilityWindow() });
+      state.bake.recordInteraction({ kind: "bake-start", source: "structural-reset", step: currentSimulator.stepCount });
+    }
+    pendingInteractions = [];
     state.stepCount = currentSimulator.stepCount;
     currentProject._simSnapshot = currentSimulator.snapshot;
   }
@@ -213,17 +224,40 @@ export function createSimulationController({
     resetBake();
   }
 
-  function recordFrame({ visible = null } = {}) {
+  function recordFrame({ beforeSnapshot = null, cause = "tick", source = "simulation", visible = null } = {}) {
     if (!state.bake.isBaking) return null;
     const currentSimulator = simulator();
-    const frame = simulationFrame();
+    const frame = simulationFrame(undefined, { cause, source, visible: true });
     const previous = state.bake.executionFrame;
     const isVisible = visible == null
       ? !previous || frame.signature !== (previous.signature || visualSignature(previous.snapshot))
-      : visible;
+      : Boolean(visible);
+    const summary = summarizeSnapshotChanges(beforeSnapshot, frame.snapshot);
+    const trace = state.bake.recordTrace({
+      kind: "engine-tick",
+      source,
+      cause,
+      step: frame.step,
+      visible: isVisible,
+      ...summary,
+      ...currentSimulator.diagnostics
+    });
+    frame.visible = isVisible;
+    frame.traceStart = trace.sequence;
+    frame.traceEnd = trace.sequence;
     state.bake.record(frame, { visible: isVisible });
     state.stepCount = currentSimulator.stepCount;
     return frame;
+  }
+
+  function recordInteraction(event = {}) {
+    const next = { ...event, step: event.step == null ? simulator().stepCount : event.step };
+    if (state.bake.hasBake) return state.bake.recordInteraction(next);
+    pendingInteractions.push(next);
+    if (pendingInteractions.length > DEFAULT_BAKE_MAX_INTERACTIONS) {
+      pendingInteractions.splice(0, pendingInteractions.length - DEFAULT_BAKE_MAX_INTERACTIONS);
+    }
+    return next;
   }
 
   function syncStepCount() {
@@ -283,6 +317,8 @@ export function createSimulationController({
     const renderFrame = !options || typeof options !== "object" || options.renderFrame !== false;
     const playAudioFrame = !options || typeof options !== "object" || options.playAudio !== false;
     const record = !options || typeof options !== "object" || options.recordFrame !== false;
+    const source = options?.source || (state.simRunning ? "timer" : "step-control");
+    const cause = options?.cause || (state.simRunning ? "timer-tick" : "manual-step");
     clearPreview();
     if (state.bake.isReady && !state.simRunning) {
       setStatus("Bake already complete. Clear or change the flow before baking again.");
@@ -292,13 +328,15 @@ export function createSimulationController({
     const currentProject = project();
     const currentSimulator = simulator();
     currentSimulator.syncProject(currentProject);
-    ensureBake();
+    ensureBake(source);
+    const beforeSnapshot = currentSimulator.snapshot;
     measure("simulator.step", () => currentSimulator.step());
     state.stepCount = currentSimulator.stepCount;
-    const frame = record ? recordFrame() : null;
+    const frame = record ? recordFrame({ beforeSnapshot, cause, source }) : null;
     if (playAudioFrame) playAudio(currentSimulator.audioNotes);
     currentProject._simSnapshot = currentSimulator.snapshot;
     if (state.simRunning && frame && state.bake.observe(frame.signature)) finishBake("stable");
+    else if (state.simRunning && currentSimulator.stepCount >= DEFAULT_BAKE_MAX_TICKS) finishBake("limit");
     if (renderFrame) render();
     else if (state.simRunning) scheduleCanvasRender({ simulation: true });
   }
@@ -315,6 +353,7 @@ export function createSimulationController({
       }
       return;
     }
+    recordInteraction({ kind: "manual-step", source: "step-control" });
     runStep();
   }
 
@@ -362,6 +401,7 @@ export function createSimulationController({
 
   function finishBake(reason = "manual") {
     if (!state.bake.isBaking) return;
+    state.bake.recordInteraction({ kind: "bake-stop", source: "controller", step: simulator().stepCount, reason });
     const isStaticBake = reason === "stable" && state.bake.length <= 1;
     if (isStaticBake) {
       const initial = state.bake.frameAt(0);
@@ -378,12 +418,15 @@ export function createSimulationController({
       ? "Bake complete at step 0; no visible flow detected."
       : reason === "stable"
         ? "Bake complete at step " + state.stepCount + "; no further visible change detected."
+        : reason === "limit"
+          ? "Bake reached its safety limit at step " + state.stepCount + "; stop or clear to begin again."
         : "Bake registered at step " + state.stepCount + ".";
     setRunning(false, false, message);
   }
 
-  function clearBake() {
+  function clearBake({ preservePending = false } = {}) {
     clearPreview();
+    if (!preservePending) pendingInteractions = [];
     const wasRunning = state.simRunning;
     const currentProject = project();
     const currentSimulator = simulator();
@@ -406,14 +449,15 @@ export function createSimulationController({
       render();
       return;
     }
-    if (!state.bake.hasBake) beginBake();
+    if (!state.bake.hasBake) beginBake("bake-button");
+    else state.bake.recordInteraction({ kind: "bake-start", source: "bake-button", step: simulator().stepCount });
     setRunning(true, markDirty, "Simulation baking.");
   }
 
   function setRunning(running, markDirty = false, statusMessage = null) {
     const currentProject = project();
     if (running) clearPreview();
-    if (running && !state.bake.hasBake) beginBake();
+    if (running && !state.bake.hasBake) beginBake("bake-button");
     const settingChanged = currentProject.settings.simulationPaused === running;
     state.simRunning = running;
     currentProject.settings.simulationPaused = !running;
@@ -425,12 +469,14 @@ export function createSimulationController({
     render();
   }
 
-  function startCausalPreview(message, source = null) {
+  function startCausalPreview(message, source = null, interaction = null) {
     const currentProject = project();
     const currentSimulator = simulator();
-    const sourceSnapshot = source?.snapshot ?? currentSimulator.snapshot;
-    const sourceStep = source?.step ?? currentSimulator.stepCount;
-    clearBake();
+    const previewSimulator = state.preview?.simulator ?? currentSimulator;
+    const sourceSnapshot = source?.snapshot ?? previewSimulator.snapshot;
+    const sourceStep = source?.step ?? previewSimulator.stepCount;
+    clearBake({ preservePending: true });
+    if (interaction) recordInteraction({ ...interaction, step: interaction.step ?? sourceStep });
     const preview = new SimulationPreview({
       project: currentProject,
       simulator: currentSimulator,
@@ -470,6 +516,7 @@ export function createSimulationController({
     clearBake,
     startBake,
     setRunning,
+    recordInteraction,
     restoreFrame,
     previousVisibleHistoryIndex,
     syncStepCount

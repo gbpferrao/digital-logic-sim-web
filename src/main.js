@@ -1445,13 +1445,20 @@ function redo() {
 }
 
 function toggleInput(instance) {
-  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
+  const sourceSimulator = state.preview?.simulator ?? simulator;
+  const source = { snapshot: sourceSimulator.snapshot, step: sourceSimulator.stepCount };
   const descriptor = descriptorForInstance(project, instance);
   const bits = descriptor?.outputPins?.[0]?.bits ?? 1;
   const mask = (1 << bits) - 1;
-  project.inputValues[instance.id] = ((project.inputValues[instance.id] ?? 0) ^ 1) & mask;
+  const before = project.inputValues[instance.id] ?? 0;
+  const after = (before ^ 1) & mask;
+  project.inputValues[instance.id] = after;
   touch(`Input ${instance.label || instance.name} set to ${project.inputValues[instance.id]}.`, false);
-  simulationController.startCausalPreview(`input ${instance.label || instance.name} set to ${project.inputValues[instance.id]}`, source);
+  simulationController.startCausalPreview(
+    `input ${instance.label || instance.name} set to ${project.inputValues[instance.id]}`,
+    source,
+    { kind: "input-change", source: "canvas", target: instance.id, before, after }
+  );
 }
 
 function createCustomChip() {
@@ -1941,19 +1948,34 @@ function renderSimulationControls() {
       refreshIcons();
     }
     bakeButton.setAttribute("aria-pressed", String(baking));
+    bakeButton.dataset.interactions = String(state.bake.interactions.length);
+    bakeButton.dataset.traceEvents = String(state.bake.traceEvents.length);
+    bakeButton.setAttribute("aria-label", baking
+      ? "Stop recording and keep the current bake"
+      : ready
+        ? `Recorded bake complete${state.bake.reason ? ` (${state.bake.reason})` : ""}`
+        : "Start recording a simulation bake");
     bakeButton.title = ready
-      ? "Bake is complete; clear or change the flow before baking again"
+      ? `Bake is complete${state.bake.reason ? ` (${state.bake.reason})` : ""}; clear or change the flow before baking again`
       : baking
-        ? "Stop baking and keep the current bake"
-        : "Bake the current circuit";
+        ? "Stop recording and keep the current bake"
+        : "Start recording the current circuit";
   }
-  if (clearBakeButton) clearBakeButton.disabled = !hasBake;
+  if (clearBakeButton) {
+    clearBakeButton.disabled = !hasBake;
+    clearBakeButton.title = hasBake
+      ? "Discard the current recorded bake and return to step zero"
+      : "No recorded bake to clear";
+  }
   scrubber.max = String(maxIndex);
   scrubber.value = String(currentIndex);
   const scrubberProgress = maxIndex > 0 ? (currentIndex / maxIndex) * 100 : 0;
   scrubber.style.setProperty("--scrubber-progress", `${Math.max(0, Math.min(100, scrubberProgress))}%`);
   const scrubberReady = state.bake.isReady && maxIndex > 0;
   scrubber.disabled = state.simRunning || !scrubberReady;
+  scrubberWrap.title = scrubberReady
+    ? "Browse the visible checkpoints recorded by this bake"
+    : "The scrubber becomes available when a bake records multiple visible checkpoints";
   scrubberWrap.classList.toggle("ready", scrubberReady);
   scrubberWrap.classList.toggle("disabled", scrubber.disabled);
 }
@@ -2030,7 +2052,10 @@ if (performanceDiagnostics.enabled) {
     bake: {
       frames: state.bake.length,
       bytes: state.bake.memoryBytes,
-      maxBytes: state.bake.maxBytes
+      maxBytes: state.bake.maxBytes,
+      interactions: state.bake.interactions.length,
+      traceEvents: state.bake.traceEvents.length,
+      traceBytes: state.bake.traceMemoryBytes
     }
   });
 }
@@ -2705,7 +2730,16 @@ function previewKeyInteraction(event, phase, source) {
   if (event.key === " " || event.key === "Spacebar") return;
   if (!(project.root.instances ?? []).some((instance) => keyDeviceMatchesEvent(instance, event))) return;
   const keyLabel = event.key === " " ? "Space" : event.key || event.code;
-  simulationController.startCausalPreview(`key ${keyLabel} ${phase}`, source);
+  simulationController.startCausalPreview(
+    `key ${keyLabel} ${phase}`,
+    source,
+    { kind: "key-change", source: "keyboard", target: keyLabel, phase, after: phase === "pressed" }
+  );
+}
+
+function simulationInteractionSource() {
+  const sourceSimulator = state.preview?.simulator ?? simulator;
+  return { snapshot: sourceSimulator.snapshot, step: sourceSimulator.stepCount };
 }
 
 libraryController = createLibraryController({
@@ -2835,7 +2869,10 @@ $("#inspector").addEventListener("click", (event) => {
   if (action === "reset-memory") {
     const instance = project.root.instances.find((item) => state.selectedIds.has(String(item.id)));
     const description = instance && descriptorForInstance(project, instance);
-    if (instance) mutate("Memory reset.", () => { instance.internalData.memory = Array.from({ length: Number(description?.memorySize) || 256 }, () => 0); });
+    if (instance) {
+      mutate("Memory reset.", () => { instance.internalData.memory = Array.from({ length: Number(description?.memorySize) || 256 }, () => 0); });
+      simulationController.recordInteraction({ kind: "memory-reset", source: "inspector", target: instance.id });
+    }
   }
   if (action === "add-root-input") addRootPin("input");
   if (action === "add-root-output") addRootPin("output");
@@ -2893,8 +2930,14 @@ $("#inspector").addEventListener("change", (event) => {
   const desc = descriptorForInstance(project, instance);
   if (field === "label") mutate("Label updated.", () => { instance.label = event.target.value.slice(0, 32); });
   if (field === "key") mutate("Key binding updated.", () => { instance.internalData.key = event.target.value || "Space"; });
-  if (field === "duration") mutate("Pulse duration updated.", () => { instance.internalData.duration = Math.max(1, Math.min(1000, Number(event.target.value) || 4)); });
-  if (field === "rom") mutate("ROM contents updated.", () => { const values = event.target.value.trim().split(/[\s,]+/).filter(Boolean).map((item) => Number.parseInt(item, 0)); const length = Number(desc?.memorySize) || 256; instance.internalData.memory = Array.from({ length }, (_, index) => Number.isFinite(values[index]) ? values[index] & 0xffff : instance.internalData.memory?.[index] ?? 0); });
+  if (field === "duration") {
+    mutate("Pulse duration updated.", () => { instance.internalData.duration = Math.max(1, Math.min(1000, Number(event.target.value) || 4)); });
+    simulationController.recordInteraction({ kind: "pulse-configured", source: "inspector", target: instance.id, after: instance.internalData.duration });
+  }
+  if (field === "rom") {
+    mutate("ROM contents updated.", () => { const values = event.target.value.trim().split(/[\s,]+/).filter(Boolean).map((item) => Number.parseInt(item, 0)); const length = Number(desc?.memorySize) || 256; instance.internalData.memory = Array.from({ length }, (_, index) => Number.isFinite(values[index]) ? values[index] & 0xffff : instance.internalData.memory?.[index] ?? 0); });
+    simulationController.recordInteraction({ kind: "memory-programmed", source: "inspector", target: instance.id });
+  }
 });
 
 canvas.addEventListener("contextmenu", showContextMenu);
@@ -2968,7 +3011,7 @@ window.addEventListener("pointerdown", (event) => {
 });
 window.addEventListener("keydown", (event) => {
   if (event.target.matches("input, textarea, select")) return;
-  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
+  const source = simulationInteractionSource();
   project.keyValues[event.code] = true;
   project.keyValues[event.key] = true;
   previewKeyInteraction(event, "pressed", source);
@@ -2976,7 +3019,7 @@ window.addEventListener("keydown", (event) => {
 });
 window.addEventListener("keyup", (event) => {
   if (event.target.matches("input, textarea, select")) return;
-  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
+  const source = simulationInteractionSource();
   project.keyValues[event.code] = false;
   project.keyValues[event.key] = false;
   previewKeyInteraction(event, "released", source);

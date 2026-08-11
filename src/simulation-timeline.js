@@ -1,6 +1,9 @@
+import { SimulationTrace } from "./simulation-trace.js";
+
 export const SIMULATION_BAKE_VERSION = 1;
 export const SIMULATION_TIMELINE_VERSION = SIMULATION_BAKE_VERSION;
 export const DEFAULT_BAKE_MAX_BYTES = 32 * 1024 * 1024;
+export const DEFAULT_BAKE_MAX_INTERACTIONS = 256;
 
 function estimateValueBytes(value, seen = new WeakSet()) {
   if (value == null) return 8;
@@ -18,12 +21,30 @@ export function estimateFrameBytes(frame) {
   return 64 + estimateValueBytes(frame?.snapshot) + estimateValueBytes(String(frame?.signature ?? ""));
 }
 
-export function createTimelineFrame({ step = 0, snapshot = null, signature = "", estimatedBytes = null } = {}) {
+export function createTimelineFrame({
+  step = 0,
+  snapshot = null,
+  signature = "",
+  estimatedBytes = null,
+  cause = "tick",
+  source = "simulation",
+  visible = true,
+  traceStart = null,
+  traceEnd = null
+} = {}) {
+  const boundary = (value) => value == null || value === ""
+    ? null
+    : Number.isFinite(Number(value)) ? Number(value) : null;
   const frame = {
     version: SIMULATION_BAKE_VERSION,
     step: Math.max(0, Number(step) || 0),
     snapshot,
-    signature: String(signature ?? "")
+    signature: String(signature ?? ""),
+    cause: String(cause || "tick"),
+    source: String(source || "simulation"),
+    visible: Boolean(visible),
+    traceStart: boundary(traceStart),
+    traceEnd: boundary(traceEnd)
   };
   frame.estimatedBytes = Number.isFinite(Number(estimatedBytes)) && Number(estimatedBytes) >= 0
     ? Number(estimatedBytes)
@@ -32,11 +53,22 @@ export function createTimelineFrame({ step = 0, snapshot = null, signature = "",
 }
 
 export class SimulationBake {
-  constructor({ maxFrames = 512, maxBytes = DEFAULT_BAKE_MAX_BYTES, stabilityWindow = 16 } = {}) {
+  constructor({
+    maxFrames = 512,
+    maxBytes = DEFAULT_BAKE_MAX_BYTES,
+    stabilityWindow = 16,
+    maxInteractions = DEFAULT_BAKE_MAX_INTERACTIONS,
+    trace = {}
+  } = {}) {
     this.maxFrames = Math.max(2, Number(maxFrames) || 512);
     this.maxBytes = Math.max(256, Number(maxBytes) || DEFAULT_BAKE_MAX_BYTES);
     this.stabilityWindow = Math.max(1, Number(stabilityWindow) || 16);
+    this.maxInteractions = Math.max(1, Number(maxInteractions) || DEFAULT_BAKE_MAX_INTERACTIONS);
     this.frames = [];
+    this.interactions = [];
+    this.interactionSequence = 0;
+    this.totalInteractions = 0;
+    this.trace = new SimulationTrace(trace);
     this.estimatedBytes = 0;
     this.cursor = 0;
     this.execution = null;
@@ -82,6 +114,14 @@ export class SimulationBake {
     return this.estimatedBytes;
   }
 
+  get traceMemoryBytes() {
+    return this.trace.memoryBytes;
+  }
+
+  get traceEvents() {
+    return this.trace.events;
+  }
+
   frameAt(index) {
     return this.frames[Math.max(0, Math.min(this.frames.length - 1, Number(index) || 0))] ?? null;
   }
@@ -89,6 +129,10 @@ export class SimulationBake {
   reset(frame) {
     const next = createTimelineFrame(frame);
     this.frames = [next];
+    this.interactions = [];
+    this.interactionSequence = 0;
+    this.totalInteractions = 0;
+    this.trace.clear();
     this.estimatedBytes = next.estimatedBytes;
     this.cursor = 0;
     this.execution = next;
@@ -102,6 +146,10 @@ export class SimulationBake {
   begin(frame, { stabilityWindow = this.stabilityWindow } = {}) {
     const next = createTimelineFrame(frame);
     this.frames = [next];
+    this.interactions = [];
+    this.interactionSequence = 0;
+    this.totalInteractions = 0;
+    this.trace.clear();
     this.estimatedBytes = next.estimatedBytes;
     this.cursor = 0;
     this.execution = next;
@@ -132,6 +180,10 @@ export class SimulationBake {
 
   clear() {
     this.frames = [];
+    this.interactions = [];
+    this.interactionSequence = 0;
+    this.totalInteractions = 0;
+    this.trace.clear();
     this.estimatedBytes = 0;
     this.cursor = 0;
     this.execution = null;
@@ -163,12 +215,37 @@ export class SimulationBake {
     if (this.cursor >= this.frames.length - 1) return;
     this.frames = this.frames.slice(0, this.cursor + 1);
     this.execution = this.currentCheckpoint;
+    this.trace.truncateAfterStep(this.currentCheckpoint?.step ?? 0);
+    this.interactions = this.interactions.filter((event) => event.step <= (this.currentCheckpoint?.step ?? 0));
     this.recalculateMemory();
   }
 
   updateExecution(frame) {
     this.execution = createTimelineFrame(frame);
     return this.execution;
+  }
+
+  recordInteraction(event = {}) {
+    const next = {
+      version: SIMULATION_BAKE_VERSION,
+      sequence: this.interactionSequence++,
+      kind: String(event.kind || "interaction"),
+      source: String(event.source || "unknown"),
+      step: Math.max(0, Number(event.step) || 0),
+      target: event.target == null ? null : String(event.target),
+      before: event.before ?? null,
+      after: event.after ?? null,
+      phase: event.phase == null ? null : String(event.phase),
+      reason: event.reason == null ? null : String(event.reason)
+    };
+    this.interactions.push(next);
+    this.totalInteractions += 1;
+    if (this.interactions.length > this.maxInteractions) this.interactions.splice(0, this.interactions.length - this.maxInteractions);
+    return next;
+  }
+
+  recordTrace(event = {}) {
+    return this.trace.record(event);
   }
 
   record(frame, { visible = true } = {}) {

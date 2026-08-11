@@ -1,8 +1,21 @@
 # Simulation Bake Architecture
 
-The simulation is organized around one bounded **bake**. A bake is the
-recording produced by the primary simulation action and the staging area
-consumed by Step, relevant-step navigation, and the scrubber.
+The simulation is organized around one bounded **bake**. A bake is an official
+recording session produced by the primary simulation action and the staging
+area consumed by Step, relevant-step navigation, and the scrubber. It has
+three deliberately different layers:
+
+1. **Semantic interactions**: input changes, key changes, stateful-device
+   edits, manual stepping, and bake start/stop actions. View-only gestures
+   such as hover, selection, pan, and zoom are not useful simulation history
+   and are excluded.
+2. **Engine trace**: one compact event per official engine tick, including
+   propagation count, signal-change count, changed signal/display summaries,
+   nested settle diagnostics, and whether the tick produced a visible change.
+3. **Checkpoint rail**: the existing sparse snapshots used for exact restore,
+   scrub, and visible-step navigation. This remains the replay authority; the
+   trace explains the ticks between checkpoints without becoming a second
+   simulator.
 
 ## Lifecycle
 
@@ -23,7 +36,12 @@ consumed by Step, relevant-step navigation, and the scrubber.
 - `Simulator` owns deterministic circuit execution, exact `stepCount`, runtime
   state, and snapshots.
 - `SimulationBake` owns the lifecycle, checkpoint rail, exact execution head,
-  scrub cursor, stability observation, and bounded pruning.
+  scrub cursor, stability observation, bounded pruning, semantic interactions,
+  and the bounded engine trace.
+- `SimulationTrace` owns compact per-tick diagnostics and signal/display
+  change summaries. It is intentionally aggregate rather than a raw callback
+  stream from every internal propagation, so nested circuits remain usable in
+  the browser.
 - `SimulationPreview` owns a short-lived cloned simulator for causal previews;
   it never records into the official bake.
 - `simulation-controller.js` owns browser-facing simulation transitions:
@@ -41,13 +59,15 @@ editable step field and future execution.
 ## Control contract
 
 - **Bake** starts a recording from evaluated step zero. If a paused, open bake
-  exists after manual stepping, it continues that recording.
+  exists after manual stepping, it continues that recording. A causal input or
+  key preview is not itself official history; its semantic action is carried
+  into the next Bake or Step so the official run records the resulting flow.
 - **Stop** is the active state of the same Bake control. It closes the current
   recording without discarding its frames.
 - A finite circuit closes automatically after the configured stable window.
   Indefinite or evolving circuits remain in `baking` until Stop.
-- **Clear** stops execution, discards the bake, clears any causal preview, and
-  returns to evaluated step zero.
+- **Clear** stops execution, discards the recording, clears any causal preview,
+  and returns to evaluated step zero.
 - **Step** starts an open bake when none exists, advances it while it is open,
   or navigates to the next recorded frame after the bake is ready. It never
   silently creates a second bake from a completed timeline.
@@ -57,6 +77,9 @@ editable step field and future execution.
 - The scrubber stays mounted in the bake rail as a stable spatial affordance;
   it is muted and disabled until a ready bake contains more than one
   checkpoint, then becomes interactive without changing the rail layout.
+- The official trace and interaction rail are bounded independently from
+  snapshots. A safety limit also closes a continuously changing bake, so an
+  oscillator cannot keep a browser timer alive forever.
 
 ## Control arrangement
 
@@ -105,3 +128,16 @@ not leak into the user-facing step count.
 A changing clock, feedback loop, or other evolving visible state does not
 reach that stable window, so the user can stop it explicitly with the same
 primary control.
+
+## Recording boundary
+
+The record is semantic rather than a browser event log. A click on an input is
+recorded as an input change, a keyboard-controlled device is recorded as a key
+transition, and stateful inspector actions such as resetting memory or
+programming a ROM are recorded as runtime configuration changes. A click on
+Bake, Stop, or Step is recorded as a control action.
+The engine trace then records what the simulator did in response: how many
+wires were propagated, how many signal values changed, how many settle passes
+were needed, and which scoped signals or displays changed. Pointer coordinates,
+hover labels, selection rectangles, camera movement, and inspector navigation
+remain UI state and are intentionally absent from the bake.

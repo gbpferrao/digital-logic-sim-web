@@ -130,6 +130,7 @@ function runtimeFor(description, project, depth = 0) {
     lastTick: -1,
     depth,
     signalVersion: 0,
+    propagations: 0,
     settlePasses: 0,
     settleLimitHits: 0
   };
@@ -192,7 +193,10 @@ function propagateWire(runtime, wire) {
 }
 
 function propagateAll(runtime) {
-  for (const wire of runtime.description.wires ?? []) propagateWire(runtime, wire);
+  for (const wire of runtime.description.wires ?? []) {
+    runtime.propagations += 1;
+    propagateWire(runtime, wire);
+  }
 }
 
 function setOutput(item, id, value) {
@@ -507,13 +511,23 @@ function settleNetwork(runtime, simulator, tickId) {
 
 function resetRuntimeMetrics(runtime) {
   runtime.signalVersion = 0;
+  runtime.propagations = 0;
   runtime.settlePasses = 0;
   runtime.settleLimitHits = 0;
   for (const item of runtime.instances.values()) if (item.child) resetRuntimeMetrics(item.child);
 }
 
-function collectRuntimeMetrics(runtime, metrics = { evaluations: 0, settlePasses: 0, settleLimitHits: 0, maxDepth: 0 }) {
+function collectRuntimeMetrics(runtime, metrics = {
+  evaluations: 0,
+  propagations: 0,
+  signalChanges: 0,
+  settlePasses: 0,
+  settleLimitHits: 0,
+  maxDepth: 0
+}) {
   metrics.evaluations += 1;
+  metrics.propagations += runtime.propagations;
+  metrics.signalChanges += runtime.signalVersion;
   metrics.settlePasses += runtime.settlePasses;
   metrics.settleLimitHits += runtime.settleLimitHits;
   metrics.maxDepth = Math.max(metrics.maxDepth, runtime.depth ?? 0);
@@ -594,7 +608,7 @@ export class Simulator {
     this.runtime = null;
     this.snapshot = emptySnapshot();
     this.audioNotes = [];
-    this._diagnostics = { evaluations: 0, settlePasses: 0, settleLimitHits: 0, maxDepth: 0 };
+    this._diagnostics = { evaluations: 0, propagations: 0, signalChanges: 0, settlePasses: 0, settleLimitHits: 0, maxDepth: 0 };
     this._diagnosticsDirty = true;
     this.syncProject(project);
   }

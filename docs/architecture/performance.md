@@ -107,6 +107,10 @@ kept here so future measurements have an explicit baseline:
   remains a candidate for better measurement if long histories become common.
 - The visual signature scans, sorts, copies display arrays, and serializes
   nested signal state on every recorded step.
+- Official bake recording also produces one bounded aggregate trace event per
+  engine tick. Its change summary is capped to a small number of signal/display
+  entries, while propagation and settle diagnostics are counters from the
+  simulator rather than a per-wire callback stream.
 
 Exploratory local measurements varied with machine and test setup, but showed
 the important scale:
@@ -147,7 +151,7 @@ domain/editor mutation
 
 simulation clock
   -> advance mutable runtime
-  -> record bake/checkpoint data
+  -> record bake trace + checkpoint data
   -> publish latest visual state
   -> scheduled animation frame
 ```
@@ -173,6 +177,7 @@ The development-only timing and memory diagnostics are available behind
 - snapshot collection, clone, and restore time;
 - signature generation time;
 - bake frame count and estimated memory;
+- bake interaction count, trace event count, and trace memory;
 - scheduled versus completed renders.
 
 Use `performance.mark()`/`performance.measure()` behind a development flag so

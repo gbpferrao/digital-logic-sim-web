@@ -58,3 +58,23 @@ test("bake owns recording, stability detection, and finalization", () => {
   assert.equal(bake.hasBake, false);
   assert.equal(bake.status, "empty");
 });
+
+test("bake keeps semantic interactions beside bounded engine trace metadata", () => {
+  const bake = new SimulationBake({ maxInteractions: 2 });
+  assert.equal(createTimelineFrame().traceStart, null);
+  bake.begin(frame(0, "LOW"));
+  bake.recordInteraction({ kind: "input-change", source: "canvas", target: "input-1", step: 0 });
+  bake.recordInteraction({ kind: "manual-step", source: "step-control", step: 1 });
+  bake.recordInteraction({ kind: "key-change", source: "keyboard", target: "Space", step: 2 });
+  bake.recordTrace({ kind: "engine-tick", step: 1, changedCount: 1, propagations: 4 });
+
+  assert.deepEqual(bake.interactions.map((event) => event.kind), ["manual-step", "key-change"]);
+  assert.deepEqual(bake.interactions.map((event) => event.sequence), [1, 2]);
+  assert.equal(bake.totalInteractions, 3);
+  assert.equal(bake.traceEvents[0].propagations, 4);
+
+  bake.clear();
+  assert.equal(bake.interactions.length, 0);
+  assert.equal(bake.traceEvents.length, 0);
+  assert.equal(bake.totalInteractions, 0);
+});

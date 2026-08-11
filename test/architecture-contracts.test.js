@@ -153,10 +153,11 @@ test("direct signal tweaks use a non-recording causal preview track", async () =
   assert.match(main, /import \{ createSimulationBake, createSimulationController \} from "\.\/simulation-controller\.js"/);
   assert.match(main, /simulationController = createSimulationController\(/);
   assert.match(main, /const visibleSimulator = state\.preview\?\.simulator \?\? simulator/);
-  assert.match(controller, /function startCausalPreview\(message, source = null\)/);
-  assert.match(controller, /const sourceSnapshot = source\?\.snapshot \?\? currentSimulator\.snapshot/);
+  assert.match(controller, /function startCausalPreview\(message, source = null, interaction = null\)/);
+  assert.match(controller, /const sourceSnapshot = source\?\.snapshot \?\? previewSimulator\.snapshot/);
   assert.match(toggleInput, /simulationController\.startCausalPreview/);
-  assert.match(toggleInput, /const source = \{ snapshot: simulator\.snapshot, step: simulator\.stepCount \}/);
+  assert.match(toggleInput, /const sourceSimulator = state\.preview\?\.simulator \?\? simulator/);
+  assert.match(toggleInput, /kind: "input-change"/);
   assert.doesNotMatch(toggleInput, /runStep\(/);
   assert.match(preview, /this\.simulator\.restore\(sourceSnapshot, sourceStep\)/);
   assert.match(preview, /this\.onFinish\(this\)/);

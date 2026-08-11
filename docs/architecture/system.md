@@ -44,7 +44,8 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | src/domain/core.js | IDs and deep cloning | Small domain utility boundary |
 | src/domain/catalog.js | Built-in descriptions, types, colors, collections, and catalog metadata | Built-in catalog |
 | src/simulation.js | Signal algebra, runtime graph, built-in chip execution, recursive custom-chip evaluation, snapshots | Simulation domain/runtime |
-| src/simulation-timeline.js | SimulationBake lifecycle, bounded run recording, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy |
+| src/simulation-timeline.js | SimulationBake lifecycle, bounded recording sessions, semantic interactions, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy |
+| src/simulation-trace.js | Bounded per-tick propagation/change summaries and trace event normalization | Simulation diagnostics policy |
 | src/simulation-preview.js | Short-lived cloned simulator for non-recording causal feedback | Simulation preview policy |
 | src/simulation-controller.js | Browser-facing bake/preview transitions, stepping, scrubbing, timer, and status coordination | Application simulation controller |
 | src/unity-compat.js | Unity-shaped project/chip conversion | Import adapter |
@@ -130,7 +131,7 @@ Signal states are two bitmasks: bits for values and tri for driven/disconnected 
 
 For a custom runtime, the parent still supplies a map keyed by public input IDs and receives a map keyed by public output IDs. The runtime resolves those IDs through `interfaceBindings`: input values are injected into the bound `IN-*` instance outputs before settling the child network, and bound `OUT-*` instance inputs are projected back into the public output map afterward. This keeps nested composite flow compatible with the existing bake and scrub snapshots.
 
-SimulationBake accepts frames shaped as { version, step, snapshot, signature, estimatedBytes } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and step-field restoration. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. Frame count and estimated byte budgets preserve the first and current/latest frames when pruning. SimulationTimeline remains as a compatibility export for older tests/integrations.
+SimulationBake accepts frames shaped as { version, step, snapshot, signature, cause, source, visible, traceStart, traceEnd, estimatedBytes } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and step-field restoration. Each bake also owns a bounded semantic interaction list and a bounded SimulationTrace of official engine ticks. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. Frame count, snapshot byte budgets, interaction caps, and trace caps preserve browser responsiveness. SimulationTimeline remains as a compatibility export for older tests/integrations.
 
 ### Renderer interface
 
@@ -225,10 +226,10 @@ lanes so they do not pay that full-render cost.
 ### Simulation loop
 
 1. The simulation controller starts Bake from evaluated step zero; the same control reads Stop while the timer is active.
-2. The controller syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, and records the exact execution head in the open bake.
+2. The controller syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, records one compact engine/propagation trace event, and records the exact execution head in the open bake.
 3. Only visually meaningful snapshots become bake checkpoints: the signature follows connected signal flow and visible displays, so isolated oscillators and unused pins do not inflate or prolong the bake.
 4. A stability window closes finite bakes automatically; if no checkpoint appears beyond evaluated step zero, the controller canonicalizes the ready bake back to step zero. Stop closes indefinite bakes manually.
-5. Paused scrubbing restores a checkpoint, and the editable step field plus visible-step controls navigate only the current bake. Direct input/key tweaks use a cloned non-recording preview until Bake or Step commits a new official timeline.
+5. Paused scrubbing restores a checkpoint, and the editable step field plus visible-step controls navigate only the current bake. Direct input/key tweaks use a cloned non-recording preview; their semantic actions are carried into the next Bake or Step, which commits a new official timeline and trace.
 
 The runtime is separated from the UI by three seams: `simulation.js` owns signal/runtime semantics, `simulation-timeline.js` owns recorded history, and `simulation-controller.js` owns browser-facing lifecycle policy. `main.js` supplies rendering, status, audio, and persistence callbacks.
 

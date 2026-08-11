@@ -66,3 +66,30 @@ test("simulation controller owns the one-shot bake lifecycle", () => {
   assert.equal(state.bake.status, "empty");
   assert.equal(project.settings.simulationPaused, true);
 });
+
+test("controller records semantic actions, engine ticks, propagation counts, and carried preview actions", () => {
+  const { simulator, state, controller } = createFixtureController();
+
+  controller.step();
+  assert.equal(state.bake.isBaking, true);
+  assert.ok(state.bake.interactions.some((event) => event.kind === "manual-step"));
+  assert.equal(state.bake.traceEvents.length, 1);
+  assert.equal(state.bake.traceEvents[0].kind, "engine-tick");
+  assert.equal(state.bake.traceEvents[0].step, simulator.stepCount);
+  assert.ok(state.bake.traceEvents[0].propagations > 0);
+  assert.equal(state.bake.executionFrame.cause, "manual-step");
+  assert.equal(state.bake.executionFrame.source, "step-control");
+  assert.equal(state.bake.executionFrame.traceStart, 0);
+  assert.equal(state.bake.executionFrame.traceEnd, 0);
+
+  controller.clearBake();
+  controller.startCausalPreview(
+    "input changed",
+    { snapshot: simulator.snapshot, step: simulator.stepCount },
+    { kind: "input-change", source: "canvas", target: "input-1", before: 0, after: 1 }
+  );
+  controller.clearPreview();
+  controller.step();
+
+  assert.ok(state.bake.interactions.some((event) => event.kind === "input-change"));
+});
