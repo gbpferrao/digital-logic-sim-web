@@ -418,16 +418,19 @@ export class WorldRenderer {
     const startY = Math.floor(top / GRID) * GRID;
     ctx.lineWidth = 1 / this.camera.zoom;
     const minorVisible = isMinorGridVisible(this.camera.zoom);
+    // Once the smaller grid fades out, keep the remaining macro grid quiet
+    // instead of leaving a single, unexpectedly prominent grid level.
+    const macroColour = minorVisible ? GRID_COLOURS.highlight : GRID_COLOURS.line;
     for (let x = startX; x <= right; x += GRID) {
       const major = Math.round(x / GRID) % 5 === 0;
       if (!major && !minorVisible) continue;
-      ctx.strokeStyle = major ? GRID_COLOURS.highlight : GRID_COLOURS.line;
+      ctx.strokeStyle = major ? macroColour : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
     }
     for (let y = startY; y <= bottom; y += GRID) {
       const major = Math.round(y / GRID) % 5 === 0;
       if (!major && !minorVisible) continue;
-      ctx.strokeStyle = major ? GRID_COLOURS.highlight : GRID_COLOURS.line;
+      ctx.strokeStyle = major ? macroColour : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
     }
   }
