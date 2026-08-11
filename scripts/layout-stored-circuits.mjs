@@ -353,11 +353,11 @@ function layoutStandaloneChips(writeToDisk = false) {
   return context;
 }
 
-function layoutStoredProjects(writeToDisk = false) {
+function layoutStoredProjects(writeToDisk = false, options = {}) {
   const reports = [];
   for (const file of fs.readdirSync(PROJECT_DIR).filter((name) => name.endsWith(".json"))) {
     const filePath = path.join(PROJECT_DIR, file);
-    const project = layoutProject(normalizeProject(loadJson(filePath)));
+    const project = layoutProject(normalizeProject(loadJson(filePath)), options);
     if (writeToDisk) writeJson(filePath, project);
     reports.push({
       file,
@@ -385,9 +385,12 @@ function reportDescription(project, description) {
 const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invokedDirectly) {
   const write = process.argv.includes("--write");
-  const chipContext = layoutStandaloneChips(write);
-  const projectReports = layoutStoredProjects(write);
-  const chipReports = Object.entries(chipContext.customChips).map(([name, description]) => ({
+  const projectsOnly = process.argv.includes("--projects-only");
+  const chipsOnly = process.argv.includes("--chips-only");
+  const park = process.argv.includes("--park-annotations");
+  const chipContext = projectsOnly ? null : layoutStandaloneChips(write);
+  const projectReports = chipsOnly ? [] : layoutStoredProjects(write, { parkAnnotations: park });
+  const chipReports = Object.entries(chipContext?.customChips ?? {}).map(([name, description]) => ({
     name,
     ...reportDescription(chipContext, description)
   }));

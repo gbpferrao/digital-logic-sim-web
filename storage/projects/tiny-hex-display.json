@@ -22,7 +22,7 @@
         "id": "input-d3",
         "name": "IN-1",
         "position": {
-          "x": -1280,
+          "x": -1260,
           "y": -180
         },
         "rotation": 0,
@@ -35,7 +35,7 @@
         "id": "input-d2",
         "name": "IN-1",
         "position": {
-          "x": -1280,
+          "x": -1260,
           "y": -60
         },
         "rotation": 0,
@@ -48,7 +48,7 @@
         "id": "input-d1",
         "name": "IN-1",
         "position": {
-          "x": -1280,
+          "x": -1260,
           "y": 60
         },
         "rotation": 0,
@@ -61,7 +61,7 @@
         "id": "input-d0",
         "name": "IN-1",
         "position": {
-          "x": -1280,
+          "x": -1260,
           "y": 180
         },
         "rotation": 0,
@@ -74,7 +74,7 @@
         "id": "decoder",
         "name": "HEX TO 7SEG",
         "position": {
-          "x": -40,
+          "x": -20,
           "y": 0
         },
         "rotation": 0,
@@ -250,8 +250,8 @@
         "type": "label",
         "text": "4-BIT HEX INPUT  ->  DECODER  ->  7-SEG DISPLAY",
         "position": {
-          "x": -450,
-          "y": -240
+          "x": -310,
+          "y": -800
         },
         "width": 620,
         "height": 26,
@@ -264,8 +264,8 @@
         "type": "text",
         "text": "Toggle D3..D0 to choose a hex digit.\nD3 is the 8's bit; D0 is the 1's bit.\nA-G are the seven display segments.",
         "position": {
-          "x": -450,
-          "y": 210
+          "x": -160,
+          "y": -730
         },
         "width": 320,
         "height": 70,
@@ -3579,7 +3579,7 @@
     "snapping": true,
     "straightWires": false,
     "grid": true,
-    "simulationPaused": false,
+    "simulationPaused": true,
     "stepsPerSecond": 4,
     "stepsPerClock": 8
   },

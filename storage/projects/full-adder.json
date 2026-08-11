@@ -315,8 +315,8 @@
         "type": "label",
         "text": "1-BIT FULL ADDER",
         "position": {
-          "x": -350,
-          "y": -240
+          "x": -150,
+          "y": -360
         },
         "width": 300,
         "height": 26,
@@ -329,8 +329,8 @@
         "type": "text",
         "text": "Toggle A, B, and CIN.\nSUM = A XOR B XOR CIN\nCARRY = (A AND B) OR (CIN AND (A XOR B))",
         "position": {
-          "x": -350,
-          "y": 180
+          "x": -190,
+          "y": -300
         },
         "width": 390,
         "height": 96,
@@ -437,7 +437,7 @@
     "snapping": true,
     "straightWires": false,
     "grid": true,
-    "simulationPaused": false,
+    "simulationPaused": true,
     "stepsPerSecond": 8,
     "stepsPerClock": 8
   },

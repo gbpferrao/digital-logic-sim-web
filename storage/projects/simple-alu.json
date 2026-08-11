@@ -952,8 +952,8 @@
         "type": "text",
         "text": "HOW TO USE\n1. Toggle A, B, and CIN.\n2. Set OP1 / OP0.\n3. Read RESULT and CARRY.",
         "position": {
-          "x": -1800,
-          "y": -350
+          "x": -140,
+          "y": -1250
         },
         "width": 288,
         "height": 210,
@@ -966,8 +966,8 @@
         "type": "text",
         "text": "OPCODE (OP1 OP0)\n00  =  AND\n01  =  OR\n10  =  XOR\n11  =  ADD",
         "position": {
-          "x": -1890,
-          "y": 30
+          "x": -150,
+          "y": -1000
         },
         "width": 300,
         "height": 150,
@@ -980,8 +980,8 @@
         "type": "text",
         "text": "OUTPUTS\nRESULT = selected logic result or ADD sum.\nCARRY = carry-out from ADD mode; otherwise LOW.",
         "position": {
-          "x": 1210,
-          "y": -150
+          "x": -180,
+          "y": -810
         },
         "width": 360,
         "height": 150,
@@ -994,8 +994,8 @@
         "type": "label",
         "text": "LOGIC PATHS",
         "position": {
-          "x": -830,
-          "y": -320
+          "x": -90,
+          "y": -620
         },
         "width": 180,
         "height": 22,
@@ -1008,8 +1008,8 @@
         "type": "label",
         "text": "MODE SELECTOR: only the matching opcode path is enabled",
         "position": {
-          "x": -160,
-          "y": 180
+          "x": -260,
+          "y": -550
         },
         "width": 520,
         "height": 22,
@@ -1022,8 +1022,8 @@
         "type": "text",
         "text": "Explain this part...",
         "position": {
-          "x": -360,
-          "y": -460
+          "x": -140,
+          "y": -490
         },
         "width": 280,
         "height": 110,
@@ -1036,8 +1036,8 @@
         "type": "label",
         "text": "Label",
         "position": {
-          "x": 60,
-          "y": -440
+          "x": -90,
+          "y": -340
         },
         "width": 180,
         "height": 22,

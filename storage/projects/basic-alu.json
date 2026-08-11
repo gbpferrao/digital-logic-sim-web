@@ -224,8 +224,8 @@
         "type": "label",
         "text": "BASIC 1-BIT ALU",
         "position": {
-          "x": -560,
-          "y": -300
+          "x": -160,
+          "y": -1010
         },
         "width": 320,
         "height": 26,
@@ -238,8 +238,8 @@
         "type": "text",
         "text": "Toggle A and B, choose OP1:OP0, then step the simulation.\n00 = AND\n01 = OR\n10 = XOR\n11 = ADD; CIN participates and CARRY is exposed.",
         "position": {
-          "x": -560,
-          "y": 260
+          "x": -280,
+          "y": -940
         },
         "width": 560,
         "height": 120,

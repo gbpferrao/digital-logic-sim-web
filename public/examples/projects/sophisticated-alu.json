@@ -276,8 +276,8 @@
         "type": "label",
         "text": "SOPHISTICATED 4-BIT ALU",
         "position": {
-          "x": -1190,
-          "y": -400
+          "x": -230,
+          "y": -1850
         },
         "width": 460,
         "height": 26,
@@ -290,8 +290,8 @@
         "type": "text",
         "text": "A and B are 4-bit words. The ALU is four reusable 1-bit slices with a ripple carry chain.\n00 = AND    01 = OR    10 = XOR    11 = ADD\nFlags: CARRY = unsigned carry out; ZERO = result is 0; OVERFLOW = signed ADD overflow.",
         "position": {
-          "x": -1190,
-          "y": 310
+          "x": -390,
+          "y": -1780
         },
         "width": 780,
         "height": 120,

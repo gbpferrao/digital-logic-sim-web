@@ -9,17 +9,56 @@
     "name": "Indefinite Bake Lab",
     "type": "custom",
     "kind": "custom",
-    "size": { "x": 600, "y": 360 },
+    "size": {
+      "x": 600,
+      "y": 360
+    },
     "colour": "#202b3a",
     "nameLocation": "top",
     "inputPins": [],
     "outputPins": [],
     "instances": [
-      { "id": "loop", "name": "CLOCK LOOP", "position": { "x": -80, "y": 0 }, "label": "COMPOSED CLOCK LOOP" },
-      { "id": "clock-led", "name": "LED", "position": { "x": 190, "y": 0 }, "label": "NEVER STABLE" }
+      {
+        "id": "loop",
+        "name": "CLOCK LOOP",
+        "position": {
+          "x": -80,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "COMPOSED CLOCK LOOP",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "clock-led",
+        "name": "LED",
+        "position": {
+          "x": 200,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "NEVER STABLE",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
     ],
     "wires": [
-      { "id": "loop-led", "source": { "owner": "loop", "pin": "clock" }, "target": { "owner": "clock-led", "pin": "0" } }
+      {
+        "id": "loop-led",
+        "source": {
+          "owner": "loop",
+          "pin": "clock"
+        },
+        "target": {
+          "owner": "clock-led",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
     ],
     "junctions": [],
     "displays": [],
@@ -28,7 +67,10 @@
         "id": "title",
         "type": "label",
         "text": "INDEFINITE / MANUAL BAKE LAB",
-        "position": { "x": -220, "y": -150 },
+        "position": {
+          "x": -200,
+          "y": -400
+        },
         "width": 400,
         "height": 26,
         "fontSize": 14,
@@ -39,7 +81,10 @@
         "id": "instructions",
         "type": "text",
         "text": "The reusable CLOCK LOOP intentionally never reaches a stable visible state.\n\nRUN starts recording but should remain active.\nUse STEP while paused, or RUN then PAUSE.\nClick BAKE to register the current history manually.\nUse CLEAR to return to step zero and try again.\nThe scrubber lets you inspect the recorded clock phases.",
-        "position": { "x": -220, "y": 90 },
+        "position": {
+          "x": -210,
+          "y": -330
+        },
         "width": 420,
         "height": 150,
         "fontSize": 11,
@@ -50,12 +95,15 @@
         "id": "composition-note",
         "type": "label",
         "text": "CLOCK LOOP is a reusable composed chip",
-        "position": { "x": -170, "y": -90 },
+        "position": {
+          "x": -170,
+          "y": -140
+        },
         "width": 340,
         "height": 22,
         "fontSize": 10,
         "colour": "#9bc8ff",
-        "background": "#253040"
+        "background": "#222c38"
       }
     ]
   },
@@ -65,29 +113,208 @@
       "name": "CLOCK LOOP",
       "type": "custom",
       "kind": "custom",
-      "size": { "x": 260, "y": 160 },
+      "size": {
+        "x": 260,
+        "y": 160
+      },
       "colour": "#7358ad",
       "nameLocation": "top",
       "inputPins": [],
       "outputPins": [
-        { "id": "clock", "name": "CLOCK", "bits": 1, "direction": "output", "x": 130, "y": 0, "colour": "green" }
+        {
+          "id": "clock",
+          "name": "CLOCK",
+          "bits": 1,
+          "direction": "output",
+          "x": 180,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
       ],
       "interfaceBindings": {
         "inputs": [],
-        "outputs": [ { "publicId": "clock", "instanceId": "loop-out", "pinId": "0", "direction": "output" } ]
+        "outputs": [
+          {
+            "publicId": "clock",
+            "instanceId": "loop-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
       },
       "instances": [
-        { "id": "loop-clock", "name": "CLOCK", "position": { "x": -60, "y": 0 }, "label": "CLOCK" },
-        { "id": "loop-out", "name": "OUT-1", "position": { "x": 80, "y": 0 }, "label": "CLOCK", "interfaceId": "clock" }
+        {
+          "id": "loop-clock",
+          "name": "CLOCK",
+          "position": {
+            "x": -80,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "CLOCK",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "loop-out",
+          "name": "OUT-1",
+          "position": {
+            "x": 80,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "CLOCK",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "clock",
+          "outputPinColours": {}
+        }
       ],
       "wires": [
-        { "id": "clock-out", "source": { "owner": "loop-clock", "pin": "0" }, "target": { "owner": "loop-out", "pin": "0" } }
+        {
+          "id": "clock-out",
+          "source": {
+            "owner": "loop-clock",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "loop-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
       ],
       "junctions": [],
       "displays": [],
-      "annotations": []
+      "annotations": [],
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -180,
+          "y": -80,
+          "w": 360,
+          "h": 160
+        }
+      }
     }
   },
+  "collections": [
+    {
+      "name": "LOGIC",
+      "chips": [
+        "AND",
+        "OR",
+        "NOT",
+        "NAND",
+        "NOR",
+        "XOR",
+        "XNOR",
+        "BUFFER"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "chips": [
+        "CLOCK",
+        "PULSE",
+        "KEY",
+        "3-STATE BUFFER",
+        "DFF",
+        "CONST-0",
+        "CONST-1",
+        "CONST-0-16",
+        "CONST-1-16"
+      ]
+    },
+    {
+      "name": "IN/OUT",
+      "chips": [
+        "IN-1",
+        "IN-4",
+        "IN-8",
+        "IN-16",
+        "OUT-1",
+        "OUT-4",
+        "OUT-8",
+        "OUT-16"
+      ]
+    },
+    {
+      "name": "MERGE/SPLIT",
+      "chips": [
+        "1-4BIT",
+        "1-8BIT",
+        "4-8BIT",
+        "1-16BIT",
+        "8-16BIT",
+        "4-1BIT",
+        "8-4BIT",
+        "8-1BIT",
+        "16-8BIT",
+        "16-1BIT"
+      ]
+    },
+    {
+      "name": "BUS",
+      "chips": [
+        "BUS-1",
+        "BUS-4",
+        "BUS-8"
+      ]
+    },
+    {
+      "name": "DISPLAY",
+      "chips": [
+        "7-SEGMENT",
+        "DOT DISPLAY",
+        "RGB DISPLAY",
+        "LED"
+      ]
+    },
+    {
+      "name": "MEMORY",
+      "chips": [
+        "ROM 256x16",
+        "dev.RAM-8",
+        "RAM8",
+        "RAM64",
+        "RAM512",
+        "RAM4K",
+        "RAM16K",
+        "ROM32K",
+        "MEMORY",
+        "SCREEN",
+        "KEYBOARD",
+        "REGISTER-16",
+        "PROGRAM COUNTER"
+      ]
+    },
+    {
+      "name": "AUDIO",
+      "chips": [
+        "BUZZER"
+      ]
+    }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
+  ],
+  "starred": [
+    "IN/OUT",
+    "NAND"
+  ],
   "settings": {
     "snapping": true,
     "straightWires": false,

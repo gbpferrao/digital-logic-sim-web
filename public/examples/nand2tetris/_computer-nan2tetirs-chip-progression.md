@@ -25,6 +25,48 @@ For every chip:
 
 Use a consistent bus width. For a Nand2Tetris-style computer, the main data path should eventually use 16-bit values. Use smaller 1-bit, 4-bit, and 8-bit circuits first because they are easier to inspect.
 
+## JSON navigation map
+
+All paths below are relative to this folder. Open `manifest.json` first when you want the complete index. Files beginning with `n2t-` are the composed teaching versions. Files without that prefix are native engine contracts or reference leaves.
+
+| Phase | Open these JSON files | What to inspect |
+| --- | --- | --- |
+| H0 NAND | `chips/n2t-nand.json`, `chips/nand.json` | The composed NAND wrapper and the native NAND leaf. |
+| H1 Logic | `chips/n2t-not.json`, `chips/n2t-and.json`, `chips/n2t-or.json`, `chips/n2t-xor.json`, `chips/n2t-nor.json`, `chips/n2t-xnor.json`, `chips/n2t-buffer.json`, `chips/n2t-tri-state.json`, `chips/3-state-buffer.json` | NAND-derived gates plus the native tri-state driver. |
+| H2 Routing | `chips/n2t-mux.json`, `chips/n2t-dmux.json`, `chips/n2t-or8way.json`, `chips/n2t-mux4way.json`, `chips/n2t-mux8way.json`, `chips/n2t-dmux4way.json`, `chips/n2t-dmux8way.json` | Selection trees and signal distribution. |
+| H3 Multi-bit | `chips/n2t-not16.json`, `chips/n2t-and16.json`, `chips/n2t-or16.json`, `chips/n2t-xor16.json`, `chips/n2t-mux16.json`, `chips/n2t-dmux16.json` | Parallel 16-bit construction. Merge/split leaves are available from the Library's MERGE/SPLIT group. |
+| H4 Arithmetic | `chips/n2t-half-adder.json`, `chips/n2t-full-adder.json`, `chips/n2t-add16.json`, `chips/n2t-inc16.json`, `chips/n2t-neg16.json`, `chips/n2t-sub16.json`, `chips/n2t-compare16.json`, `chips/n2t-alu.json` | Carry flow, two's-complement arithmetic, comparison, and the ALU. |
+| H5 State | `chips/dff.json`, `chips/n2t-bit.json`, `chips/n2t-register.json`, `chips/n2t-register16.json`, `chips/n2t-counter.json`, `chips/n2t-pc.json`, `chips/register-16.json`, `chips/program-counter.json` | Native clocked leaves beside the composed state hierarchy. |
+| H6 Memory | `chips/n2t-ram8.json`, `chips/n2t-ram64.json`, `chips/n2t-ram512.json`, `chips/n2t-ram4k.json`, `chips/n2t-ram16k.json`, `chips/n2t-rom32k.json`, `chips/n2t-screen.json`, `chips/n2t-keyboard.json`, `chips/n2t-memory.json` | Composed memory wrappers and memory-mapped device boundaries. Native leaves include `chips/ram8.json`, `chips/ram64.json`, `chips/ram512.json`, `chips/ram4k.json`, `chips/ram16k.json`, `chips/rom32k.json`, `chips/screen.json`, `chips/keyboard.json`, and `chips/memory.json`. |
+| H7 Instructions | `chips/n2t-instruction-rom.json`, `chips/n2t-instruction-register.json`, `chips/n2t-instruction-decoder.json`, `chips/n2t-constant-generator.json`, `chips/n2t-control-signal-decoder.json` | Store one instruction, split its fields, and name the control signals. |
+| H8 CPU | `chips/n2t-a-register.json`, `chips/n2t-d-register.json`, `chips/n2t-alu-control.json`, `chips/n2t-write-destination-control.json`, `chips/n2t-jump-control.json`, `chips/n2t-cpu.json` | The composed Hack CPU path. `chips/hack-cpu.json` is the native reference implementation for comparison. |
+| H9 CPU + memory | `chips/n2t-cpu-memory-bus.json`, `chips/n2t-memory-address-decoder.json`, `chips/n2t-cpu-memory.json` | CPU requests crossing the bus and selecting RAM, screen, or keyboard. |
+| H10 Computer | `chips/n2t-computer.json`, `projects/nand2tetris-computer-lab.json` | The composed computer chip and the ready-to-open computer lab. |
+| S10 Hack assembly | `software/10-hack-assembly.json` | Assembly is a companion learning record, not a canvas chip yet. |
+| S11 Assembler | `software/11-assembler.json` | Assembly-to-machine-code tool milestone. |
+| S12 VM | `software/12-vm.json` | VM translator milestone. |
+| S13 Jack language | `software/13-jack-language.json` | Java-like teaching language milestone. |
+| S14 Compiler | `software/14-compiler.json` | Jack-to-VM compiler milestone. |
+| S15 Jack OS | `software/15-jack-os.json` | Runtime and device-service milestone. |
+| S16 Modern ISA | `software/16-modern-isa.json` | Later RISC-V or ARM comparison branch. |
+| S17 Real OS | `software/17-real-os.json` | Boot, drivers, processes, filesystem, and networking bridge. |
+
+## Ready-to-open projects
+
+- `projects/nand2tetris-bit-lab.json`: start here for DFF, BIT, load, and clock behavior.
+- `projects/nand2tetris-hardware-lab.json`: inspect the ALU and the hardware progression together.
+- `projects/nand2tetris-computer-lab.json`: open the composed computer, then enter or X-ray `N2T COMPUTER`.
+
+These project files are the visual entry points for the chip rows above. The chip JSONs are the reusable construction units; the projects give each important boundary a runnable canvas with inputs, outputs, and a short experiment to perform.
+
+| Project | Best companion phases | What the project is for |
+| --- | --- | --- |
+| `projects/nand2tetris-bit-lab.json` | H5 State | Observe DATA, LOAD, and CLOCK becoming persistent one-bit state. |
+| `projects/nand2tetris-hardware-lab.json` | H0-H4, plus H5-H9 as inspectable dependencies | Start from the ALU boundary, then enter or X-ray the composed arithmetic, state, memory, and CPU parts. |
+| `projects/nand2tetris-computer-lab.json` | H7-H10 | Follow RESET and CLOCK into the complete computer boundary and inspect its ROM, CPU, bus, and memory layers. |
+
+Standalone chip JSONs include their custom dependencies, so opening one does not require manually opening its children first. Native JSONs document the engine-provided boundary; use the Library when a primitive is marked as Library-only rather than looking for a separate file.
+
 ## Cornerstone 0: NAND foundation
 
 ### Build

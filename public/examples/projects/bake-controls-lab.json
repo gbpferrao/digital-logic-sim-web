@@ -9,21 +9,108 @@
     "name": "Bake Controls Lab",
     "type": "custom",
     "kind": "custom",
-    "size": { "x": 760, "y": 440 },
+    "size": {
+      "x": 760,
+      "y": 440
+    },
     "colour": "#202b3a",
     "nameLocation": "top",
     "inputPins": [],
     "outputPins": [],
     "instances": [
-      { "id": "start", "name": "IN-1", "position": { "x": -280, "y": 0 }, "label": "START HIGH" },
-      { "id": "panel", "name": "TIMED PANEL", "position": { "x": -20, "y": 0 }, "label": "COMPOSED TIMED PANEL" },
-      { "id": "short-led", "name": "LED", "position": { "x": 260, "y": -70 }, "label": "SHORT WINDOW" },
-      { "id": "long-led", "name": "LED", "position": { "x": 260, "y": 70 }, "label": "LONG WINDOW" }
+      {
+        "id": "start",
+        "name": "IN-1",
+        "position": {
+          "x": -360,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "START HIGH",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "panel",
+        "name": "TIMED PANEL",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "COMPOSED TIMED PANEL",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "short-led",
+        "name": "LED",
+        "position": {
+          "x": 360,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "SHORT WINDOW",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "long-led",
+        "name": "LED",
+        "position": {
+          "x": 360,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "LONG WINDOW",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "outputPinColours": {}
+      }
     ],
     "wires": [
-      { "id": "start-panel", "source": { "owner": "start", "pin": "0" }, "target": { "owner": "panel", "pin": "start" } },
-      { "id": "panel-short", "source": { "owner": "panel", "pin": "short" }, "target": { "owner": "short-led", "pin": "0" } },
-      { "id": "panel-long", "source": { "owner": "panel", "pin": "long" }, "target": { "owner": "long-led", "pin": "0" } }
+      {
+        "id": "start-panel",
+        "source": {
+          "owner": "start",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "panel",
+          "pin": "start"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "panel-short",
+        "source": {
+          "owner": "panel",
+          "pin": "short"
+        },
+        "target": {
+          "owner": "short-led",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "panel-long",
+        "source": {
+          "owner": "panel",
+          "pin": "long"
+        },
+        "target": {
+          "owner": "long-led",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
     ],
     "junctions": [],
     "displays": [],
@@ -32,7 +119,10 @@
         "id": "title",
         "type": "label",
         "text": "BAKE / STEP / SCRUB LAB",
-        "position": { "x": -280, "y": -190 },
+        "position": {
+          "x": -150,
+          "y": -480
+        },
         "width": 300,
         "height": 26,
         "fontSize": 14,
@@ -43,7 +133,10 @@
         "id": "instructions",
         "type": "text",
         "text": "This custom chip turns one constant HIGH input into two timed windows.\n\nExpected visible progression after STEP:\n0: both off\n1-2: SHORT + LONG on\n3-5: LONG only\n6+: both off\n\nTry RUN to create a bake, use the visible-step buttons and scrubber while paused, then CLEAR and repeat with STEP.",
-        "position": { "x": -280, "y": 150 },
+        "position": {
+          "x": -220,
+          "y": -410
+        },
         "width": 440,
         "height": 170,
         "fontSize": 11,
@@ -54,12 +147,15 @@
         "id": "composition-note",
         "type": "label",
         "text": "TIMED PANEL = reusable composed chip",
-        "position": { "x": -130, "y": -120 },
+        "position": {
+          "x": -180,
+          "y": -200
+        },
         "width": 360,
         "height": 22,
         "fontSize": 10,
         "colour": "#9bc8ff",
-        "background": "#253040"
+        "background": "#222c38"
       }
     ]
   },
@@ -69,41 +165,331 @@
       "name": "TIMED PANEL",
       "type": "custom",
       "kind": "custom",
-      "size": { "x": 300, "y": 220 },
+      "size": {
+        "x": 300,
+        "y": 220
+      },
       "colour": "#5c8d78",
       "nameLocation": "top",
       "inputPins": [
-        { "id": "start", "name": "START", "bits": 1, "direction": "input", "x": -150, "y": 0, "colour": "gray" }
+        {
+          "id": "start",
+          "name": "START",
+          "bits": 1,
+          "direction": "input",
+          "x": -260,
+          "y": 0,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
       ],
       "outputPins": [
-        { "id": "short", "name": "SHORT", "bits": 1, "direction": "output", "x": 150, "y": -50, "colour": "green" },
-        { "id": "long", "name": "LONG", "bits": 1, "direction": "output", "x": 150, "y": 50, "colour": "green" }
+        {
+          "id": "short",
+          "name": "SHORT",
+          "bits": 1,
+          "direction": "output",
+          "x": 260,
+          "y": -60,
+          "valueDisplay": "off",
+          "colour": "green"
+        },
+        {
+          "id": "long",
+          "name": "LONG",
+          "bits": 1,
+          "direction": "output",
+          "x": 260,
+          "y": 60,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
       ],
       "interfaceBindings": {
-        "inputs": [ { "publicId": "start", "instanceId": "panel-in", "pinId": "0", "direction": "input" } ],
+        "inputs": [
+          {
+            "publicId": "start",
+            "instanceId": "panel-in",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
         "outputs": [
-          { "publicId": "short", "instanceId": "panel-short", "pinId": "0", "direction": "output" },
-          { "publicId": "long", "instanceId": "panel-long", "pinId": "0", "direction": "output" }
+          {
+            "publicId": "short",
+            "instanceId": "panel-short",
+            "pinId": "0",
+            "direction": "output"
+          },
+          {
+            "publicId": "long",
+            "instanceId": "panel-long",
+            "pinId": "0",
+            "direction": "output"
+          }
         ]
       },
       "instances": [
-        { "id": "panel-in", "name": "IN-1", "position": { "x": -100, "y": 0 }, "label": "START", "interfaceId": "start" },
-        { "id": "short-pulse", "name": "PULSE", "position": { "x": 0, "y": -50 }, "label": "2 VISIBLE STEPS", "internalData": { "duration": 3, "remaining": 0, "previous": 0 } },
-        { "id": "long-pulse", "name": "PULSE", "position": { "x": 0, "y": 50 }, "label": "5 VISIBLE STEPS", "internalData": { "duration": 6, "remaining": 0, "previous": 0 } },
-        { "id": "panel-short", "name": "OUT-1", "position": { "x": 100, "y": -50 }, "label": "SHORT", "interfaceId": "short" },
-        { "id": "panel-long", "name": "OUT-1", "position": { "x": 100, "y": 50 }, "label": "LONG", "interfaceId": "long" }
+        {
+          "id": "panel-in",
+          "name": "IN-1",
+          "position": {
+            "x": -160,
+            "y": 0
+          },
+          "rotation": 0,
+          "label": "START",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "start",
+          "outputPinColours": {}
+        },
+        {
+          "id": "short-pulse",
+          "name": "PULSE",
+          "position": {
+            "x": 0,
+            "y": -60
+          },
+          "rotation": 0,
+          "label": "2 VISIBLE STEPS",
+          "internalData": {
+            "duration": 3,
+            "remaining": 0,
+            "previous": 0
+          },
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "long-pulse",
+          "name": "PULSE",
+          "position": {
+            "x": 0,
+            "y": 60
+          },
+          "rotation": 0,
+          "label": "5 VISIBLE STEPS",
+          "internalData": {
+            "duration": 6,
+            "remaining": 0,
+            "previous": 0
+          },
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "panel-short",
+          "name": "OUT-1",
+          "position": {
+            "x": 160,
+            "y": -60
+          },
+          "rotation": 0,
+          "label": "SHORT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "short",
+          "outputPinColours": {}
+        },
+        {
+          "id": "panel-long",
+          "name": "OUT-1",
+          "position": {
+            "x": 160,
+            "y": 60
+          },
+          "rotation": 0,
+          "label": "LONG",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "long",
+          "outputPinColours": {}
+        }
       ],
       "wires": [
-        { "id": "start-short", "source": { "owner": "panel-in", "pin": "0" }, "target": { "owner": "short-pulse", "pin": "0" } },
-        { "id": "start-long", "source": { "owner": "panel-in", "pin": "0" }, "target": { "owner": "long-pulse", "pin": "0" } },
-        { "id": "short-output", "source": { "owner": "short-pulse", "pin": "1" }, "target": { "owner": "panel-short", "pin": "0" } },
-        { "id": "long-output", "source": { "owner": "long-pulse", "pin": "1" }, "target": { "owner": "panel-long", "pin": "0" } }
+        {
+          "id": "start-short",
+          "source": {
+            "owner": "panel-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "short-pulse",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "start-long",
+          "source": {
+            "owner": "panel-in",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "long-pulse",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "short-output",
+          "source": {
+            "owner": "short-pulse",
+            "pin": "1"
+          },
+          "target": {
+            "owner": "panel-short",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "long-output",
+          "source": {
+            "owner": "long-pulse",
+            "pin": "1"
+          },
+          "target": {
+            "owner": "panel-long",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
       ],
       "junctions": [],
       "displays": [],
-      "annotations": []
+      "annotations": [],
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
+        }
+      }
     }
   },
+  "collections": [
+    {
+      "name": "LOGIC",
+      "chips": [
+        "AND",
+        "OR",
+        "NOT",
+        "NAND",
+        "NOR",
+        "XOR",
+        "XNOR",
+        "BUFFER"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "chips": [
+        "CLOCK",
+        "PULSE",
+        "KEY",
+        "3-STATE BUFFER",
+        "DFF",
+        "CONST-0",
+        "CONST-1",
+        "CONST-0-16",
+        "CONST-1-16"
+      ]
+    },
+    {
+      "name": "IN/OUT",
+      "chips": [
+        "IN-1",
+        "IN-4",
+        "IN-8",
+        "IN-16",
+        "OUT-1",
+        "OUT-4",
+        "OUT-8",
+        "OUT-16"
+      ]
+    },
+    {
+      "name": "MERGE/SPLIT",
+      "chips": [
+        "1-4BIT",
+        "1-8BIT",
+        "4-8BIT",
+        "1-16BIT",
+        "8-16BIT",
+        "4-1BIT",
+        "8-4BIT",
+        "8-1BIT",
+        "16-8BIT",
+        "16-1BIT"
+      ]
+    },
+    {
+      "name": "BUS",
+      "chips": [
+        "BUS-1",
+        "BUS-4",
+        "BUS-8"
+      ]
+    },
+    {
+      "name": "DISPLAY",
+      "chips": [
+        "7-SEGMENT",
+        "DOT DISPLAY",
+        "RGB DISPLAY",
+        "LED"
+      ]
+    },
+    {
+      "name": "MEMORY",
+      "chips": [
+        "ROM 256x16",
+        "dev.RAM-8",
+        "RAM8",
+        "RAM64",
+        "RAM512",
+        "RAM4K",
+        "RAM16K",
+        "ROM32K",
+        "MEMORY",
+        "SCREEN",
+        "KEYBOARD",
+        "REGISTER-16",
+        "PROGRAM COUNTER"
+      ]
+    },
+    {
+      "name": "AUDIO",
+      "chips": [
+        "BUZZER"
+      ]
+    }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
+  ],
+  "starred": [
+    "IN/OUT",
+    "NAND"
+  ],
   "settings": {
     "snapping": true,
     "straightWires": false,
@@ -112,6 +498,8 @@
     "stepsPerSecond": 8,
     "stepsPerClock": 2
   },
-  "inputValues": { "start": 1 },
+  "inputValues": {
+    "start": 1
+  },
   "keyValues": {}
 }

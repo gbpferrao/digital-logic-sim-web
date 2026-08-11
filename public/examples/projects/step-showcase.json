@@ -292,8 +292,8 @@
         "type": "label",
         "text": "STEP PROGRESSION LAB",
         "position": {
-          "x": -210,
-          "y": -300
+          "x": -180,
+          "y": -490
         },
         "width": 360,
         "height": 26,
@@ -306,8 +306,8 @@
         "type": "text",
         "text": "Press STEP and watch the lights.\nEvery clock rise starts all four windows.\nThe short windows turn off first, creating a visible staircase across the steps.",
         "position": {
-          "x": -210,
-          "y": 320
+          "x": -250,
+          "y": -420
         },
         "width": 500,
         "height": 100,
