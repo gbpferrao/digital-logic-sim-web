@@ -6,13 +6,19 @@ export async function readProjectFile(file) {
   const raw = JSON.parse(text);
   if (raw?.schema === "digital-logic-sim-web/1" || raw?.root) return normalizeProject(raw);
   if (raw?.schema === "digital-logic-sim-web/chip/1" && raw.description) {
-    const root = { ...raw.description, id: "root", inputPins: [], outputPins: [] };
-    const hasMovableInterfaceNodes = (root.instances ?? []).some((instance) => isInputType(instance.name) || isOutputType(instance.name));
+    const hasMovableInterfaceNodes = (raw.description.instances ?? []).some((instance) => isInputType(instance.name) || isOutputType(instance.name));
+    const root = {
+      ...raw.description,
+      id: "root",
+      inputPins: hasMovableInterfaceNodes ? [] : (raw.description.inputPins ?? []),
+      outputPins: hasMovableInterfaceNodes ? [] : (raw.description.outputPins ?? [])
+    };
     if (hasMovableInterfaceNodes) {
       delete root.interfaceBindings;
       delete root.fit;
     }
-    const project = normalizeProject({ name: raw.name || root.name || "Imported chip", root, customChips: {} });
+    const dependencySource = raw.dependencies && typeof raw.dependencies === "object" ? raw.dependencies : raw.customChips;
+    const project = normalizeProject({ name: raw.name || root.name || "Imported chip", root, customChips: dependencySource && typeof dependencySource === "object" ? dependencySource : {} });
     if (!hasMovableInterfaceNodes) exposeImportedChipPins(project);
     return project;
   }
@@ -29,10 +35,12 @@ export async function readProjectFile(file) {
 function exposeImportedChipPins(project) {
   const root = project.root;
   const endpointMap = new Map();
+  const terminalWidth = (bits) => [1, 4, 8, 16].reduce((best, value) => Math.abs(value - (Number(bits) || 1)) < Math.abs(best - (Number(bits) || 1)) ? value : best, 1);
   const terminal = (pin, input) => {
+    const width = terminalWidth(pin.bits);
     const name = input
-      ? (pin.bits === 8 ? TYPE.IN_8 : pin.bits === 4 ? TYPE.IN_4 : TYPE.IN_1)
-      : (pin.bits === 8 ? TYPE.OUT_8 : pin.bits === 4 ? TYPE.OUT_4 : TYPE.OUT_1);
+      ? (width === 16 ? TYPE.IN_16 : width === 8 ? TYPE.IN_8 : width === 4 ? TYPE.IN_4 : TYPE.IN_1)
+      : (width === 16 ? TYPE.OUT_16 : width === 8 ? TYPE.OUT_8 : width === 4 ? TYPE.OUT_4 : TYPE.OUT_1);
     const position = { x: (input ? -1 : 1) * (root.size.x / 2 + 35), y: pin.y ?? 0 };
     const instance = instanceFor(name, position);
     instance.id = uid(input ? "imported-in" : "imported-out");

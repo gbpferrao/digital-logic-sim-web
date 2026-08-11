@@ -16,8 +16,25 @@ export const TYPE = Object.freeze({
   TRI_STATE: "3-STATE BUFFER",
   CLOCK: "CLOCK",
   PULSE: "PULSE",
+  DFF: "DFF",
+  REGISTER_16: "REGISTER-16",
+  PC: "PROGRAM COUNTER",
   RAM: "dev.RAM-8",
   ROM: "ROM 256x16",
+  RAM_8: "RAM8",
+  RAM_64: "RAM64",
+  RAM_512: "RAM512",
+  RAM_4K: "RAM4K",
+  RAM_16K: "RAM16K",
+  ROM_32K: "ROM32K",
+  SCREEN: "SCREEN",
+  KEYBOARD: "KEYBOARD",
+  MEMORY: "MEMORY",
+  HACK_CPU: "HACK CPU",
+  CONST_0: "CONST-0",
+  CONST_1: "CONST-1",
+  CONST_0_16: "CONST-0-16",
+  CONST_1_16: "CONST-1-16",
   SEVEN_SEG: "7-SEGMENT",
   RGB: "RGB DISPLAY",
   DOT: "DOT DISPLAY",
@@ -25,15 +42,21 @@ export const TYPE = Object.freeze({
   MERGE_1_4: "1-4BIT",
   MERGE_1_8: "1-8BIT",
   MERGE_4_8: "4-8BIT",
+  MERGE_1_16: "1-16BIT",
+  MERGE_8_16: "8-16BIT",
   SPLIT_4_1: "4-1BIT",
   SPLIT_8_4: "8-4BIT",
   SPLIT_8_1: "8-1BIT",
+  SPLIT_16_8: "16-8BIT",
+  SPLIT_16_1: "16-1BIT",
   IN_1: "IN-1",
   IN_4: "IN-4",
   IN_8: "IN-8",
+  IN_16: "IN-16",
   OUT_1: "OUT-1",
   OUT_4: "OUT-4",
   OUT_8: "OUT-8",
+  OUT_16: "OUT-16",
   KEY: "KEY",
   BUS_1: "BUS-1",
   BUS_4: "BUS-4",
@@ -99,6 +122,10 @@ function builtin(name, type, inputs = [], outputs = [], options = {}) {
     wires: [],
     displays: options.displays ?? [],
     special: options.special ?? null,
+    memorySize: options.memorySize ?? null,
+    addressBits: options.addressBits ?? null,
+    wordBits: options.wordBits ?? null,
+    constantValue: options.constantValue ?? null,
     builtin: true
   };
 }
@@ -128,10 +155,35 @@ function createBuiltins() {
     [pin(0, "IN"), pin(1, "ENABLE")], [pin(2, "OUT", 1, "output")], { width: GRID * 2, height: GRID * 5, colour: COLORS.control }));
   add(builtin(TYPE.CLOCK, TYPE.CLOCK, [], [pin(0, "CLK", 1, "output")], { width: GRID * 2, height: GRID * 3, colour: COLORS.control, special: "clock" }));
   add(builtin(TYPE.PULSE, TYPE.PULSE, [pin(0, "IN")], [pin(1, "PULSE", 1, "output")], { width: GRID * 2, height: GRID * 3, colour: COLORS.control, special: "pulse" }));
+  add(builtin(TYPE.DFF, TYPE.DFF,
+    [pin(0, "D"), pin(1, "CLOCK")], [pin(2, "Q", 1, "output")], {
+      width: GRID * 6, height: GRID * 4, colour: COLORS.control, special: "dff", nameLocation: "hidden"
+    }));
+  add(builtin(TYPE.REGISTER_16, TYPE.REGISTER_16,
+    [pin(0, "IN", 16), pin(1, "LOAD"), pin(2, "CLOCK")], [pin(3, "OUT", 16, "output")], {
+      width: GRID * 10, height: GRID * 5, colour: COLORS.control, special: "register", nameLocation: "hidden"
+    }));
+  add(builtin(TYPE.PC, TYPE.PC,
+    [pin(0, "IN", 16), pin(1, "LOAD"), pin(2, "INC"), pin(3, "RESET"), pin(4, "CLOCK")], [pin(5, "OUT", 16, "output")], {
+      width: GRID * 12, height: GRID * 6, colour: COLORS.control, special: "pc", nameLocation: "hidden"
+    }));
+
+  add(builtin(TYPE.CONST_0, TYPE.CONST_0, [], [pin(0, "OUT", 1, "output")], {
+    width: GRID * 3, height: GRID * 3, colour: COLORS.control, special: "constant", constantValue: 0, nameLocation: "hidden"
+  }));
+  add(builtin(TYPE.CONST_1, TYPE.CONST_1, [], [pin(0, "OUT", 1, "output")], {
+    width: GRID * 3, height: GRID * 3, colour: COLORS.control, special: "constant", constantValue: 1, nameLocation: "hidden"
+  }));
+  add(builtin(TYPE.CONST_0_16, TYPE.CONST_0_16, [], [pin(0, "OUT", 16, "output")], {
+    width: GRID * 4, height: GRID * 3, colour: COLORS.control, special: "constant", constantValue: 0, wordBits: 16, nameLocation: "hidden"
+  }));
+  add(builtin(TYPE.CONST_1_16, TYPE.CONST_1_16, [], [pin(0, "OUT", 16, "output")], {
+    width: GRID * 4, height: GRID * 3, colour: COLORS.control, special: "constant", constantValue: 1, wordBits: 16, nameLocation: "hidden"
+  }));
 
   const io = [
-    [TYPE.IN_1, 1], [TYPE.IN_4, 4], [TYPE.IN_8, 8],
-    [TYPE.OUT_1, 1], [TYPE.OUT_4, 4], [TYPE.OUT_8, 8]
+    [TYPE.IN_1, 1], [TYPE.IN_4, 4], [TYPE.IN_8, 8], [TYPE.IN_16, 16],
+    [TYPE.OUT_1, 1], [TYPE.OUT_4, 4], [TYPE.OUT_8, 8], [TYPE.OUT_16, 16]
   ];
   io.forEach(([name, bits]) => {
     const input = name.startsWith("IN-");
@@ -143,14 +195,47 @@ function createBuiltins() {
 
   add(builtin(TYPE.RAM, TYPE.RAM,
     [pin(0, "ADDRESS", 8), pin(1, "DATA", 8), pin(2, "WRITE"), pin(3, "RESET"), pin(4, "CLOCK")],
-    [pin(5, "OUT", 8, "output")], { width: GRID * 10, height: GRID * 6, colour: COLORS.memory, special: "ram" }));
+    [pin(5, "OUT", 8, "output")], { width: GRID * 10, height: GRID * 6, colour: COLORS.memory, special: "ram", memorySize: 256, addressBits: 8, wordBits: 8 }));
   add(builtin(TYPE.ROM, TYPE.ROM, [pin(0, "ADDRESS", 8)], [pin(1, "OUT B", 8, "output"), pin(2, "OUT A", 8, "output")], {
-    width: GRID * 12, height: GRID * 4, colour: COLORS.rom, special: "rom"
+    width: GRID * 12, height: GRID * 4, colour: COLORS.rom, special: "rom", memorySize: 256, addressBits: 8, wordBits: 16
   }));
+
+  const memory = [
+    [TYPE.RAM_8, 3, 8], [TYPE.RAM_64, 6, 64], [TYPE.RAM_512, 9, 512], [TYPE.RAM_4K, 12, 4096], [TYPE.RAM_16K, 14, 16384]
+  ];
+  memory.forEach(([name, addressBits, memorySize]) => add(builtin(name, name,
+    [pin(0, "ADDRESS", addressBits), pin(1, "IN", 16), pin(2, "LOAD"), pin(3, "RESET"), pin(4, "CLOCK")],
+    [pin(5, "OUT", 16, "output")], {
+      width: GRID * 12, height: GRID * 6, colour: COLORS.memory, special: "ram", memorySize, addressBits, wordBits: 16
+    })));
+  add(builtin(TYPE.ROM_32K, TYPE.ROM_32K, [pin(0, "ADDRESS", 15)], [pin(1, "OUT", 16, "output")], {
+    width: GRID * 13, height: GRID * 5, colour: COLORS.rom, special: "rom", memorySize: 32768, addressBits: 15, wordBits: 16
+  }));
+  add(builtin(TYPE.SCREEN, TYPE.SCREEN,
+    [pin(0, "ADDRESS", 13), pin(1, "IN", 16), pin(2, "LOAD"), pin(3, "RESET"), pin(4, "CLOCK")],
+    [pin(5, "OUT", 16, "output")], {
+      width: GRID * 13, height: GRID * 8, colour: COLORS.display, special: "screen", memorySize: 8192, addressBits: 13, wordBits: 16,
+      displays: [{ type: "memoryScreen" }]
+    }));
+  add(builtin(TYPE.KEYBOARD, TYPE.KEYBOARD, [], [pin(0, "OUT", 16, "output")], {
+    width: GRID * 8, height: GRID * 4, colour: COLORS.io, special: "keyboard", wordBits: 16, nameLocation: "hidden"
+  }));
+  add(builtin(TYPE.MEMORY, TYPE.MEMORY,
+    [pin(0, "ADDRESS", 15), pin(1, "IN", 16), pin(2, "LOAD"), pin(3, "RESET"), pin(4, "CLOCK")],
+    [pin(5, "OUT", 16, "output")], {
+      width: GRID * 14, height: GRID * 7, colour: COLORS.memory, special: "memoryMap", memorySize: 32768, addressBits: 15, wordBits: 16
+    }));
+  add(builtin(TYPE.HACK_CPU, TYPE.HACK_CPU,
+    [pin(0, "IN M", 16), pin(1, "INSTRUCTION", 16), pin(2, "RESET"), pin(3, "CLOCK")],
+    [pin(4, "OUT M", 16, "output"), pin(5, "WRITE M", 1, "output"), pin(6, "ADDRESS M", 15, "output"), pin(7, "PC", 15, "output")], {
+      width: GRID * 16, height: GRID * 9, colour: COLORS.control, special: "hackCpu"
+    }));
 
   const conversions = [
     [TYPE.SPLIT_4_1, 4, 1, 1, 4], [TYPE.SPLIT_8_4, 8, 4, 1, 2], [TYPE.SPLIT_8_1, 8, 1, 1, 8],
-    [TYPE.MERGE_1_8, 1, 8, 8, 1], [TYPE.MERGE_1_4, 1, 4, 4, 1], [TYPE.MERGE_4_8, 4, 8, 2, 1]
+    [TYPE.SPLIT_16_8, 16, 8, 1, 2], [TYPE.SPLIT_16_1, 16, 1, 1, 16],
+    [TYPE.MERGE_1_8, 1, 8, 8, 1], [TYPE.MERGE_1_4, 1, 4, 4, 1], [TYPE.MERGE_4_8, 4, 8, 2, 1],
+    [TYPE.MERGE_1_16, 1, 16, 16, 1], [TYPE.MERGE_8_16, 8, 16, 2, 1]
   ];
   conversions.forEach(([name, inBits, outBits, inputCount, outputCount]) => {
     const inputs = Array.from({ length: inputCount }, (_, index) => pin(index, inputCount === 1 ? "IN" : `IN ${String.fromCharCode(65 + inputCount - index - 1)}`, inBits));
@@ -191,12 +276,12 @@ export const BUILTINS = Object.freeze(createBuiltins());
 
 export const COLLECTIONS = [
   { name: "LOGIC", chips: [TYPE.AND, TYPE.OR, TYPE.NOT, TYPE.NAND, TYPE.NOR, TYPE.XOR, TYPE.XNOR, TYPE.BUFFER] },
-  { name: "BASIC", chips: [TYPE.CLOCK, TYPE.PULSE, TYPE.KEY, TYPE.TRI_STATE] },
-  { name: "IN/OUT", chips: [TYPE.IN_1, TYPE.IN_4, TYPE.IN_8, TYPE.OUT_1, TYPE.OUT_4, TYPE.OUT_8] },
-  { name: "MERGE/SPLIT", chips: [TYPE.MERGE_1_4, TYPE.MERGE_1_8, TYPE.MERGE_4_8, TYPE.SPLIT_4_1, TYPE.SPLIT_8_4, TYPE.SPLIT_8_1] },
+  { name: "BASIC", chips: [TYPE.CLOCK, TYPE.PULSE, TYPE.KEY, TYPE.TRI_STATE, TYPE.DFF, TYPE.CONST_0, TYPE.CONST_1, TYPE.CONST_0_16, TYPE.CONST_1_16] },
+  { name: "IN/OUT", chips: [TYPE.IN_1, TYPE.IN_4, TYPE.IN_8, TYPE.IN_16, TYPE.OUT_1, TYPE.OUT_4, TYPE.OUT_8, TYPE.OUT_16] },
+  { name: "MERGE/SPLIT", chips: [TYPE.MERGE_1_4, TYPE.MERGE_1_8, TYPE.MERGE_4_8, TYPE.MERGE_1_16, TYPE.MERGE_8_16, TYPE.SPLIT_4_1, TYPE.SPLIT_8_4, TYPE.SPLIT_8_1, TYPE.SPLIT_16_8, TYPE.SPLIT_16_1] },
   { name: "BUS", chips: [TYPE.BUS_1, TYPE.BUS_4, TYPE.BUS_8] },
   { name: "DISPLAY", chips: [TYPE.SEVEN_SEG, TYPE.DOT, TYPE.RGB, TYPE.LED] },
-  { name: "MEMORY", chips: [TYPE.ROM, TYPE.RAM] },
+  { name: "MEMORY", chips: [TYPE.ROM, TYPE.RAM, TYPE.RAM_8, TYPE.RAM_64, TYPE.RAM_512, TYPE.RAM_4K, TYPE.RAM_16K, TYPE.ROM_32K, TYPE.MEMORY, TYPE.SCREEN, TYPE.KEYBOARD, TYPE.REGISTER_16, TYPE.PC] },
   { name: "AUDIO", chips: [TYPE.BUZZER] }
 ];
 

@@ -1,0 +1,94 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "RAM512",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-RAM512",
+    "name": "RAM512",
+    "type": "RAM512",
+    "kind": "builtin",
+    "size": {
+      "x": 240,
+      "y": 120
+    },
+    "colour": "#967451",
+    "nameLocation": "centre",
+    "gate": null,
+    "inputPins": [
+      {
+        "id": "0",
+        "name": "ADDRESS",
+        "bits": 9,
+        "direction": "input",
+        "x": -120,
+        "y": 40,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "1",
+        "name": "IN",
+        "bits": 16,
+        "direction": "input",
+        "x": -120,
+        "y": 20,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "2",
+        "name": "LOAD",
+        "bits": 1,
+        "direction": "input",
+        "x": -120,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "3",
+        "name": "RESET",
+        "bits": 1,
+        "direction": "input",
+        "x": -120,
+        "y": -20,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "4",
+        "name": "CLOCK",
+        "bits": 1,
+        "direction": "input",
+        "x": -120,
+        "y": -40,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "5",
+        "name": "OUT",
+        "bits": 16,
+        "direction": "output",
+        "x": 120,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": "ram",
+    "memorySize": 512,
+    "addressBits": 9,
+    "wordBits": 16,
+    "constantValue": null,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

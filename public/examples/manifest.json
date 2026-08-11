@@ -87,11 +87,11 @@
       "file": "ripple-adder-4.json",
       "name": "RIPPLE ADDER 4",
       "href": "examples/chips/ripple-adder-4.json"
-    },
-    {
-      "file": "test.json",
-      "name": "test",
-      "href": "examples/chips/test.json"
     }
-  ]
+  ],
+  "nand2tetris": {
+    "file": "nand2tetris/manifest.json",
+    "href": "examples/nand2tetris/manifest.json",
+    "name": "Nand2Tetris chip progression"
+  }
 }

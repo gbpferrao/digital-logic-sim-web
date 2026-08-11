@@ -211,6 +211,40 @@ function getBits(item, id, bits) { return valueOf(getInput(item, id), bits); }
 
 function risingEdge(previous, current) { return isHigh(current) && !previous; }
 
+function ensureMemory(item) {
+  const size = Math.max(1, Number(item.description.memorySize) || 256);
+  if (!Array.isArray(item.internal.memory) || item.internal.memory.length !== size) {
+    const previous = Array.isArray(item.internal.memory) ? item.internal.memory : [];
+    item.internal.memory = Array.from({ length: size }, (_, index) => Number(previous[index]) || 0);
+  }
+  return item.internal.memory;
+}
+
+function hackAlu(x, y, comp) {
+  let left = x & PIN_MASK;
+  let right = y & PIN_MASK;
+  if ((comp >> 5) & 1) left = 0;
+  if ((comp >> 4) & 1) left = (~left) & PIN_MASK;
+  if ((comp >> 3) & 1) right = 0;
+  if ((comp >> 2) & 1) right = (~right) & PIN_MASK;
+  let result = (comp >> 1) & 1 ? (left + right) : (left & right);
+  result &= PIN_MASK;
+  if (comp & 1) result = (~result) & PIN_MASK;
+  return result;
+}
+
+function hackJumpTaken(value, jump) {
+  const negative = Boolean(value & 0x8000);
+  const zero = value === 0;
+  return jump === 1 ? !negative && !zero
+    : jump === 2 ? zero
+      : jump === 3 ? !negative
+        : jump === 4 ? negative
+          : jump === 5 ? !zero
+            : jump === 6 ? negative || zero
+              : jump === 7;
+}
+
 function processBuiltin(item, simulator, tickId, commitState = false) {
   const desc = item.description;
   const type = desc.type;
@@ -229,6 +263,73 @@ function processBuiltin(item, simulator, tickId, commitState = false) {
     return;
   }
   if (isOutputType(type)) return;
+  if (desc.special === "constant") {
+    const output = desc.outputPins[0];
+    const bits = output?.bits ?? desc.wordBits ?? 1;
+    setOutput(item, output?.id ?? 0, driven((Number(desc.constantValue) || 0) & maskForBits(bits)));
+    return;
+  }
+  if (desc.special === "dff") {
+    const clock = getInput(item, 1);
+    if (commitState && firstTickPass) {
+      if (risingEdge(item.internal.lastClock ?? 0, clock)) item.internal.value = getBits(item, 0, 1);
+      item.internal.lastClock = isHigh(clock) ? 1 : 0;
+    }
+    setOutput(item, 2, driven(item.internal.value ?? 0));
+    return;
+  }
+  if (desc.special === "register" || desc.special === "pc") {
+    const clockPin = desc.special === "pc" ? 4 : 2;
+    const clock = getInput(item, clockPin);
+    if (commitState && firstTickPass) {
+      if (risingEdge(item.internal.lastClock ?? 0, clock)) {
+        if (desc.special === "pc") {
+          if (isHigh(getInput(item, 3))) item.internal.value = 0;
+          else if (isHigh(getInput(item, 1))) item.internal.value = getBits(item, 0, 16);
+          else if (isHigh(getInput(item, 2))) item.internal.value = ((item.internal.value ?? 0) + 1) & PIN_MASK;
+        } else if (isHigh(getInput(item, 1))) item.internal.value = getBits(item, 0, 16);
+      }
+      item.internal.lastClock = isHigh(clock) ? 1 : 0;
+    }
+    setOutput(item, desc.outputPins[0]?.id ?? (desc.special === "pc" ? 5 : 3), driven(item.internal.value ?? 0));
+    return;
+  }
+  if (desc.special === "keyboard") {
+    const key = item.internal.key || "Space";
+    const held = simulator.project.keyValues[key] || simulator.project.keyValues[`Key${String(key).toUpperCase()}`] || simulator.project.keyValues[String(key).toLowerCase()];
+    const keyCode = held ? Number(item.internal.keyCode || 32) : 0;
+    setOutput(item, desc.outputPins[0]?.id ?? 0, driven(keyCode & maskForBits(desc.outputPins[0]?.bits ?? 16)));
+    return;
+  }
+  if (desc.special === "hackCpu") {
+    const instruction = getBits(item, 1, 16);
+    const inM = getBits(item, 0, 16);
+    const isCInstruction = Boolean(instruction & 0x8000);
+    const comp = (instruction >> 6) & 0x3f;
+    const useMemory = Boolean((instruction >> 12) & 1);
+    const alu = hackAlu(item.internal.d ?? 0, useMemory ? inM : item.internal.a ?? 0, comp);
+    const dest = (instruction >> 3) & 0x7;
+    const jump = instruction & 0x7;
+    if (commitState && firstTickPass) {
+      const clock = getInput(item, 3);
+      if (risingEdge(item.internal.lastClock ?? 0, clock)) {
+        const reset = isHigh(getInput(item, 2));
+        if (reset) item.internal.pc = 0;
+        else if (isCInstruction && hackJumpTaken(alu, jump)) item.internal.pc = (item.internal.a ?? 0) & 0x7fff;
+        else item.internal.pc = ((item.internal.pc ?? 0) + 1) & 0x7fff;
+        if (isCInstruction) {
+          if (dest & 4) item.internal.a = alu & 0x7fff;
+          if (dest & 2) item.internal.d = alu;
+        } else item.internal.a = instruction & 0x7fff;
+      }
+      item.internal.lastClock = isHigh(clock) ? 1 : 0;
+    }
+    setOutput(item, 4, driven(isCInstruction ? alu : 0));
+    setOutput(item, 5, driven(isCInstruction && Boolean(dest & 1) ? 1 : 0));
+    setOutput(item, 6, driven((item.internal.a ?? 0) & 0x7fff));
+    setOutput(item, 7, driven((item.internal.pc ?? 0) & 0x7fff));
+    return;
+  }
   if ([TYPE.AND, TYPE.OR, TYPE.NAND, TYPE.NOR, TYPE.XOR, TYPE.XNOR].includes(type)) {
     const a = isHigh(getInput(item, 0));
     const b = isHigh(getInput(item, 1));
@@ -278,24 +379,25 @@ function processBuiltin(item, simulator, tickId, commitState = false) {
     setOutput(item, 0, driven(held ? 1 : 0));
     return;
   }
-  if (type === TYPE.MERGE_1_4 || type === TYPE.MERGE_1_8 || type === TYPE.MERGE_4_8) {
+  if ([TYPE.MERGE_1_4, TYPE.MERGE_1_8, TYPE.MERGE_4_8, TYPE.MERGE_1_16, TYPE.MERGE_8_16].includes(type)) {
     const out = desc.outputPins[0];
     let bits = 0;
     let tri = 0;
+    let offset = 0;
     desc.inputPins.forEach((pin, index) => {
       const input = getInput(item, pin.id);
-      const offset = type === TYPE.MERGE_4_8 ? index * 4 : index;
       bits |= (input.bits & maskForBits(pin.bits)) << offset;
       tri |= (input.tri & maskForBits(pin.bits)) << offset;
+      offset += pin.bits;
     });
     setOutput(item, out.id, state(bits, tri));
     return;
   }
-  if (type === TYPE.SPLIT_4_1 || type === TYPE.SPLIT_8_4 || type === TYPE.SPLIT_8_1) {
+  if ([TYPE.SPLIT_4_1, TYPE.SPLIT_8_4, TYPE.SPLIT_8_1, TYPE.SPLIT_16_8, TYPE.SPLIT_16_1].includes(type)) {
     const source = getInput(item, desc.inputPins[0]?.id ?? 0);
-    if (type === TYPE.SPLIT_8_4) {
-      setOutput(item, desc.outputPins[0].id, state((source.bits >> 4) & 0xf, (source.tri >> 4) & 0xf));
-      setOutput(item, desc.outputPins[1].id, state(source.bits & 0xf, source.tri & 0xf));
+    if (desc.outputPins.length === 2 && desc.outputPins[0].bits === 8) {
+      setOutput(item, desc.outputPins[0].id, state((source.bits >> 8) & 0xff, (source.tri >> 8) & 0xff));
+      setOutput(item, desc.outputPins[1].id, state(source.bits & 0xff, source.tri & 0xff));
     } else {
       desc.outputPins.forEach((pin, index) => {
         const bit = desc.outputPins.length - index - 1;
@@ -309,22 +411,27 @@ function processBuiltin(item, simulator, tickId, commitState = false) {
     return;
   }
   if (isBusTerminus(type)) return;
-  if (type === TYPE.RAM) {
-    const address = getBits(item, 0, 8);
+  if (["ram", "screen", "memoryMap"].includes(desc.special)) {
+    const memory = ensureMemory(item);
+    const address = getBits(item, 0, desc.addressBits ?? 8) % memory.length;
     const clock = getInput(item, 4);
     const previousClock = item.internal.lastClock ?? 0;
     if (commitState && firstTickPass && risingEdge(previousClock, clock)) {
-      if (isHigh(getInput(item, 3))) item.internal.memory = Array.from({ length: 256 }, () => 0);
-      else if (isHigh(getInput(item, 2))) item.internal.memory[address] = getBits(item, 1, 8);
+      if (isHigh(getInput(item, 3))) item.internal.memory.fill(0);
+      else if (isHigh(getInput(item, 2))) item.internal.memory[address] = getBits(item, 1, desc.wordBits ?? 16);
     }
     if (commitState && firstTickPass) item.internal.lastClock = isHigh(clock) ? 1 : 0;
-    setOutput(item, 5, driven(item.internal.memory?.[address] ?? 0));
+    setOutput(item, desc.outputPins[0]?.id ?? 5, driven(item.internal.memory?.[address] ?? 0));
     return;
   }
-  if (type === TYPE.ROM) {
-    const word = Number(item.internal.memory?.[getBits(item, 0, 8)] ?? 0) & 0xffff;
-    setOutput(item, 1, driven((word >> 8) & 0xff));
-    setOutput(item, 2, driven(word & 0xff));
+  if (desc.special === "rom") {
+    const memory = ensureMemory(item);
+    const word = Number(memory[getBits(item, 0, desc.addressBits ?? 8) % memory.length] ?? 0) & PIN_MASK;
+    if (desc.outputPins.length === 1) setOutput(item, desc.outputPins[0].id, driven(word));
+    else {
+      setOutput(item, desc.outputPins[0]?.id ?? 1, driven((word >> 8) & 0xff));
+      setOutput(item, desc.outputPins[1]?.id ?? 2, driven(word & 0xff));
+    }
     return;
   }
   if (type === TYPE.DOT) {

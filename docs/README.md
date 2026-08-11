@@ -6,8 +6,9 @@ useful layer and move deeper only when you need implementation detail:
 1. **How is the system built?** Read [`architecture/system.md`](architecture/system.md).
 2. **How does a behavior flow through the runtime?** Read the specialized
    architecture notes in [`architecture/`](architecture/), especially
-   [`simulation-bake.md`](architecture/simulation-bake.md) and
-   [`xray.md`](architecture/xray.md).
+   [`simulation-bake.md`](architecture/simulation-bake.md),
+   [`xray.md`](architecture/xray.md), and the
+   [`Nand2Tetris engine boundary`](architecture/nand2tetris-engine.md).
 3. **Why does an interaction behave this way?** Read the focused reports in
    [`architecture/interaction/`](architecture/interaction/).
 4. **How should the interface look and signal state?** Read

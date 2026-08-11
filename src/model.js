@@ -115,10 +115,16 @@ export function instanceFor(name, position = { x: 0, y: 0 }) {
 function defaultInternalData(desc) {
   if (!desc) return {};
   if (desc.special === "bus" || desc.special === "busTerminus") return { busFlipped: false };
-  if (desc.special === "ram") return { memory: Array.from({ length: 256 }, () => 0), lastClock: 0 };
-  if (desc.special === "rom") return { memory: Array.from({ length: 256 }, () => 0) };
+  if (desc.special === "dff") return { value: 0, lastClock: 0 };
+  if (desc.special === "register" || desc.special === "pc") return { value: 0, lastClock: 0 };
+  if (desc.special === "ram" || desc.special === "screen" || desc.special === "memoryMap") {
+    return { memory: Array.from({ length: Number(desc.memorySize) || 256 }, () => 0), lastClock: 0 };
+  }
+  if (desc.special === "rom") return { memory: Array.from({ length: Number(desc.memorySize) || 256 }, () => 0) };
+  if (desc.special === "hackCpu") return { a: 0, d: 0, pc: 0, lastClock: 0 };
   if (desc.special === "pulse") return { duration: 4, remaining: 0, previous: 0 };
   if (desc.special === "key") return { key: "Space" };
+  if (desc.special === "keyboard") return { keyCode: 0 };
   if (desc.special === "dot") return { display: Array.from({ length: 256 }, () => 0), back: Array.from({ length: 256 }, () => 0), lastClock: 0 };
   if (desc.special === "rgb") return { display: Array.from({ length: 256 }, () => 0), back: Array.from({ length: 256 }, () => 0), lastClock: 0 };
   return {};
@@ -271,7 +277,7 @@ function normalizeInterfaceBindings(raw) {
 
 function terminalTypeFor(direction, bits = 1) {
   const prefix = direction === "input" ? "IN-" : "OUT-";
-  const available = [1, 4, 8];
+  const available = [1, 4, 8, 16];
   const requested = Number(bits) || 1;
   const width = available.includes(requested) ? requested : available.reduce((best, value) => Math.abs(value - requested) < Math.abs(best - requested) ? value : best, available[0]);
   return `${prefix}${width}`;

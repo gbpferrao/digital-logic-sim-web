@@ -93,6 +93,8 @@ Custom-chip interfaces are authored as ordinary movable `IN-*` and `OUT-*` nodes
 
 The repository includes inspectable examples in [`storage/projects`](storage/projects): `bake-controls-lab.json`, `basic-alu.json`, `full-adder.json`, `indefinite-clock-lab.json`, `multiplexer-2-1.json`, `simple-alu.json`, `sophisticated-alu.json`, `step-showcase.json`, and `tiny-hex-display.json`. Their reusable chip JSON files live in [`storage/chips`](storage/chips), and the static build publishes copies under [`public/examples`](public/examples) for download/import.
 
+The complete staged hardware track lives in [`storage/nand2tetris`](storage/nand2tetris). It includes 44 nested Nand2Tetris chip JSONs, standalone dependency-aware imports, ALU/BIT/computer lab projects, and companion records for assembly, the VM, Jack, Jack OS, a later ARM/RISC-V bridge, and a real-OS bridge. The static build publishes the same folder under `public/examples/nand2tetris/`. The track follows *The Elements of Computing Systems* (Nand2Tetris); software and OS milestones are recorded as companion learning stages because they are language/runtime systems rather than canvas chips.
+
 The storage endpoints and file layout are documented in [`docs/reference/storage.md`](docs/reference/storage.md).
 
 The focused design and implementation contracts live in [`docs/architecture/`](docs/architecture/): the system architecture, simulation bake lifecycle, X-ray projection, browser performance, and interaction audits. Example-specific explanations live in [`docs/examples/`](docs/examples/).

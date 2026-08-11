@@ -1,0 +1,64 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "NAND",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-NAND",
+    "name": "NAND",
+    "type": "NAND",
+    "kind": "builtin",
+    "size": {
+      "x": 120,
+      "y": 80
+    },
+    "colour": "#8176b3",
+    "nameLocation": "hidden",
+    "gate": "nand",
+    "inputPins": [
+      {
+        "id": "0",
+        "name": "IN B",
+        "bits": 1,
+        "direction": "input",
+        "x": -60,
+        "y": 10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "1",
+        "name": "IN A",
+        "bits": 1,
+        "direction": "input",
+        "x": -60,
+        "y": -10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "2",
+        "name": "OUT",
+        "bits": 1,
+        "direction": "output",
+        "x": 60,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": "logicGate",
+    "memorySize": null,
+    "addressBits": null,
+    "wordBits": null,
+    "constantValue": null,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

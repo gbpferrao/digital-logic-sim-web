@@ -1,0 +1,945 @@
+{
+  "schema": "digital-logic-sim-web/nand2tetris/1",
+  "name": "Nand2Tetris chip progression",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "reference": "The Elements of Computing Systems by Noam Nisan and Shimon Schocken (Nand2Tetris)",
+  "hardwareStages": [
+    {
+      "id": "00-nand",
+      "title": "NAND foundation",
+      "chips": [
+        "N2T NAND"
+      ],
+      "capability": "One universal two-input gate; every later Boolean construction can be reduced to it.",
+      "chipFiles": [
+        "n2t-nand.json"
+      ]
+    },
+    {
+      "id": "01-logic",
+      "title": "Elementary Boolean logic",
+      "chips": [
+        "N2T NOT",
+        "N2T AND",
+        "N2T OR",
+        "N2T XOR",
+        "N2T NOR",
+        "N2T XNOR",
+        "N2T BUFFER"
+      ],
+      "capability": "Truth tables become reusable, inspectable gates.",
+      "chipFiles": [
+        "n2t-not.json",
+        "n2t-and.json",
+        "n2t-or.json",
+        "n2t-xor.json",
+        "n2t-nor.json",
+        "n2t-xnor.json",
+        "n2t-buffer.json"
+      ]
+    },
+    {
+      "id": "02-routing",
+      "title": "Selection and routing",
+      "chips": [
+        "N2T MUX",
+        "N2T DMUX",
+        "N2T OR8WAY",
+        "N2T MUX4WAY",
+        "N2T MUX8WAY",
+        "N2T DMUX4WAY",
+        "N2T DMUX8WAY"
+      ],
+      "capability": "One signal can be selected, distributed, or gathered through a small routing hierarchy.",
+      "chipFiles": [
+        "n2t-mux.json",
+        "n2t-dmux.json",
+        "n2t-or8way.json",
+        "n2t-mux4way.json",
+        "n2t-mux8way.json",
+        "n2t-dmux4way.json",
+        "n2t-dmux8way.json"
+      ]
+    },
+    {
+      "id": "03-multibit",
+      "title": "Multi-bit logic",
+      "chips": [
+        "N2T NOT16",
+        "N2T AND16",
+        "N2T OR16",
+        "N2T XOR16",
+        "N2T MUX16"
+      ],
+      "capability": "The same one-bit logic is lifted into parallel 16-bit words.",
+      "chipFiles": [
+        "n2t-not16.json",
+        "n2t-and16.json",
+        "n2t-or16.json",
+        "n2t-xor16.json",
+        "n2t-mux16.json"
+      ]
+    },
+    {
+      "id": "04-arithmetic",
+      "title": "Arithmetic",
+      "chips": [
+        "N2T HALF ADDER",
+        "N2T FULL ADDER",
+        "N2T ADD16",
+        "N2T INC16",
+        "N2T SUB16",
+        "N2T COMPARE16",
+        "N2T ALU"
+      ],
+      "capability": "Words can add, increment, subtract, compare, and perform controlled ALU operations.",
+      "chipFiles": [
+        "n2t-half-adder.json",
+        "n2t-full-adder.json",
+        "n2t-add16.json",
+        "n2t-inc16.json",
+        "n2t-sub16.json",
+        "n2t-compare16.json",
+        "n2t-alu.json"
+      ]
+    },
+    {
+      "id": "05-state",
+      "title": "Sequential state",
+      "chips": [
+        "DFF",
+        "N2T BIT",
+        "N2T REGISTER",
+        "N2T A REGISTER",
+        "N2T D REGISTER",
+        "N2T PC"
+      ],
+      "capability": "A clock turns combinational paths into persistent state and controlled time flow.",
+      "chipFiles": [
+        "dff.json",
+        "n2t-bit.json",
+        "n2t-register.json",
+        "n2t-a-register.json",
+        "n2t-d-register.json",
+        "n2t-pc.json"
+      ]
+    },
+    {
+      "id": "06-memory",
+      "title": "Memory hierarchy",
+      "chips": [
+        "N2T RAM8",
+        "N2T RAM64",
+        "N2T RAM512",
+        "N2T RAM4K",
+        "N2T RAM16K",
+        "N2T ROM32K",
+        "N2T SCREEN",
+        "N2T KEYBOARD",
+        "N2T MEMORY"
+      ],
+      "capability": "Address bits select progressively larger memory structures and device-mapped regions.",
+      "chipFiles": [
+        "n2t-ram8.json",
+        "n2t-ram64.json",
+        "n2t-ram512.json",
+        "n2t-ram4k.json",
+        "n2t-ram16k.json",
+        "n2t-rom32k.json",
+        "n2t-screen.json",
+        "n2t-keyboard.json",
+        "n2t-memory.json"
+      ]
+    },
+    {
+      "id": "07-instruction",
+      "title": "Instruction representation",
+      "chips": [
+        "N2T INSTRUCTION DECODER"
+      ],
+      "capability": "A 16-bit instruction becomes named control fields: computation, destinations, and jumps.",
+      "chipFiles": [
+        "n2t-instruction-decoder.json"
+      ]
+    },
+    {
+      "id": "08-cpu",
+      "title": "CPU building blocks",
+      "chips": [
+        "N2T CPU"
+      ],
+      "capability": "A Hack-shaped CPU executes A- and C-instructions and exposes the memory protocol.",
+      "chipFiles": [
+        "n2t-cpu.json"
+      ]
+    },
+    {
+      "id": "09-computer",
+      "title": "Complete computer boundary",
+      "chips": [
+        "N2T COMPUTER"
+      ],
+      "capability": "Instruction ROM, CPU, and data memory form one inspectable computer-like system.",
+      "chipFiles": [
+        "n2t-computer.json"
+      ]
+    }
+  ],
+  "chips": [
+    {
+      "name": "N2T NAND",
+      "file": "chips/n2t-nand.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T NOT",
+      "file": "chips/n2t-not.json",
+      "native": false,
+      "dependencies": [
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T AND",
+      "file": "chips/n2t-and.json",
+      "native": false,
+      "dependencies": [
+        "N2T NAND",
+        "N2T NOT"
+      ]
+    },
+    {
+      "name": "N2T OR",
+      "file": "chips/n2t-or.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T XOR",
+      "file": "chips/n2t-xor.json",
+      "native": false,
+      "dependencies": [
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T NOR",
+      "file": "chips/n2t-nor.json",
+      "native": false,
+      "dependencies": [
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T XNOR",
+      "file": "chips/n2t-xnor.json",
+      "native": false,
+      "dependencies": [
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T BUFFER",
+      "file": "chips/n2t-buffer.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T MUX",
+      "file": "chips/n2t-mux.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T DMUX",
+      "file": "chips/n2t-dmux.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T OR8WAY",
+      "file": "chips/n2t-or8way.json",
+      "native": false,
+      "dependencies": [
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T MUX4WAY",
+      "file": "chips/n2t-mux4way.json",
+      "native": false,
+      "dependencies": [
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T MUX8WAY",
+      "file": "chips/n2t-mux8way.json",
+      "native": false,
+      "dependencies": [
+        "N2T MUX4WAY",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T DMUX4WAY",
+      "file": "chips/n2t-dmux4way.json",
+      "native": false,
+      "dependencies": [
+        "N2T DMUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T DMUX8WAY",
+      "file": "chips/n2t-dmux8way.json",
+      "native": false,
+      "dependencies": [
+        "N2T DMUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T DMUX4WAY"
+      ]
+    },
+    {
+      "name": "N2T NOT16",
+      "file": "chips/n2t-not16.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T AND16",
+      "file": "chips/n2t-and16.json",
+      "native": false,
+      "dependencies": [
+        "N2T AND",
+        "N2T NAND",
+        "N2T NOT"
+      ]
+    },
+    {
+      "name": "N2T OR16",
+      "file": "chips/n2t-or16.json",
+      "native": false,
+      "dependencies": [
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND"
+      ]
+    },
+    {
+      "name": "N2T XOR16",
+      "file": "chips/n2t-xor16.json",
+      "native": false,
+      "dependencies": [
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T MUX16",
+      "file": "chips/n2t-mux16.json",
+      "native": false,
+      "dependencies": [
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T HALF ADDER",
+      "file": "chips/n2t-half-adder.json",
+      "native": false,
+      "dependencies": [
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T FULL ADDER",
+      "file": "chips/n2t-full-adder.json",
+      "native": false,
+      "dependencies": [
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T ADD16",
+      "file": "chips/n2t-add16.json",
+      "native": false,
+      "dependencies": [
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T INC16",
+      "file": "chips/n2t-inc16.json",
+      "native": false,
+      "dependencies": [
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T SUB16",
+      "file": "chips/n2t-sub16.json",
+      "native": false,
+      "dependencies": [
+        "N2T NOT16",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T AND"
+      ]
+    },
+    {
+      "name": "N2T COMPARE16",
+      "file": "chips/n2t-compare16.json",
+      "native": false,
+      "dependencies": [
+        "N2T SUB16",
+        "N2T NOT16",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR",
+        "N2T AND",
+        "N2T OR16"
+      ]
+    },
+    {
+      "name": "N2T ALU",
+      "file": "chips/n2t-alu.json",
+      "native": false,
+      "dependencies": [
+        "N2T MUX16",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR",
+        "N2T NOT16",
+        "N2T AND16",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T OR8WAY"
+      ]
+    },
+    {
+      "name": "N2T BIT",
+      "file": "chips/n2t-bit.json",
+      "native": false,
+      "dependencies": [
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T REGISTER",
+      "file": "chips/n2t-register.json",
+      "native": false,
+      "dependencies": [
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T A REGISTER",
+      "file": "chips/n2t-a-register.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T D REGISTER",
+      "file": "chips/n2t-d-register.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR"
+      ]
+    },
+    {
+      "name": "N2T PC",
+      "file": "chips/n2t-pc.json",
+      "native": false,
+      "dependencies": [
+        "N2T REGISTER",
+        "N2T BIT",
+        "N2T MUX",
+        "N2T NOT",
+        "N2T NAND",
+        "N2T AND",
+        "N2T OR",
+        "N2T INC16",
+        "N2T ADD16",
+        "N2T FULL ADDER",
+        "N2T HALF ADDER",
+        "N2T XOR",
+        "N2T MUX16"
+      ]
+    },
+    {
+      "name": "N2T RAM8",
+      "file": "chips/n2t-ram8.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T RAM64",
+      "file": "chips/n2t-ram64.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T RAM512",
+      "file": "chips/n2t-ram512.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T RAM4K",
+      "file": "chips/n2t-ram4k.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T RAM16K",
+      "file": "chips/n2t-ram16k.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T SCREEN",
+      "file": "chips/n2t-screen.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T MEMORY",
+      "file": "chips/n2t-memory.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T ROM32K",
+      "file": "chips/n2t-rom32k.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T KEYBOARD",
+      "file": "chips/n2t-keyboard.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T INSTRUCTION DECODER",
+      "file": "chips/n2t-instruction-decoder.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T CPU",
+      "file": "chips/n2t-cpu.json",
+      "native": false,
+      "dependencies": []
+    },
+    {
+      "name": "N2T COMPUTER",
+      "file": "chips/n2t-computer.json",
+      "native": false,
+      "dependencies": [
+        "N2T CPU",
+        "N2T ROM32K",
+        "N2T MEMORY"
+      ]
+    },
+    {
+      "name": "NAND",
+      "file": "chips/nand.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "DFF",
+      "file": "chips/dff.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "CONST-0",
+      "file": "chips/const-0.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "CONST-1",
+      "file": "chips/const-1.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "CONST-0-16",
+      "file": "chips/const-0-16.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "CONST-1-16",
+      "file": "chips/const-1-16.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "REGISTER-16",
+      "file": "chips/register-16.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "PROGRAM COUNTER",
+      "file": "chips/program-counter.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "RAM8",
+      "file": "chips/ram8.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "RAM64",
+      "file": "chips/ram64.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "RAM512",
+      "file": "chips/ram512.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "RAM4K",
+      "file": "chips/ram4k.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "RAM16K",
+      "file": "chips/ram16k.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "ROM32K",
+      "file": "chips/rom32k.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "SCREEN",
+      "file": "chips/screen.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "KEYBOARD",
+      "file": "chips/keyboard.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "MEMORY",
+      "file": "chips/memory.json",
+      "native": true,
+      "dependencies": []
+    },
+    {
+      "name": "HACK CPU",
+      "file": "chips/hack-cpu.json",
+      "native": true,
+      "dependencies": []
+    }
+  ],
+  "nativePrimitives": [
+    {
+      "name": "NAND",
+      "role": "existing-native",
+      "reason": "universal Boolean primitive"
+    },
+    {
+      "name": "DFF",
+      "role": "new-native",
+      "reason": "clocked one-bit state"
+    },
+    {
+      "name": "CONST-0",
+      "role": "new-native",
+      "reason": "explicit logic zero source"
+    },
+    {
+      "name": "CONST-1",
+      "role": "new-native",
+      "reason": "explicit logic one source"
+    },
+    {
+      "name": "CONST-0-16",
+      "role": "new-native",
+      "reason": "explicit 16-bit zero source"
+    },
+    {
+      "name": "CONST-1-16",
+      "role": "new-native",
+      "reason": "explicit 16-bit one source"
+    },
+    {
+      "name": "REGISTER-16",
+      "role": "new-native",
+      "reason": "bounded 16-bit state register contract"
+    },
+    {
+      "name": "PROGRAM COUNTER",
+      "role": "new-native",
+      "reason": "bounded increment/load/reset state contract"
+    },
+    {
+      "name": "RAM8/RAM64/RAM512/RAM4K/RAM16K",
+      "role": "new-native",
+      "reason": "bounded efficient memory contracts"
+    },
+    {
+      "name": "ROM32K",
+      "role": "new-native",
+      "reason": "Hack instruction memory contract"
+    },
+    {
+      "name": "MEMORY",
+      "role": "new-native",
+      "reason": "Hack data-memory boundary"
+    },
+    {
+      "name": "HACK CPU",
+      "role": "new-native",
+      "reason": "executable Hack instruction contract"
+    }
+  ],
+  "projects": [
+    {
+      "name": "nand2tetris-hardware-lab",
+      "file": "projects/nand2tetris-hardware-lab.json"
+    },
+    {
+      "name": "nand2tetris-bit-lab",
+      "file": "projects/nand2tetris-bit-lab.json"
+    },
+    {
+      "name": "nand2tetris-computer-lab",
+      "file": "projects/nand2tetris-computer-lab.json"
+    }
+  ],
+  "softwareStages": [
+    {
+      "id": "10-hack-assembly",
+      "name": "Hack assembly",
+      "predecessor": "N2T COMPUTER",
+      "capability": "Write symbolic A- and C-instructions for the Hack CPU.",
+      "implementation": "learning-artifact",
+      "requiredEngine": [
+        "CPU instruction contract",
+        "ROM program loading"
+      ],
+      "file": "software/10-hack-assembly.json"
+    },
+    {
+      "id": "11-assembler",
+      "name": "Assembler",
+      "predecessor": "Hack assembly",
+      "capability": "Translate Hack assembly text into 16-bit machine code and symbols.",
+      "implementation": "not-a-canvas-chip",
+      "requiredEngine": [
+        "text editor or file input",
+        "assembler module",
+        "ROM program loading"
+      ],
+      "file": "software/11-assembler.json"
+    },
+    {
+      "id": "12-vm",
+      "name": "Virtual machine",
+      "predecessor": "Assembler",
+      "capability": "Translate stack-based VM commands into Hack assembly.",
+      "implementation": "not-a-canvas-chip",
+      "requiredEngine": [
+        "VM translator",
+        "assembler bridge",
+        "execution diagnostics"
+      ],
+      "file": "software/12-vm.json"
+    },
+    {
+      "id": "13-jack-language",
+      "name": "Jack-like language",
+      "predecessor": "Virtual machine",
+      "capability": "Program with a small Java-like object-oriented language.",
+      "implementation": "not-a-canvas-chip",
+      "requiredEngine": [
+        "source editor",
+        "parser",
+        "runtime library"
+      ],
+      "file": "software/13-jack-language.json"
+    },
+    {
+      "id": "14-compiler",
+      "name": "Jack compiler",
+      "predecessor": "Jack-like language",
+      "capability": "Compile Jack source into VM code and connect it to the machine track.",
+      "implementation": "not-a-canvas-chip",
+      "requiredEngine": [
+        "compiler",
+        "VM translator",
+        "assembler",
+        "ROM program loading"
+      ],
+      "file": "software/14-compiler.json"
+    },
+    {
+      "id": "15-jack-os",
+      "name": "Jack OS",
+      "predecessor": "Jack compiler",
+      "capability": "Provide memory, math, screen, keyboard, output, and string services in the teaching runtime.",
+      "implementation": "not-a-canvas-chip",
+      "requiredEngine": [
+        "OS library modules",
+        "device model",
+        "program loader"
+      ],
+      "file": "software/15-jack-os.json"
+    },
+    {
+      "id": "16-modern-isa",
+      "name": "Modern instruction-set bridge",
+      "predecessor": "Jack OS",
+      "capability": "Compare the teaching Hack machine with a real ISA such as RISC-V RV32I or ARM Thumb/AArch64.",
+      "implementation": "future-engine-track",
+      "requiredEngine": [
+        "new ISA decoder",
+        "new assembler",
+        "ABI/runtime model"
+      ],
+      "note": "This is a later bridge, not part of the original Nand2Tetris hardware path.",
+      "file": "software/16-modern-isa.json"
+    },
+    {
+      "id": "17-real-os",
+      "name": "Real operating-system bridge",
+      "predecessor": "Modern instruction-set bridge",
+      "capability": "Move from teaching services to boot, interrupts, drivers, virtual memory, processes, filesystems, and networking.",
+      "implementation": "future-engine-track",
+      "requiredEngine": [
+        "boot/runtime boundary",
+        "interrupts",
+        "device drivers",
+        "process model",
+        "filesystem",
+        "networking"
+      ],
+      "file": "software/17-real-os.json"
+    }
+  ],
+  "boundary": "The hardware path is represented by executable nested chip JSONs. The assembly, VM, language, OS, ARM/RISC-V, and real-OS landmarks are recorded as companion learning-stage JSONs because they are tools and runtimes, not canvas chips."
+}

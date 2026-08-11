@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+await import("./build-nand2tetris-assets.mjs");
 const publicExamples = path.join(root, "public", "examples");
 const sourceDirectories = {
   projects: path.join(root, "storage", "projects"),
@@ -16,7 +17,7 @@ const manifest = { schema: "digital-logic-sim-web/examples/1", projects: [], chi
 for (const [kind, sourceDirectory] of Object.entries(sourceDirectories)) {
   const targetDirectory = path.join(publicExamples, kind);
   await mkdir(targetDirectory, { recursive: true });
-  for (const file of (await readdir(sourceDirectory)).filter((name) => name.endsWith(".json")).sort()) {
+  for (const file of (await readdir(sourceDirectory)).filter((name) => name.endsWith(".json") && !(kind === "chips" && name === "test.json")).sort()) {
     const source = path.join(sourceDirectory, file);
     const target = path.join(targetDirectory, file);
     await cp(source, target);
@@ -28,5 +29,14 @@ for (const [kind, sourceDirectory] of Object.entries(sourceDirectories)) {
     });
   }
 }
+
+const nand2tetrisSource = path.join(root, "storage", "nand2tetris");
+const nand2tetrisTarget = path.join(publicExamples, "nand2tetris");
+await cp(nand2tetrisSource, nand2tetrisTarget, { recursive: true });
+manifest.nand2tetris = {
+  file: "nand2tetris/manifest.json",
+  href: "examples/nand2tetris/manifest.json",
+  name: "Nand2Tetris chip progression"
+};
 
 await writeFile(path.join(publicExamples, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");

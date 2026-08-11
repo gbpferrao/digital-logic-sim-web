@@ -1800,7 +1800,7 @@ function renderInspector() {
     : desc.special === "pulse"
       ? `<div class="inspector-row"><span>pulse ticks</span><input class="inspector-input" type="number" min="1" max="1000" data-field="duration" value="${Number(instance.internalData.duration) || 4}" /></div>`
       : desc.special === "rom"
-        ? `<div class="inspector-row"><span>ROM first 16 bytes</span><input class="inspector-input" data-field="rom" value="${escapeHtml((instance.internalData.memory || []).slice(0, 16).join(" "))}" /></div>`
+        ? `<div class="inspector-row"><span>ROM first 16 words</span><input class="inspector-input" data-field="rom" value="${escapeHtml((instance.internalData.memory || []).slice(0, 16).join(" "))}" /></div>`
         : desc.special === "ram"
           ? `<button class="inspector-control" data-action="reset-memory">${actionLabel("refresh-cw", "Reset RAM")}</button>`
           : "";
@@ -2741,7 +2741,8 @@ $("#inspector").addEventListener("click", (event) => {
   if (action === "toggle-input") { const instance = project.root.instances.find((item) => state.selectedIds.has(String(item.id))); if (instance) toggleInput(instance); }
   if (action === "reset-memory") {
     const instance = project.root.instances.find((item) => state.selectedIds.has(String(item.id)));
-    if (instance) mutate("Memory reset.", () => { instance.internalData.memory = Array.from({ length: 256 }, () => 0); });
+    const description = instance && descriptorForInstance(project, instance);
+    if (instance) mutate("Memory reset.", () => { instance.internalData.memory = Array.from({ length: Number(description?.memorySize) || 256 }, () => 0); });
   }
   if (action === "add-root-input") addRootPin("input");
   if (action === "add-root-output") addRootPin("output");
@@ -2796,10 +2797,11 @@ $("#inspector").addEventListener("change", (event) => {
     return;
   }
   const instance = project.root.instances.find((item) => state.selectedIds.has(String(item.id))); if (!instance) return;
+  const desc = descriptorForInstance(project, instance);
   if (field === "label") mutate("Label updated.", () => { instance.label = event.target.value.slice(0, 32); });
   if (field === "key") mutate("Key binding updated.", () => { instance.internalData.key = event.target.value || "Space"; });
   if (field === "duration") mutate("Pulse duration updated.", () => { instance.internalData.duration = Math.max(1, Math.min(1000, Number(event.target.value) || 4)); });
-  if (field === "rom") mutate("ROM contents updated.", () => { const values = event.target.value.trim().split(/[\s,]+/).filter(Boolean).map((item) => Number.parseInt(item, 0)); instance.internalData.memory = Array.from({ length: 256 }, (_, index) => Number.isFinite(values[index]) ? values[index] & 0xffff : instance.internalData.memory?.[index] ?? 0); });
+  if (field === "rom") mutate("ROM contents updated.", () => { const values = event.target.value.trim().split(/[\s,]+/).filter(Boolean).map((item) => Number.parseInt(item, 0)); const length = Number(desc?.memorySize) || 256; instance.internalData.memory = Array.from({ length }, (_, index) => Number.isFinite(values[index]) ? values[index] & 0xffff : instance.internalData.memory?.[index] ?? 0); });
 });
 
 canvas.addEventListener("contextmenu", showContextMenu);
