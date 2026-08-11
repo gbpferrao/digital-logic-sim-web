@@ -211,6 +211,33 @@ function boundsForPoints(points = []) {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
+// A composite's public port and its movable interface node are two views of
+// the same connection. X-ray needs the coordinates on both sides of that
+// boundary so the signal can be drawn as one continuous path.
+export function xrayInterfaceBridgeGeometry(project, description, binding, scale = 1) {
+  const publicPin = getPin(description, binding?.publicId);
+  const interfaceInstance = (description?.instances ?? []).find((item) => String(item.id) === String(binding?.instanceId));
+  if (!publicPin || !interfaceInstance) return null;
+  const sizeX = Number(description?.size?.x) || 0;
+  const publicPoint = {
+    x: Number.isFinite(Number(publicPin.x)) ? Number(publicPin.x) : (binding.direction === "input" ? -sizeX / 2 : sizeX / 2),
+    y: Number(publicPin.y) || 0
+  };
+  const internalPoint = instancePinPosition({ ...project, root: description }, interfaceInstance, binding.pinId);
+  const outerPoint = reusablePoint(description, publicPoint);
+  const innerPoint = reusablePoint(description, internalPoint);
+  const safeScale = Number.isFinite(Number(scale)) && Number(scale) > 0 ? Number(scale) : 1;
+  return {
+    binding,
+    publicPoint,
+    internalPoint,
+    outerPoint,
+    framePoint: { x: outerPoint.x * safeScale, y: outerPoint.y * safeScale },
+    innerPoint,
+    scale: safeScale
+  };
+}
+
 export class WorldRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -838,7 +865,9 @@ export class WorldRenderer {
     if (!Number.isFinite(scale) || scale <= 0) return;
     const scopedProject = { ...project, root: description };
     const geometry = this.geometryFor(scopedProject, { rawDescriptionPins: true });
+    const bridges = interfaceBindingsFor(description).map((binding) => xrayInterfaceBridgeGeometry(project, description, binding, scale)).filter(Boolean);
     const previewAlpha = this.lastState?.preview ? .66 : 1;
+    this.drawXrayInterfaceBridgeStubs(ctx, bridges, simulator, scopePath, previewAlpha);
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3);
@@ -849,6 +878,7 @@ export class WorldRenderer {
     ctx.scale(scale, scale);
     ctx.globalAlpha = .86 * previewAlpha;
     this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath, geometry);
+    this.drawXrayInterfaceBridges(ctx, bridges, simulator, scopePath, previewAlpha);
     const visibleInstances = geometry.instances.slice(0, XRAY_MAX_INSTANCES);
     for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child.instance, simulator, depth - 1, path, scopePath, child.description);
     this.drawXrayRootPins(ctx, description, simulator, scopePath);
@@ -863,6 +893,38 @@ export class WorldRenderer {
       ctx.font = "600 8px JetBrains Mono, Consolas, monospace";
       ctx.textAlign = "right"; ctx.textBaseline = "bottom";
       ctx.fillText(`+${description.instances.length - XRAY_MAX_INSTANCES}`, frame.x + frame.w - 5, frame.y + frame.h - 4);
+    }
+    ctx.restore();
+  }
+
+  drawXrayInterfaceBridgeStubs(ctx, bridges, simulator = null, scopePath = [], previewAlpha = 1) {
+    if (!bridges.length) return;
+    ctx.save();
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+    for (const bridge of bridges) {
+      const signal = simulator?.stateFor({ owner: "root", pin: bridge.binding.publicId }, scopePath) ?? disconnected();
+      ctx.strokeStyle = signalColour(signal);
+      ctx.globalAlpha = (signal.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48) * previewAlpha;
+      ctx.lineWidth = worldStroke(2.4 * bridge.scale, this.camera.zoom);
+      traceWirePath(ctx, [bridge.outerPoint, bridge.framePoint]);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawXrayInterfaceBridges(ctx, bridges, simulator = null, scopePath = [], previewAlpha = 1) {
+    if (!bridges.length) return;
+    ctx.save();
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = worldStroke(2.4, this.camera.zoom);
+    for (const bridge of bridges) {
+      const signal = simulator?.stateFor({ owner: "root", pin: bridge.binding.publicId }, scopePath) ?? disconnected();
+      ctx.strokeStyle = signalColour(signal);
+      ctx.globalAlpha = (signal.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48) * previewAlpha;
+      traceWirePath(ctx, [bridge.publicPoint, bridge.internalPoint]);
+      ctx.stroke();
     }
     ctx.restore();
   }
@@ -930,6 +992,26 @@ export class WorldRenderer {
     ctx.restore();
   }
 
+  drawXrayPinLabel(ctx, pin, position, signal, side = 1) {
+    if (this.camera.zoom <= .62) return;
+    const label = `${pin.name}${pin.bits > 1 ? ` [${pin.bits}]` : ""}`;
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = .36;
+    ctx.font = "9px JetBrains Mono, Consolas, monospace";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = side < 0 ? "right" : "left";
+    ctx.fillText(label, position.x + side * 8, position.y);
+    if (this.camera.zoom > .9 && pin.bits > 1) {
+      ctx.fillStyle = "#75869c";
+      ctx.globalAlpha = .28;
+      ctx.font = "8px JetBrains Mono, Consolas, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(stateLabel(signal, pin.bits), position.x + side * 27, position.y - 9);
+    }
+    ctx.restore();
+  }
+
   drawXrayInstance(ctx, project, instance, simulator, depth, path, scopePath = [], descriptionOverride = null) {
     const description = descriptionOverride ?? descriptorForInstance(project, instance);
     if (!description) return;
@@ -959,11 +1041,13 @@ export class WorldRenderer {
         floating: "#687279"
       });
       ctx.beginPath(); ctx.arc(position.x, position.y, 2.4, 0, TAU); ctx.fill();
+      const pinLocal = description.kind === "custom" ? reusablePoint(description, pin) : { x: pin.x, y: pin.y };
+      const local = rotatePoint(pinLocal, instance.rotation);
+      this.drawXrayPinLabel(ctx, pin, position, signal, local.x < 0 ? -1 : 1);
     }
   }
 
   drawXrayRootPins(ctx, description, simulator = null, scopePath = []) {
-    if (interfaceBindingsFor(description).length) return;
     for (const pin of [...(description.inputPins ?? []), ...(description.outputPins ?? [])]) {
       const x = Number(pin.x);
       const position = { x: Number.isFinite(x) ? x : (pin.direction === "input" ? -description.size.x / 2 : description.size.x / 2), y: Number(pin.y) || 0 };
@@ -974,6 +1058,11 @@ export class WorldRenderer {
         floating: "#687279"
       });
       ctx.beginPath(); ctx.arc(position.x, position.y, 2.6, 0, TAU); ctx.fill();
+      // Public ports are drawn inside the composite frame in X-ray. Flip the
+      // usual outside label direction so the name remains inside the clipped
+      // group, beside the bridge to its matching interface node.
+      const outward = pin.direction === "input" ? -1 : 1;
+      this.drawXrayPinLabel(ctx, pin, position, signal, -outward);
     }
   }
 
