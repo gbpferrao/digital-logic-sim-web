@@ -19,8 +19,8 @@
         "name": "A",
         "bits": 1,
         "direction": "input",
-        "x": -320,
-        "y": -22,
+        "x": -940,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -29,8 +29,8 @@
         "name": "B",
         "bits": 1,
         "direction": "input",
-        "x": -320,
-        "y": 22,
+        "x": -940,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
       }
@@ -41,7 +41,7 @@
         "name": "OUT",
         "bits": 1,
         "direction": "output",
-        "x": 480,
+        "x": 940,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -52,8 +52,8 @@
         "id": "interface-input-a",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -22
+          "x": -840,
+          "y": -60
         },
         "rotation": 0,
         "label": "A",
@@ -66,8 +66,8 @@
         "id": "interface-input-b",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 22
+          "x": -840,
+          "y": 60
         },
         "rotation": 0,
         "label": "B",
@@ -80,7 +80,7 @@
         "id": "interface-output-out",
         "name": "OUT-1",
         "position": {
-          "x": 180,
+          "x": 840,
           "y": 0
         },
         "rotation": 0,
@@ -94,8 +94,8 @@
         "id": "nand",
         "name": "N2T NAND",
         "position": {
-          "x": 0,
-          "y": -50
+          "x": -480,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -108,8 +108,8 @@
         "id": "not",
         "name": "N2T NOT",
         "position": {
-          "x": 120,
-          "y": -50
+          "x": 280,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -182,7 +182,7 @@
         "text": "AND = NOT(NAND).",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -290
         },
         "width": 480,
         "height": 70,
@@ -218,10 +218,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -320,
-        "y": -232,
-        "w": 800,
-        "h": 364
+        "x": -940,
+        "y": -220,
+        "w": 1880,
+        "h": 440
       }
     }
   },
@@ -247,8 +247,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": -22,
+          "x": -260,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -257,8 +257,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": 22,
+          "x": -260,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -269,7 +269,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 280,
+          "x": 260,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -280,8 +280,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -160,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -294,8 +294,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -160,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -308,7 +308,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 160,
             "y": 0
           },
           "rotation": 0,
@@ -383,7 +383,7 @@
           "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -210
           },
           "width": 480,
           "height": 70,
@@ -419,10 +419,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -102,
-          "w": 560,
-          "h": 204
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
         }
       }
     },
@@ -443,7 +443,7 @@
           "name": "IN",
           "bits": 1,
           "direction": "input",
-          "x": -320,
+          "x": -460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -455,7 +455,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 320,
+          "x": 460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -466,7 +466,7 @@
           "id": "interface-input-in",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -360,
             "y": 0
           },
           "rotation": 0,
@@ -480,7 +480,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 360,
             "y": 0
           },
           "rotation": 0,
@@ -555,7 +555,7 @@
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -250
           },
           "width": 480,
           "height": 70,
@@ -585,10 +585,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -142,
-          "w": 640,
-          "h": 284
+          "x": -460,
+          "y": -180,
+          "w": 920,
+          "h": 360
         }
       }
     }

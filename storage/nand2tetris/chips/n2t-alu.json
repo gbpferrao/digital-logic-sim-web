@@ -19,8 +19,8 @@
         "name": "X",
         "bits": 16,
         "direction": "input",
-        "x": -725,
-        "y": -154,
+        "x": -21970,
+        "y": -420,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -29,8 +29,8 @@
         "name": "Y",
         "bits": 16,
         "direction": "input",
-        "x": -725,
-        "y": -110,
+        "x": -21970,
+        "y": -300,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -39,8 +39,8 @@
         "name": "ZX",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": -66,
+        "x": -21970,
+        "y": -180,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -49,8 +49,8 @@
         "name": "NX",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": -22,
+        "x": -21970,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -59,8 +59,8 @@
         "name": "ZY",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": 22,
+        "x": -21970,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -69,8 +69,8 @@
         "name": "NY",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": 66,
+        "x": -21970,
+        "y": 180,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -79,8 +79,8 @@
         "name": "F",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": 110,
+        "x": -21970,
+        "y": 300,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -89,8 +89,8 @@
         "name": "NO",
         "bits": 1,
         "direction": "input",
-        "x": -725,
-        "y": 154,
+        "x": -21970,
+        "y": 420,
         "valueDisplay": "off",
         "colour": "gray"
       }
@@ -101,8 +101,8 @@
         "name": "OUT",
         "bits": 16,
         "direction": "output",
-        "x": 1425,
-        "y": -66,
+        "x": 21970,
+        "y": -180,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -111,8 +111,8 @@
         "name": "ZR",
         "bits": 1,
         "direction": "output",
-        "x": 1425,
-        "y": -22,
+        "x": 21970,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -121,8 +121,8 @@
         "name": "NG",
         "bits": 1,
         "direction": "output",
-        "x": 1425,
-        "y": 22,
+        "x": 21970,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -131,8 +131,8 @@
         "name": "CARRY",
         "bits": 1,
         "direction": "output",
-        "x": 1425,
-        "y": 66,
+        "x": 21970,
+        "y": 180,
         "valueDisplay": "off",
         "colour": "green"
       }
@@ -142,8 +142,8 @@
         "id": "interface-input-x",
         "name": "IN-16",
         "position": {
-          "x": -180,
-          "y": -154
+          "x": -21870,
+          "y": -420
         },
         "rotation": 0,
         "label": "X",
@@ -156,8 +156,8 @@
         "id": "interface-input-y",
         "name": "IN-16",
         "position": {
-          "x": -180,
-          "y": -110
+          "x": -21870,
+          "y": -300
         },
         "rotation": 0,
         "label": "Y",
@@ -170,8 +170,8 @@
         "id": "interface-input-zx",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -66
+          "x": -21870,
+          "y": -180
         },
         "rotation": 0,
         "label": "ZX",
@@ -184,8 +184,8 @@
         "id": "interface-input-nx",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -22
+          "x": -21870,
+          "y": -60
         },
         "rotation": 0,
         "label": "NX",
@@ -198,8 +198,8 @@
         "id": "interface-input-zy",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 22
+          "x": -21870,
+          "y": 60
         },
         "rotation": 0,
         "label": "ZY",
@@ -212,8 +212,8 @@
         "id": "interface-input-ny",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 66
+          "x": -21870,
+          "y": 180
         },
         "rotation": 0,
         "label": "NY",
@@ -226,8 +226,8 @@
         "id": "interface-input-f",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 110
+          "x": -21870,
+          "y": 300
         },
         "rotation": 0,
         "label": "F",
@@ -240,8 +240,8 @@
         "id": "interface-input-no",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 154
+          "x": -21870,
+          "y": 420
         },
         "rotation": 0,
         "label": "NO",
@@ -254,8 +254,8 @@
         "id": "interface-output-out",
         "name": "OUT-16",
         "position": {
-          "x": 180,
-          "y": -66
+          "x": 21870,
+          "y": -180
         },
         "rotation": 0,
         "label": "OUT",
@@ -268,8 +268,8 @@
         "id": "interface-output-zr",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -22
+          "x": 21870,
+          "y": -60
         },
         "rotation": 0,
         "label": "ZR",
@@ -282,8 +282,8 @@
         "id": "interface-output-ng",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 22
+          "x": 21870,
+          "y": 60
         },
         "rotation": 0,
         "label": "NG",
@@ -296,8 +296,8 @@
         "id": "interface-output-carry",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 66
+          "x": 21870,
+          "y": 180
         },
         "rotation": 0,
         "label": "CARRY",
@@ -310,8 +310,8 @@
         "id": "zero",
         "name": "CONST-0-16",
         "position": {
-          "x": -260,
-          "y": 180
+          "x": -21710,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -324,8 +324,8 @@
         "id": "x-zero",
         "name": "N2T MUX16",
         "position": {
-          "x": -80,
-          "y": -130
+          "x": -18610,
+          "y": -8360
         },
         "rotation": 0,
         "label": "",
@@ -338,8 +338,8 @@
         "id": "x-not",
         "name": "N2T NOT16",
         "position": {
-          "x": 80,
-          "y": -130
+          "x": -14690,
+          "y": -3240
         },
         "rotation": 0,
         "label": "",
@@ -352,8 +352,8 @@
         "id": "x-normal",
         "name": "N2T MUX16",
         "position": {
-          "x": 220,
-          "y": -130
+          "x": -10770,
+          "y": -8360
         },
         "rotation": 0,
         "label": "",
@@ -366,8 +366,8 @@
         "id": "y-zero",
         "name": "N2T MUX16",
         "position": {
-          "x": -80,
-          "y": 130
+          "x": -18610,
+          "y": 8360
         },
         "rotation": 0,
         "label": "",
@@ -380,8 +380,8 @@
         "id": "y-not",
         "name": "N2T NOT16",
         "position": {
-          "x": 80,
-          "y": 130
+          "x": -14690,
+          "y": 3240
         },
         "rotation": 0,
         "label": "",
@@ -394,8 +394,8 @@
         "id": "y-normal",
         "name": "N2T MUX16",
         "position": {
-          "x": 220,
-          "y": 130
+          "x": -10770,
+          "y": 8360
         },
         "rotation": 0,
         "label": "",
@@ -408,8 +408,8 @@
         "id": "and",
         "name": "N2T AND16",
         "position": {
-          "x": 360,
-          "y": -70
+          "x": -1530,
+          "y": -15400
         },
         "rotation": 0,
         "label": "",
@@ -422,8 +422,8 @@
         "id": "add",
         "name": "N2T ADD16",
         "position": {
-          "x": 360,
-          "y": 70
+          "x": -1530,
+          "y": 3880
         },
         "rotation": 0,
         "label": "",
@@ -436,7 +436,7 @@
         "id": "function",
         "name": "N2T MUX16",
         "position": {
-          "x": 500,
+          "x": 7710,
           "y": 0
         },
         "rotation": 0,
@@ -450,8 +450,8 @@
         "id": "not-out",
         "name": "N2T NOT16",
         "position": {
-          "x": 640,
-          "y": 0
+          "x": 11630,
+          "y": -60
         },
         "rotation": 0,
         "label": "",
@@ -464,8 +464,8 @@
         "id": "output",
         "name": "N2T MUX16",
         "position": {
-          "x": 780,
-          "y": 0
+          "x": 15720,
+          "y": -3720
         },
         "rotation": 0,
         "label": "",
@@ -478,8 +478,8 @@
         "id": "zero-split",
         "name": "16-8BIT",
         "position": {
-          "x": 640,
-          "y": 140
+          "x": 11630,
+          "y": 3240
         },
         "rotation": 0,
         "label": "",
@@ -492,8 +492,8 @@
         "id": "zero-high",
         "name": "N2T OR8WAY",
         "position": {
-          "x": 780,
-          "y": 140
+          "x": 15720,
+          "y": 6440
         },
         "rotation": 0,
         "label": "",
@@ -506,8 +506,8 @@
         "id": "zero-low",
         "name": "N2T OR8WAY",
         "position": {
-          "x": 780,
-          "y": 240
+          "x": 15720,
+          "y": 10280
         },
         "rotation": 0,
         "label": "",
@@ -520,8 +520,8 @@
         "id": "zero-detect",
         "name": "N2T OR",
         "position": {
-          "x": 920,
-          "y": 190
+          "x": 19870,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -534,8 +534,8 @@
         "id": "zero-not",
         "name": "N2T NOT",
         "position": {
-          "x": 1040,
-          "y": 190
+          "x": 21310,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -548,8 +548,8 @@
         "id": "split-out",
         "name": "16-1BIT",
         "position": {
-          "x": 780,
-          "y": 240
+          "x": 15720,
+          "y": 8360
         },
         "rotation": 0,
         "label": "",
@@ -1038,7 +1038,7 @@
         "text": "Hack-style ALU control: zero/negate each operand, choose AND or ADD, then optionally negate the result.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -19370
         },
         "width": 480,
         "height": 70,
@@ -1128,10 +1128,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -725,
-        "y": -642,
-        "w": 2150,
-        "h": 1334
+        "x": -21970,
+        "y": -19300,
+        "w": 43940,
+        "h": 38600
       }
     }
   },
@@ -1168,8 +1168,8 @@
           "name": "A",
           "bits": 16,
           "direction": "input",
-          "x": -605,
-          "y": -44,
+          "x": -3000,
+          "y": -120,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -1178,7 +1178,7 @@
           "name": "B",
           "bits": 16,
           "direction": "input",
-          "x": -605,
+          "x": -3000,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -1188,8 +1188,8 @@
           "name": "SEL",
           "bits": 1,
           "direction": "input",
-          "x": -605,
-          "y": 44,
+          "x": -3000,
+          "y": 120,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -1200,7 +1200,7 @@
           "name": "OUT",
           "bits": 16,
           "direction": "output",
-          "x": 605,
+          "x": 3000,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -1211,8 +1211,8 @@
           "id": "interface-input-a",
           "name": "IN-16",
           "position": {
-            "x": -180,
-            "y": -44
+            "x": -2900,
+            "y": -120
           },
           "rotation": 0,
           "label": "A",
@@ -1225,7 +1225,7 @@
           "id": "interface-input-b",
           "name": "IN-16",
           "position": {
-            "x": -180,
+            "x": -2900,
             "y": 0
           },
           "rotation": 0,
@@ -1239,8 +1239,8 @@
           "id": "interface-input-sel",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 44
+            "x": -2900,
+            "y": 120
           },
           "rotation": 0,
           "label": "SEL",
@@ -1253,7 +1253,7 @@
           "id": "interface-output-out",
           "name": "OUT-16",
           "position": {
-            "x": 180,
+            "x": 2900,
             "y": 0
           },
           "rotation": 0,
@@ -1267,8 +1267,8 @@
           "id": "split-a",
           "name": "16-1BIT",
           "position": {
-            "x": -240,
-            "y": -100
+            "x": -2710,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
@@ -1281,8 +1281,8 @@
           "id": "split-b",
           "name": "16-1BIT",
           "position": {
-            "x": -240,
-            "y": 100
+            "x": -2710,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
@@ -1295,7 +1295,7 @@
           "id": "merge",
           "name": "1-16BIT",
           "position": {
-            "x": 220,
+            "x": 2710,
             "y": 0
           },
           "rotation": 0,
@@ -1310,7 +1310,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -150
+            "y": -7800
           },
           "rotation": 0,
           "label": "",
@@ -1324,7 +1324,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -130
+            "y": -6760
           },
           "rotation": 0,
           "label": "",
@@ -1338,7 +1338,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -110
+            "y": -5720
           },
           "rotation": 0,
           "label": "",
@@ -1352,7 +1352,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -90
+            "y": -4680
           },
           "rotation": 0,
           "label": "",
@@ -1366,7 +1366,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -70
+            "y": -3640
           },
           "rotation": 0,
           "label": "",
@@ -1380,7 +1380,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -50
+            "y": -2600
           },
           "rotation": 0,
           "label": "",
@@ -1394,7 +1394,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -30
+            "y": -1560
           },
           "rotation": 0,
           "label": "",
@@ -1408,7 +1408,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": -10
+            "y": -520
           },
           "rotation": 0,
           "label": "",
@@ -1422,7 +1422,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 10
+            "y": 520
           },
           "rotation": 0,
           "label": "",
@@ -1436,7 +1436,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 30
+            "y": 1560
           },
           "rotation": 0,
           "label": "",
@@ -1450,7 +1450,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 50
+            "y": 2600
           },
           "rotation": 0,
           "label": "",
@@ -1464,7 +1464,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 70
+            "y": 3640
           },
           "rotation": 0,
           "label": "",
@@ -1478,7 +1478,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 90
+            "y": 4680
           },
           "rotation": 0,
           "label": "",
@@ -1492,7 +1492,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 110
+            "y": 5720
           },
           "rotation": 0,
           "label": "",
@@ -1506,7 +1506,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 130
+            "y": 6760
           },
           "rotation": 0,
           "label": "",
@@ -1520,7 +1520,7 @@
           "name": "N2T MUX",
           "position": {
             "x": 0,
-            "y": 150
+            "y": 7800
           },
           "rotation": 0,
           "label": "",
@@ -2412,7 +2412,7 @@
           "text": "A sixteen-lane MUX with one shared selection signal.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -8410
           },
           "width": 480,
           "height": 70,
@@ -2454,10 +2454,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -605,
-          "y": -472,
-          "w": 1210,
-          "h": 944
+          "x": -3000,
+          "y": -8340,
+          "w": 6000,
+          "h": 16680
         }
       }
     },
@@ -2478,8 +2478,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -520,
-          "y": -44,
+          "x": -2580,
+          "y": -120,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -2488,7 +2488,7 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -520,
+          "x": -2580,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -2498,8 +2498,8 @@
           "name": "SEL",
           "bits": 1,
           "direction": "input",
-          "x": -520,
-          "y": 44,
+          "x": -2580,
+          "y": 120,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -2510,7 +2510,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 610,
+          "x": 2580,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -2521,8 +2521,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -44
+            "x": -2480,
+            "y": -120
           },
           "rotation": 0,
           "label": "A",
@@ -2535,7 +2535,7 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -2480,
             "y": 0
           },
           "rotation": 0,
@@ -2549,8 +2549,8 @@
           "id": "interface-input-sel",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 44
+            "x": -2480,
+            "y": 120
           },
           "rotation": 0,
           "label": "SEL",
@@ -2563,7 +2563,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 2480,
             "y": 0
           },
           "rotation": 0,
@@ -2577,8 +2577,8 @@
           "id": "not-sel",
           "name": "N2T NOT",
           "position": {
-            "x": -160,
-            "y": 80
+            "x": -1920,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -2591,8 +2591,8 @@
           "id": "left",
           "name": "N2T AND",
           "position": {
-            "x": 0,
-            "y": -60
+            "x": -480,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
@@ -2605,8 +2605,8 @@
           "id": "right",
           "name": "N2T AND",
           "position": {
-            "x": 0,
-            "y": 60
+            "x": -480,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
@@ -2619,7 +2619,7 @@
           "id": "or",
           "name": "N2T OR",
           "position": {
-            "x": 140,
+            "x": 1440,
             "y": 0
           },
           "rotation": 0,
@@ -2745,7 +2745,7 @@
           "text": "SEL=0 routes A; SEL=1 routes B.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -570
           },
           "width": 480,
           "height": 70,
@@ -2787,10 +2787,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -520,
-          "y": -282,
-          "w": 1130,
-          "h": 564
+          "x": -2580,
+          "y": -500,
+          "w": 5160,
+          "h": 1000
         }
       }
     },
@@ -2811,7 +2811,7 @@
           "name": "IN",
           "bits": 1,
           "direction": "input",
-          "x": -320,
+          "x": -460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -2823,7 +2823,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 320,
+          "x": 460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -2834,7 +2834,7 @@
           "id": "interface-input-in",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -360,
             "y": 0
           },
           "rotation": 0,
@@ -2848,7 +2848,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 360,
             "y": 0
           },
           "rotation": 0,
@@ -2923,7 +2923,7 @@
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -250
           },
           "width": 480,
           "height": 70,
@@ -2953,10 +2953,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -142,
-          "w": 640,
-          "h": 284
+          "x": -460,
+          "y": -180,
+          "w": 920,
+          "h": 360
         }
       }
     },
@@ -2977,8 +2977,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": -22,
+          "x": -260,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -2987,8 +2987,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": 22,
+          "x": -260,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -2999,7 +2999,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 280,
+          "x": 260,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -3010,8 +3010,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -160,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -3024,8 +3024,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -160,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -3038,7 +3038,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 160,
             "y": 0
           },
           "rotation": 0,
@@ -3113,7 +3113,7 @@
           "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -210
           },
           "width": 480,
           "height": 70,
@@ -3149,10 +3149,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -102,
-          "w": 560,
-          "h": 204
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
         }
       }
     },
@@ -3173,8 +3173,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -320,
-          "y": -22,
+          "x": -940,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -3183,8 +3183,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -320,
-          "y": 22,
+          "x": -940,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -3195,7 +3195,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 480,
+          "x": 940,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -3206,8 +3206,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -840,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -3220,8 +3220,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -840,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -3234,7 +3234,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 840,
             "y": 0
           },
           "rotation": 0,
@@ -3248,8 +3248,8 @@
           "id": "nand",
           "name": "N2T NAND",
           "position": {
-            "x": 0,
-            "y": -50
+            "x": -480,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -3262,8 +3262,8 @@
           "id": "not",
           "name": "N2T NOT",
           "position": {
-            "x": 120,
-            "y": -50
+            "x": 280,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -3336,7 +3336,7 @@
           "text": "AND = NOT(NAND).",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -290
           },
           "width": 480,
           "height": 70,
@@ -3372,10 +3372,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -232,
-          "w": 800,
-          "h": 364
+          "x": -940,
+          "y": -220,
+          "w": 1880,
+          "h": 440
         }
       }
     },
@@ -3396,8 +3396,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -440,
-          "y": -22,
+          "x": -940,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -3406,8 +3406,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -440,
-          "y": 22,
+          "x": -940,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -3418,7 +3418,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 420,
+          "x": 940,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -3429,8 +3429,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -840,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -3443,8 +3443,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -840,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -3457,7 +3457,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 840,
             "y": 0
           },
           "rotation": 0,
@@ -3471,8 +3471,8 @@
           "id": "not-a",
           "name": "N2T NOT",
           "position": {
-            "x": -80,
-            "y": -60
+            "x": -280,
+            "y": -200
           },
           "rotation": 0,
           "label": "",
@@ -3485,8 +3485,8 @@
           "id": "not-b",
           "name": "N2T NOT",
           "position": {
-            "x": -80,
-            "y": 60
+            "x": -280,
+            "y": 200
           },
           "rotation": 0,
           "label": "",
@@ -3499,7 +3499,7 @@
           "id": "nand",
           "name": "N2T NAND",
           "position": {
-            "x": 100,
+            "x": 480,
             "y": 0
           },
           "rotation": 0,
@@ -3586,7 +3586,7 @@
           "text": "OR follows from De Morgan: NOT(NOT A NAND NOT B).",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -490
           },
           "width": 480,
           "height": 70,
@@ -3622,10 +3622,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -440,
-          "y": -242,
-          "w": 860,
-          "h": 484
+          "x": -940,
+          "y": -420,
+          "w": 1880,
+          "h": 840
         }
       }
     },
@@ -3646,7 +3646,7 @@
           "name": "IN",
           "bits": 16,
           "direction": "input",
-          "x": -360,
+          "x": -880,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -3658,7 +3658,7 @@
           "name": "OUT",
           "bits": 16,
           "direction": "output",
-          "x": 360,
+          "x": 880,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -3669,7 +3669,7 @@
           "id": "interface-input-in",
           "name": "IN-16",
           "position": {
-            "x": -180,
+            "x": -780,
             "y": 0
           },
           "rotation": 0,
@@ -3683,7 +3683,7 @@
           "id": "interface-output-out",
           "name": "OUT-16",
           "position": {
-            "x": 180,
+            "x": 780,
             "y": 0
           },
           "rotation": 0,
@@ -3697,7 +3697,7 @@
           "id": "split",
           "name": "16-1BIT",
           "position": {
-            "x": -160,
+            "x": -590,
             "y": 0
           },
           "rotation": 0,
@@ -3711,7 +3711,7 @@
           "id": "merge",
           "name": "1-16BIT",
           "position": {
-            "x": 160,
+            "x": 590,
             "y": 0
           },
           "rotation": 0,
@@ -3726,7 +3726,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -150
+            "y": -3000
           },
           "rotation": 0,
           "label": "",
@@ -3740,7 +3740,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -130
+            "y": -2600
           },
           "rotation": 0,
           "label": "",
@@ -3754,7 +3754,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -110
+            "y": -2200
           },
           "rotation": 0,
           "label": "",
@@ -3768,7 +3768,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -90
+            "y": -1800
           },
           "rotation": 0,
           "label": "",
@@ -3782,7 +3782,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -70
+            "y": -1400
           },
           "rotation": 0,
           "label": "",
@@ -3796,7 +3796,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -50
+            "y": -1000
           },
           "rotation": 0,
           "label": "",
@@ -3810,7 +3810,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -30
+            "y": -600
           },
           "rotation": 0,
           "label": "",
@@ -3824,7 +3824,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": -10
+            "y": -200
           },
           "rotation": 0,
           "label": "",
@@ -3838,7 +3838,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 10
+            "y": 200
           },
           "rotation": 0,
           "label": "",
@@ -3852,7 +3852,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 30
+            "y": 600
           },
           "rotation": 0,
           "label": "",
@@ -3866,7 +3866,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 50
+            "y": 1000
           },
           "rotation": 0,
           "label": "",
@@ -3880,7 +3880,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 70
+            "y": 1400
           },
           "rotation": 0,
           "label": "",
@@ -3894,7 +3894,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 90
+            "y": 1800
           },
           "rotation": 0,
           "label": "",
@@ -3908,7 +3908,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 110
+            "y": 2200
           },
           "rotation": 0,
           "label": "",
@@ -3922,7 +3922,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 130
+            "y": 2600
           },
           "rotation": 0,
           "label": "",
@@ -3936,7 +3936,7 @@
           "name": "N2T NOT",
           "position": {
             "x": 0,
-            "y": 150
+            "y": 3000
           },
           "rotation": 0,
           "label": "",
@@ -4399,7 +4399,7 @@
           "text": "Sixteen one-bit NOT chips share the same construction pattern.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -3290
           },
           "width": 480,
           "height": 70,
@@ -4429,10 +4429,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -360,
-          "y": -332,
-          "w": 720,
-          "h": 664
+          "x": -880,
+          "y": -3220,
+          "w": 1760,
+          "h": 6440
         }
       }
     },
@@ -4453,8 +4453,8 @@
           "name": "A",
           "bits": 16,
           "direction": "input",
-          "x": -440,
-          "y": -22,
+          "x": -1360,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -4463,8 +4463,8 @@
           "name": "B",
           "bits": 16,
           "direction": "input",
-          "x": -440,
-          "y": 22,
+          "x": -1360,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -4475,7 +4475,7 @@
           "name": "OUT",
           "bits": 16,
           "direction": "output",
-          "x": 440,
+          "x": 1360,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -4486,8 +4486,8 @@
           "id": "interface-input-a",
           "name": "IN-16",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -1260,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -4500,8 +4500,8 @@
           "id": "interface-input-b",
           "name": "IN-16",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -1260,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -4514,7 +4514,7 @@
           "id": "interface-output-out",
           "name": "OUT-16",
           "position": {
-            "x": 180,
+            "x": 1260,
             "y": 0
           },
           "rotation": 0,
@@ -4528,8 +4528,8 @@
           "id": "split-a",
           "name": "16-1BIT",
           "position": {
-            "x": -240,
-            "y": -100
+            "x": -1070,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
@@ -4542,8 +4542,8 @@
           "id": "split-b",
           "name": "16-1BIT",
           "position": {
-            "x": -240,
-            "y": 100
+            "x": -1070,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
@@ -4556,7 +4556,7 @@
           "id": "merge",
           "name": "1-16BIT",
           "position": {
-            "x": 220,
+            "x": 1070,
             "y": 0
           },
           "rotation": 0,
@@ -4571,7 +4571,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -150
+            "y": -3600
           },
           "rotation": 0,
           "label": "",
@@ -4585,7 +4585,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -130
+            "y": -3120
           },
           "rotation": 0,
           "label": "",
@@ -4599,7 +4599,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -110
+            "y": -2640
           },
           "rotation": 0,
           "label": "",
@@ -4613,7 +4613,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -90
+            "y": -2160
           },
           "rotation": 0,
           "label": "",
@@ -4627,7 +4627,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -70
+            "y": -1680
           },
           "rotation": 0,
           "label": "",
@@ -4641,7 +4641,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -50
+            "y": -1200
           },
           "rotation": 0,
           "label": "",
@@ -4655,7 +4655,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -30
+            "y": -720
           },
           "rotation": 0,
           "label": "",
@@ -4669,7 +4669,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": -10
+            "y": -240
           },
           "rotation": 0,
           "label": "",
@@ -4683,7 +4683,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 10
+            "y": 240
           },
           "rotation": 0,
           "label": "",
@@ -4697,7 +4697,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 30
+            "y": 720
           },
           "rotation": 0,
           "label": "",
@@ -4711,7 +4711,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 50
+            "y": 1200
           },
           "rotation": 0,
           "label": "",
@@ -4725,7 +4725,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 70
+            "y": 1680
           },
           "rotation": 0,
           "label": "",
@@ -4739,7 +4739,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 90
+            "y": 2160
           },
           "rotation": 0,
           "label": "",
@@ -4753,7 +4753,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 110
+            "y": 2640
           },
           "rotation": 0,
           "label": "",
@@ -4767,7 +4767,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 130
+            "y": 3120
           },
           "rotation": 0,
           "label": "",
@@ -4781,7 +4781,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 150
+            "y": 3600
           },
           "rotation": 0,
           "label": "",
@@ -5465,7 +5465,7 @@
           "text": "Sixteen one-bit AND chips operate in parallel.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -3930
           },
           "width": 480,
           "height": 70,
@@ -5501,10 +5501,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -440,
-          "y": -372,
-          "w": 880,
-          "h": 744
+          "x": -1360,
+          "y": -3860,
+          "w": 2720,
+          "h": 7720
         }
       }
     },
@@ -5525,8 +5525,8 @@
           "name": "A",
           "bits": 16,
           "direction": "input",
-          "x": -775,
-          "y": -44,
+          "x": -6200,
+          "y": -120,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -5535,7 +5535,7 @@
           "name": "B",
           "bits": 16,
           "direction": "input",
-          "x": -775,
+          "x": -6200,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -5545,8 +5545,8 @@
           "name": "CIN",
           "bits": 1,
           "direction": "input",
-          "x": -775,
-          "y": 44,
+          "x": -6200,
+          "y": 120,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -5557,8 +5557,8 @@
           "name": "OUT",
           "bits": 16,
           "direction": "output",
-          "x": 775,
-          "y": -22,
+          "x": 6200,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -5567,8 +5567,8 @@
           "name": "COUT",
           "bits": 1,
           "direction": "output",
-          "x": 775,
-          "y": 22,
+          "x": 6200,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "green"
         }
@@ -5578,8 +5578,8 @@
           "id": "interface-input-a",
           "name": "IN-16",
           "position": {
-            "x": -180,
-            "y": -44
+            "x": -6100,
+            "y": -120
           },
           "rotation": 0,
           "label": "A",
@@ -5592,7 +5592,7 @@
           "id": "interface-input-b",
           "name": "IN-16",
           "position": {
-            "x": -180,
+            "x": -6100,
             "y": 0
           },
           "rotation": 0,
@@ -5606,8 +5606,8 @@
           "id": "interface-input-cin",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 44
+            "x": -6100,
+            "y": 120
           },
           "rotation": 0,
           "label": "CIN",
@@ -5620,8 +5620,8 @@
           "id": "interface-output-out",
           "name": "OUT-16",
           "position": {
-            "x": 180,
-            "y": -22
+            "x": 6100,
+            "y": -60
           },
           "rotation": 0,
           "label": "OUT",
@@ -5634,8 +5634,8 @@
           "id": "interface-output-cout",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 22
+            "x": 6100,
+            "y": 60
           },
           "rotation": 0,
           "label": "COUT",
@@ -5648,8 +5648,8 @@
           "id": "split-a",
           "name": "16-1BIT",
           "position": {
-            "x": -260,
-            "y": -100
+            "x": -5910,
+            "y": -120
           },
           "rotation": 0,
           "label": "",
@@ -5662,8 +5662,8 @@
           "id": "split-b",
           "name": "16-1BIT",
           "position": {
-            "x": -260,
-            "y": 100
+            "x": -5910,
+            "y": 120
           },
           "rotation": 0,
           "label": "",
@@ -5676,7 +5676,7 @@
           "id": "merge",
           "name": "1-16BIT",
           "position": {
-            "x": 260,
+            "x": 5910,
             "y": 0
           },
           "rotation": 0,
@@ -5691,7 +5691,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -150
+            "y": -14400
           },
           "rotation": 0,
           "label": "",
@@ -5705,7 +5705,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -130
+            "y": -12480
           },
           "rotation": 0,
           "label": "",
@@ -5719,7 +5719,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -110
+            "y": -10560
           },
           "rotation": 0,
           "label": "",
@@ -5733,7 +5733,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -90
+            "y": -8640
           },
           "rotation": 0,
           "label": "",
@@ -5747,7 +5747,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -70
+            "y": -6720
           },
           "rotation": 0,
           "label": "",
@@ -5761,7 +5761,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -50
+            "y": -4800
           },
           "rotation": 0,
           "label": "",
@@ -5775,7 +5775,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -30
+            "y": -2880
           },
           "rotation": 0,
           "label": "",
@@ -5789,7 +5789,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": -10
+            "y": -960
           },
           "rotation": 0,
           "label": "",
@@ -5803,7 +5803,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 10
+            "y": 960
           },
           "rotation": 0,
           "label": "",
@@ -5817,7 +5817,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 30
+            "y": 2880
           },
           "rotation": 0,
           "label": "",
@@ -5831,7 +5831,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 50
+            "y": 4800
           },
           "rotation": 0,
           "label": "",
@@ -5845,7 +5845,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 70
+            "y": 6720
           },
           "rotation": 0,
           "label": "",
@@ -5859,7 +5859,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 90
+            "y": 8640
           },
           "rotation": 0,
           "label": "",
@@ -5873,7 +5873,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 110
+            "y": 10560
           },
           "rotation": 0,
           "label": "",
@@ -5887,7 +5887,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 130
+            "y": 12480
           },
           "rotation": 0,
           "label": "",
@@ -5901,7 +5901,7 @@
           "name": "N2T FULL ADDER",
           "position": {
             "x": 0,
-            "y": 150
+            "y": 14400
           },
           "rotation": 0,
           "label": "",
@@ -6806,7 +6806,7 @@
           "text": "A ripple-carry 16-bit adder. The least-significant full adder receives CIN.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -15450
           },
           "width": 480,
           "height": 70,
@@ -6854,10 +6854,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -775,
-          "y": -582,
-          "w": 1550,
-          "h": 1164
+          "x": -6200,
+          "y": -15380,
+          "w": 12400,
+          "h": 30760
         }
       }
     },
@@ -6878,8 +6878,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -725,
-          "y": -44,
+          "x": -5780,
+          "y": -120,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -6888,7 +6888,7 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -725,
+          "x": -5780,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -6898,8 +6898,8 @@
           "name": "CIN",
           "bits": 1,
           "direction": "input",
-          "x": -725,
-          "y": 44,
+          "x": -5780,
+          "y": 120,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -6910,8 +6910,8 @@
           "name": "SUM",
           "bits": 1,
           "direction": "output",
-          "x": 745,
-          "y": -22,
+          "x": 5780,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -6920,8 +6920,8 @@
           "name": "CARRY",
           "bits": 1,
           "direction": "output",
-          "x": 745,
-          "y": 22,
+          "x": 5780,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "green"
         }
@@ -6931,8 +6931,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -44
+            "x": -5680,
+            "y": -120
           },
           "rotation": 0,
           "label": "A",
@@ -6945,7 +6945,7 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -5680,
             "y": 0
           },
           "rotation": 0,
@@ -6959,8 +6959,8 @@
           "id": "interface-input-cin",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 44
+            "x": -5680,
+            "y": 120
           },
           "rotation": 0,
           "label": "CIN",
@@ -6973,8 +6973,8 @@
           "id": "interface-output-sum",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -22
+            "x": 5680,
+            "y": -60
           },
           "rotation": 0,
           "label": "SUM",
@@ -6987,8 +6987,8 @@
           "id": "interface-output-carry",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 22
+            "x": 5680,
+            "y": 60
           },
           "rotation": 0,
           "label": "CARRY",
@@ -7001,8 +7001,8 @@
           "id": "first",
           "name": "N2T HALF ADDER",
           "position": {
-            "x": -80,
-            "y": -60
+            "x": -3280,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -7015,8 +7015,8 @@
           "id": "second",
           "name": "N2T HALF ADDER",
           "position": {
-            "x": 100,
-            "y": -20
+            "x": 1360,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -7029,8 +7029,8 @@
           "id": "or",
           "name": "N2T OR",
           "position": {
-            "x": 220,
-            "y": 80
+            "x": 4640,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -7155,7 +7155,7 @@
           "text": "Two half adders plus OR combine the carry paths.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -1010
           },
           "width": 480,
           "height": 70,
@@ -7203,10 +7203,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -725,
-          "y": -422,
-          "w": 1470,
-          "h": 784
+          "x": -5780,
+          "y": -940,
+          "w": 11560,
+          "h": 1880
         }
       }
     },
@@ -7227,8 +7227,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -605,
-          "y": -22,
+          "x": -2300,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -7237,8 +7237,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -605,
-          "y": 22,
+          "x": -2300,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -7249,8 +7249,8 @@
           "name": "SUM",
           "bits": 1,
           "direction": "output",
-          "x": 605,
-          "y": -22,
+          "x": 2300,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -7259,8 +7259,8 @@
           "name": "CARRY",
           "bits": 1,
           "direction": "output",
-          "x": 605,
-          "y": 22,
+          "x": 2300,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "green"
         }
@@ -7270,8 +7270,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -2200,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -7284,8 +7284,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -2200,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -7298,8 +7298,8 @@
           "id": "interface-output-sum",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -22
+            "x": 2200,
+            "y": -60
           },
           "rotation": 0,
           "label": "SUM",
@@ -7312,8 +7312,8 @@
           "id": "interface-output-carry",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 22
+            "x": 2200,
+            "y": 60
           },
           "rotation": 0,
           "label": "CARRY",
@@ -7327,7 +7327,7 @@
           "name": "N2T XOR",
           "position": {
             "x": 0,
-            "y": -50
+            "y": -240
           },
           "rotation": 0,
           "label": "",
@@ -7341,7 +7341,7 @@
           "name": "N2T AND",
           "position": {
             "x": 0,
-            "y": 50
+            "y": 640
           },
           "rotation": 0,
           "label": "",
@@ -7440,7 +7440,7 @@
           "text": "SUM is XOR; CARRY is AND.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -970
           },
           "width": 480,
           "height": 70,
@@ -7482,10 +7482,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -605,
-          "y": -372,
-          "w": 1210,
-          "h": 644
+          "x": -2300,
+          "y": -900,
+          "w": 4600,
+          "h": 1800
         }
       }
     },
@@ -7506,8 +7506,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -590,
-          "y": -22,
+          "x": -2100,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -7516,8 +7516,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -590,
-          "y": 22,
+          "x": -2100,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -7528,7 +7528,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 540,
+          "x": 2100,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -7539,8 +7539,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -2000,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -7553,8 +7553,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -2000,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -7567,7 +7567,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 2000,
             "y": 0
           },
           "rotation": 0,
@@ -7581,8 +7581,8 @@
           "id": "or",
           "name": "N2T OR",
           "position": {
-            "x": -120,
-            "y": -60
+            "x": -960,
+            "y": -160
           },
           "rotation": 0,
           "label": "",
@@ -7595,8 +7595,8 @@
           "id": "nand",
           "name": "N2T NAND",
           "position": {
-            "x": -120,
-            "y": 60
+            "x": -960,
+            "y": 440
           },
           "rotation": 0,
           "label": "",
@@ -7609,7 +7609,7 @@
           "id": "and",
           "name": "N2T AND",
           "position": {
-            "x": 100,
+            "x": 960,
             "y": 0
           },
           "rotation": 0,
@@ -7722,7 +7722,7 @@
           "text": "XOR = (A OR B) AND NOT(A AND B), expressed using the NAND-derived parts.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -690
           },
           "width": 480,
           "height": 70,
@@ -7758,10 +7758,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -590,
-          "y": -342,
-          "w": 1130,
-          "h": 564
+          "x": -2100,
+          "y": -620,
+          "w": 4200,
+          "h": 1240
         }
       }
     },
@@ -7782,7 +7782,7 @@
           "name": "IN",
           "bits": 8,
           "direction": "input",
-          "x": -490,
+          "x": -3170,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -7794,7 +7794,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 590,
+          "x": 3170,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -7805,7 +7805,7 @@
           "id": "interface-input-in",
           "name": "IN-8",
           "position": {
-            "x": -180,
+            "x": -3070,
             "y": 0
           },
           "rotation": 0,
@@ -7819,7 +7819,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 3070,
             "y": 0
           },
           "rotation": 0,
@@ -7833,7 +7833,7 @@
           "id": "split",
           "name": "8-1BIT",
           "position": {
-            "x": -180,
+            "x": -2880,
             "y": 0
           },
           "rotation": 0,
@@ -7847,8 +7847,8 @@
           "id": "or-0-0",
           "name": "N2T OR",
           "position": {
-            "x": -20,
-            "y": -80
+            "x": -1810,
+            "y": -1320
           },
           "rotation": 0,
           "label": "",
@@ -7861,8 +7861,8 @@
           "id": "or-0-2",
           "name": "N2T OR",
           "position": {
-            "x": -20,
-            "y": -40
+            "x": -1810,
+            "y": -440
           },
           "rotation": 0,
           "label": "",
@@ -7875,8 +7875,8 @@
           "id": "or-0-4",
           "name": "N2T OR",
           "position": {
-            "x": -20,
-            "y": 0
+            "x": -1810,
+            "y": 440
           },
           "rotation": 0,
           "label": "",
@@ -7889,8 +7889,8 @@
           "id": "or-0-6",
           "name": "N2T OR",
           "position": {
-            "x": -20,
-            "y": 40
+            "x": -1810,
+            "y": 1320
           },
           "rotation": 0,
           "label": "",
@@ -7903,8 +7903,8 @@
           "id": "or-1-0",
           "name": "N2T OR",
           "position": {
-            "x": 50,
-            "y": -40
+            "x": 110,
+            "y": -440
           },
           "rotation": 0,
           "label": "",
@@ -7917,8 +7917,8 @@
           "id": "or-1-2",
           "name": "N2T OR",
           "position": {
-            "x": 50,
-            "y": 0
+            "x": 110,
+            "y": 440
           },
           "rotation": 0,
           "label": "",
@@ -7931,8 +7931,8 @@
           "id": "or-2-0",
           "name": "N2T OR",
           "position": {
-            "x": 120,
-            "y": -20
+            "x": 2030,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -8161,7 +8161,7 @@
           "text": "An 8-input OR tree built from the one-bit OR chip.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -1850
           },
           "width": 480,
           "height": 70,
@@ -8191,10 +8191,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -490,
-          "y": -362,
-          "w": 1080,
-          "h": 684
+          "x": -3170,
+          "y": -1780,
+          "w": 6340,
+          "h": 3560
         }
       }
     }

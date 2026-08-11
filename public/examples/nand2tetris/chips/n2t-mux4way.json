@@ -19,8 +19,8 @@
         "name": "A",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": -110,
+        "x": -5380,
+        "y": -300,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -29,8 +29,8 @@
         "name": "B",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": -66,
+        "x": -5380,
+        "y": -180,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -39,8 +39,8 @@
         "name": "C",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": -22,
+        "x": -5380,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -49,8 +49,8 @@
         "name": "D",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": 22,
+        "x": -5380,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -59,8 +59,8 @@
         "name": "SEL 0",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": 66,
+        "x": -5380,
+        "y": 180,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -69,8 +69,8 @@
         "name": "SEL 1",
         "bits": 1,
         "direction": "input",
-        "x": -685,
-        "y": 110,
+        "x": -5380,
+        "y": 300,
         "valueDisplay": "off",
         "colour": "gray"
       }
@@ -81,7 +81,7 @@
         "name": "OUT",
         "bits": 1,
         "direction": "output",
-        "x": 725,
+        "x": 5380,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -92,8 +92,8 @@
         "id": "interface-input-a",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -110
+          "x": -5280,
+          "y": -300
         },
         "rotation": 0,
         "label": "A",
@@ -106,8 +106,8 @@
         "id": "interface-input-b",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -66
+          "x": -5280,
+          "y": -180
         },
         "rotation": 0,
         "label": "B",
@@ -120,8 +120,8 @@
         "id": "interface-input-c",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -22
+          "x": -5280,
+          "y": -60
         },
         "rotation": 0,
         "label": "C",
@@ -134,8 +134,8 @@
         "id": "interface-input-d",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 22
+          "x": -5280,
+          "y": 60
         },
         "rotation": 0,
         "label": "D",
@@ -148,8 +148,8 @@
         "id": "interface-input-sel0",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 66
+          "x": -5280,
+          "y": 180
         },
         "rotation": 0,
         "label": "SEL 0",
@@ -162,8 +162,8 @@
         "id": "interface-input-sel1",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 110
+          "x": -5280,
+          "y": 300
         },
         "rotation": 0,
         "label": "SEL 1",
@@ -176,7 +176,7 @@
         "id": "interface-output-out",
         "name": "OUT-1",
         "position": {
-          "x": 180,
+          "x": 5280,
           "y": 0
         },
         "rotation": 0,
@@ -190,8 +190,8 @@
         "id": "left",
         "name": "N2T MUX",
         "position": {
-          "x": -80,
-          "y": -60
+          "x": -2600,
+          "y": -520
         },
         "rotation": 0,
         "label": "",
@@ -204,8 +204,8 @@
         "id": "right",
         "name": "N2T MUX",
         "position": {
-          "x": -80,
-          "y": 60
+          "x": -2600,
+          "y": 520
         },
         "rotation": 0,
         "label": "",
@@ -218,7 +218,7 @@
         "id": "final",
         "name": "N2T MUX",
         "position": {
-          "x": 120,
+          "x": 2600,
           "y": 0
         },
         "rotation": 0,
@@ -370,7 +370,7 @@
         "text": "A two-level selection tree; SEL 0 chooses inside each pair and SEL 1 chooses the pair.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -1130
         },
         "width": 480,
         "height": 70,
@@ -430,10 +430,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -685,
-        "y": -382,
-        "w": 1410,
-        "h": 764
+        "x": -5380,
+        "y": -1060,
+        "w": 10760,
+        "h": 2120
       }
     }
   },
@@ -462,8 +462,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -520,
-          "y": -44,
+          "x": -2580,
+          "y": -120,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -472,7 +472,7 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -520,
+          "x": -2580,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -482,8 +482,8 @@
           "name": "SEL",
           "bits": 1,
           "direction": "input",
-          "x": -520,
-          "y": 44,
+          "x": -2580,
+          "y": 120,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -494,7 +494,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 610,
+          "x": 2580,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -505,8 +505,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -44
+            "x": -2480,
+            "y": -120
           },
           "rotation": 0,
           "label": "A",
@@ -519,7 +519,7 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -2480,
             "y": 0
           },
           "rotation": 0,
@@ -533,8 +533,8 @@
           "id": "interface-input-sel",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 44
+            "x": -2480,
+            "y": 120
           },
           "rotation": 0,
           "label": "SEL",
@@ -547,7 +547,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 2480,
             "y": 0
           },
           "rotation": 0,
@@ -561,8 +561,8 @@
           "id": "not-sel",
           "name": "N2T NOT",
           "position": {
-            "x": -160,
-            "y": 80
+            "x": -1920,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -575,8 +575,8 @@
           "id": "left",
           "name": "N2T AND",
           "position": {
-            "x": 0,
-            "y": -60
+            "x": -480,
+            "y": -240
           },
           "rotation": 0,
           "label": "",
@@ -589,8 +589,8 @@
           "id": "right",
           "name": "N2T AND",
           "position": {
-            "x": 0,
-            "y": 60
+            "x": -480,
+            "y": 240
           },
           "rotation": 0,
           "label": "",
@@ -603,7 +603,7 @@
           "id": "or",
           "name": "N2T OR",
           "position": {
-            "x": 140,
+            "x": 1440,
             "y": 0
           },
           "rotation": 0,
@@ -729,7 +729,7 @@
           "text": "SEL=0 routes A; SEL=1 routes B.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -570
           },
           "width": 480,
           "height": 70,
@@ -771,10 +771,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -520,
-          "y": -282,
-          "w": 1130,
-          "h": 564
+          "x": -2580,
+          "y": -500,
+          "w": 5160,
+          "h": 1000
         }
       }
     },
@@ -795,7 +795,7 @@
           "name": "IN",
           "bits": 1,
           "direction": "input",
-          "x": -320,
+          "x": -460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -807,7 +807,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 320,
+          "x": 460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -818,7 +818,7 @@
           "id": "interface-input-in",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -360,
             "y": 0
           },
           "rotation": 0,
@@ -832,7 +832,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 360,
             "y": 0
           },
           "rotation": 0,
@@ -907,7 +907,7 @@
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -250
           },
           "width": 480,
           "height": 70,
@@ -937,10 +937,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -142,
-          "w": 640,
-          "h": 284
+          "x": -460,
+          "y": -180,
+          "w": 920,
+          "h": 360
         }
       }
     },
@@ -961,8 +961,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": -22,
+          "x": -260,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -971,8 +971,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": 22,
+          "x": -260,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -983,7 +983,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 280,
+          "x": 260,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -994,8 +994,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -160,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -1008,8 +1008,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -160,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -1022,7 +1022,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 160,
             "y": 0
           },
           "rotation": 0,
@@ -1097,7 +1097,7 @@
           "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -210
           },
           "width": 480,
           "height": 70,
@@ -1133,10 +1133,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -102,
-          "w": 560,
-          "h": 204
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
         }
       }
     },
@@ -1157,8 +1157,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -320,
-          "y": -22,
+          "x": -940,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -1167,8 +1167,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -320,
-          "y": 22,
+          "x": -940,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -1179,7 +1179,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 480,
+          "x": 940,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -1190,8 +1190,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -840,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -1204,8 +1204,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -840,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -1218,7 +1218,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 840,
             "y": 0
           },
           "rotation": 0,
@@ -1232,8 +1232,8 @@
           "id": "nand",
           "name": "N2T NAND",
           "position": {
-            "x": 0,
-            "y": -50
+            "x": -480,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -1246,8 +1246,8 @@
           "id": "not",
           "name": "N2T NOT",
           "position": {
-            "x": 120,
-            "y": -50
+            "x": 280,
+            "y": 0
           },
           "rotation": 0,
           "label": "",
@@ -1320,7 +1320,7 @@
           "text": "AND = NOT(NAND).",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -290
           },
           "width": 480,
           "height": 70,
@@ -1356,10 +1356,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -232,
-          "w": 800,
-          "h": 364
+          "x": -940,
+          "y": -220,
+          "w": 1880,
+          "h": 440
         }
       }
     },
@@ -1380,8 +1380,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -440,
-          "y": -22,
+          "x": -940,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -1390,8 +1390,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -440,
-          "y": 22,
+          "x": -940,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -1402,7 +1402,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 420,
+          "x": 940,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -1413,8 +1413,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -840,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -1427,8 +1427,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -840,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -1441,7 +1441,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 840,
             "y": 0
           },
           "rotation": 0,
@@ -1455,8 +1455,8 @@
           "id": "not-a",
           "name": "N2T NOT",
           "position": {
-            "x": -80,
-            "y": -60
+            "x": -280,
+            "y": -200
           },
           "rotation": 0,
           "label": "",
@@ -1469,8 +1469,8 @@
           "id": "not-b",
           "name": "N2T NOT",
           "position": {
-            "x": -80,
-            "y": 60
+            "x": -280,
+            "y": 200
           },
           "rotation": 0,
           "label": "",
@@ -1483,7 +1483,7 @@
           "id": "nand",
           "name": "N2T NAND",
           "position": {
-            "x": 100,
+            "x": 480,
             "y": 0
           },
           "rotation": 0,
@@ -1570,7 +1570,7 @@
           "text": "OR follows from De Morgan: NOT(NOT A NAND NOT B).",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -490
           },
           "width": 480,
           "height": 70,
@@ -1606,10 +1606,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -440,
-          "y": -242,
-          "w": 860,
-          "h": 484
+          "x": -940,
+          "y": -420,
+          "w": 1880,
+          "h": 840
         }
       }
     }

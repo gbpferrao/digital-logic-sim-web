@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import {
   GRID,
   MIN_CHIP_SIZE,
+  annotationBoundingBox,
   chipBoundingBox,
   chipBoundsSize,
   getDescription,
@@ -80,6 +81,22 @@ function remapAnnotations(description, before, after) {
       x: snap(after.x + u * after.w),
       y: snap(after.y + v * after.h)
     };
+  }
+}
+
+function parkAnnotations(description, bounds) {
+  if (!bounds || !description.annotations?.length) return;
+  const gap = GRID * 2;
+  const totalHeight = description.annotations.reduce((sum, annotation) => sum + annotationBoundingBox(annotation).h, 0)
+    + Math.max(0, description.annotations.length - 1) * gap;
+  let top = bounds.y - gap - totalHeight;
+  for (const annotation of description.annotations) {
+    const box = annotationBoundingBox(annotation);
+    annotation.position = {
+      x: snap(bounds.x + (bounds.w - box.w) / 2),
+      y: snap(top)
+    };
+    top += box.h + gap;
   }
 }
 
@@ -269,7 +286,8 @@ function layoutDescription(project, description, options = {}) {
 
   if (options.reusable && description.kind === "custom") refreshReusableFit(project, description);
   const after = circuitBounds(project, description);
-  remapAnnotations(description, before, after);
+  if (options.parkAnnotations) parkAnnotations(description, after);
+  else remapAnnotations(description, before, after);
 }
 
 function dependencyDepths(project) {
@@ -290,9 +308,9 @@ function dependencyDepths(project) {
   return [...names].sort((a, b) => visit(a) - visit(b));
 }
 
-function layoutProject(project) {
-  for (const name of dependencyDepths(project)) layoutDescription(project, project.customChips[name], { reusable: true });
-  layoutDescription(project, project.root, { reusable: false });
+export function layoutProject(project, options = {}) {
+  for (const name of dependencyDepths(project)) layoutDescription(project, project.customChips[name], { reusable: true, parkAnnotations: options.parkAnnotations });
+  layoutDescription(project, project.root, { reusable: false, parkAnnotations: options.parkAnnotations });
   // A stored project root is the live canvas, not a reusable chip boundary.
   // Its IN/OUT instances are real editable nodes; only custom-chip records
   // derive public ports from interface nodes.
@@ -364,12 +382,15 @@ function reportDescription(project, description) {
   return { instances: boxes.length, overlaps, bounds: circuitBounds(project, description) };
 }
 
-const write = process.argv.includes("--write");
-const chipContext = layoutStandaloneChips(write);
-const projectReports = layoutStoredProjects(write);
-const chipReports = Object.entries(chipContext.customChips).map(([name, description]) => ({
-  name,
-  ...reportDescription(chipContext, description)
-}));
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const write = process.argv.includes("--write");
+  const chipContext = layoutStandaloneChips(write);
+  const projectReports = layoutStoredProjects(write);
+  const chipReports = Object.entries(chipContext.customChips).map(([name, description]) => ({
+    name,
+    ...reportDescription(chipContext, description)
+  }));
 
-console.log(JSON.stringify({ write, projects: projectReports, chips: chipReports }, null, 2));
+  console.log(JSON.stringify({ write, projects: projectReports, chips: chipReports }, null, 2));
+}

@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BUILTINS, normalizeProject, refreshReusableFit } from "../src/model.js";
+import { layoutProject } from "./layout-stored-circuits.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outputRoot = path.join(root, "storage", "nand2tetris");
@@ -83,7 +84,7 @@ function terminalName(direction, bits) {
 }
 
 function terminalY(index, count) {
-  const spacing = 44;
+  const spacing = 100;
   return (index - (count - 1) / 2) * spacing;
 }
 
@@ -1168,7 +1169,8 @@ function projectWithRoot(name, root) {
   for (let pass = 0; pass < custom.size + 2; pass += 1) {
     for (const description of Object.values(first.customChips)) refreshReusableFit(first, description);
   }
-  return normalizeProject({ ...first, name, root, customChips: first.customChips, updatedAt: UPDATED_AT, createdAt: UPDATED_AT });
+  layoutProject(first, { parkAnnotations: true });
+  return normalizeProject({ ...first, name, root: first.root, customChips: first.customChips, updatedAt: UPDATED_AT, createdAt: UPDATED_AT });
 }
 
 function fileName(name) { return `${slug(name)}.json`; }

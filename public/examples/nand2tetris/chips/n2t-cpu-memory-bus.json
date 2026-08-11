@@ -19,8 +19,8 @@
         "name": "CPU OUT M",
         "bits": 16,
         "direction": "input",
-        "x": -280,
-        "y": -66,
+        "x": -180,
+        "y": -180,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -29,8 +29,8 @@
         "name": "CPU ADDRESS",
         "bits": 15,
         "direction": "input",
-        "x": -280,
-        "y": -22,
+        "x": -180,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -39,8 +39,8 @@
         "name": "CPU WRITE",
         "bits": 1,
         "direction": "input",
-        "x": -280,
-        "y": 22,
+        "x": -180,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -49,8 +49,8 @@
         "name": "MEMORY OUT",
         "bits": 16,
         "direction": "input",
-        "x": -280,
-        "y": 66,
+        "x": -180,
+        "y": 180,
         "valueDisplay": "off",
         "colour": "gray"
       }
@@ -61,8 +61,8 @@
         "name": "MEMORY IN",
         "bits": 16,
         "direction": "output",
-        "x": 280,
-        "y": -66,
+        "x": 180,
+        "y": -180,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -71,8 +71,8 @@
         "name": "MEMORY ADDRESS",
         "bits": 15,
         "direction": "output",
-        "x": 280,
-        "y": -22,
+        "x": 180,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -81,8 +81,8 @@
         "name": "MEMORY LOAD",
         "bits": 1,
         "direction": "output",
-        "x": 280,
-        "y": 22,
+        "x": 180,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -91,8 +91,8 @@
         "name": "CPU IN M",
         "bits": 16,
         "direction": "output",
-        "x": 280,
-        "y": 66,
+        "x": 180,
+        "y": 180,
         "valueDisplay": "off",
         "colour": "green"
       }
@@ -102,8 +102,8 @@
         "id": "interface-input-cpuoutm",
         "name": "IN-16",
         "position": {
-          "x": -180,
-          "y": -66
+          "x": -80,
+          "y": -180
         },
         "rotation": 0,
         "label": "CPU OUT M",
@@ -116,8 +116,8 @@
         "id": "interface-input-cpuaddress",
         "name": "IN-16",
         "position": {
-          "x": -180,
-          "y": -22
+          "x": -80,
+          "y": -60
         },
         "rotation": 0,
         "label": "CPU ADDRESS",
@@ -130,8 +130,8 @@
         "id": "interface-input-cpuwrite",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 22
+          "x": -80,
+          "y": 60
         },
         "rotation": 0,
         "label": "CPU WRITE",
@@ -144,8 +144,8 @@
         "id": "interface-input-memoryout",
         "name": "IN-16",
         "position": {
-          "x": -180,
-          "y": 66
+          "x": -80,
+          "y": 180
         },
         "rotation": 0,
         "label": "MEMORY OUT",
@@ -158,8 +158,8 @@
         "id": "interface-output-memoryin",
         "name": "OUT-16",
         "position": {
-          "x": 180,
-          "y": -66
+          "x": 80,
+          "y": -180
         },
         "rotation": 0,
         "label": "MEMORY IN",
@@ -172,8 +172,8 @@
         "id": "interface-output-memoryaddress",
         "name": "OUT-16",
         "position": {
-          "x": 180,
-          "y": -22
+          "x": 80,
+          "y": -60
         },
         "rotation": 0,
         "label": "MEMORY ADDRESS",
@@ -186,8 +186,8 @@
         "id": "interface-output-memoryload",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 22
+          "x": 80,
+          "y": 60
         },
         "rotation": 0,
         "label": "MEMORY LOAD",
@@ -200,8 +200,8 @@
         "id": "interface-output-cpuinm",
         "name": "OUT-16",
         "position": {
-          "x": 180,
-          "y": 66
+          "x": 80,
+          "y": 180
         },
         "rotation": 0,
         "label": "CPU IN M",
@@ -274,7 +274,7 @@
         "text": "The explicit data/control boundary between CPU and memory devices.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -330
         },
         "width": 480,
         "height": 70,
@@ -340,10 +340,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -280,
-        "y": -146,
-        "w": 560,
-        "h": 292
+        "x": -180,
+        "y": -260,
+        "w": 360,
+        "h": 520
       }
     }
   },

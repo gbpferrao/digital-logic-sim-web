@@ -19,8 +19,8 @@
         "name": "IN",
         "bits": 1,
         "direction": "input",
-        "x": -280,
-        "y": -22,
+        "x": -260,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
       },
@@ -29,8 +29,8 @@
         "name": "ENABLE",
         "bits": 1,
         "direction": "input",
-        "x": -280,
-        "y": 22,
+        "x": -260,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
       }
@@ -41,7 +41,7 @@
         "name": "OUT",
         "bits": 1,
         "direction": "output",
-        "x": 280,
+        "x": 260,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -52,8 +52,8 @@
         "id": "interface-input-in",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": -22
+          "x": -160,
+          "y": -60
         },
         "rotation": 0,
         "label": "IN",
@@ -66,8 +66,8 @@
         "id": "interface-input-enable",
         "name": "IN-1",
         "position": {
-          "x": -180,
-          "y": 22
+          "x": -160,
+          "y": 60
         },
         "rotation": 0,
         "label": "ENABLE",
@@ -80,7 +80,7 @@
         "id": "interface-output-out",
         "name": "OUT-1",
         "position": {
-          "x": 180,
+          "x": 160,
           "y": 0
         },
         "rotation": 0,
@@ -155,7 +155,7 @@
         "text": "A controlled output driver: disabled means the output releases the shared line.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -210
         },
         "width": 480,
         "height": 70,
@@ -191,10 +191,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -280,
-        "y": -102,
-        "w": 560,
-        "h": 204
+        "x": -260,
+        "y": -140,
+        "w": 520,
+        "h": 280
       }
     }
   },

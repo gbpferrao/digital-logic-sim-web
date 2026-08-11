@@ -23,6 +23,6 @@ Stateful processors commit only during the simulator's commit pass. The settling
 
 ## Asset topology
 
-`storage/nand2tetris/` is the source asset tree. `scripts/build-nand2tetris-assets.mjs` is deterministic and regenerates the custom chip JSONs, lab projects, manifests, and software-stage records. `scripts/prepare-static-assets.mjs` invokes it before copying the tree to `public/examples/nand2tetris/`.
+`storage/nand2tetris/` is the source asset tree. `scripts/build-nand2tetris-assets.mjs` is deterministic and regenerates the custom chip JSONs, lab projects, manifests, and software-stage records. It invokes the shared leaf-to-root layout utility so a change in a low-level fit or minimum bounds is reflected in every parent composition; annotations are placed in a separate lane above the circuit. `scripts/prepare-static-assets.mjs` invokes it before copying the tree to `public/examples/nand2tetris/`.
 
 The hardware records are executable canvas chips. The software records for Hack assembly, the assembler, VM, Jack, Jack compiler, Jack OS, a later ARM/RISC-V bridge, and a real-OS bridge are deliberately metadata milestones: those are language tools, runtimes, and operating-system services, not canvas chips. They identify the next engine boundary instead of hiding an unimplemented compiler behind a chip-shaped JSON.

@@ -19,7 +19,7 @@
         "name": "INSTRUCTION",
         "bits": 16,
         "direction": "input",
-        "x": -360,
+        "x": -880,
         "y": 0,
         "valueDisplay": "off",
         "colour": "gray"
@@ -31,8 +31,8 @@
         "name": "CONSTANT",
         "bits": 16,
         "direction": "output",
-        "x": 360,
-        "y": -22,
+        "x": 880,
+        "y": -60,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -41,8 +41,8 @@
         "name": "IS A",
         "bits": 1,
         "direction": "output",
-        "x": 360,
-        "y": 22,
+        "x": 880,
+        "y": 60,
         "valueDisplay": "off",
         "colour": "green"
       }
@@ -52,7 +52,7 @@
         "id": "interface-input-instruction",
         "name": "IN-16",
         "position": {
-          "x": -180,
+          "x": -780,
           "y": 0
         },
         "rotation": 0,
@@ -66,8 +66,8 @@
         "id": "interface-output-constant",
         "name": "OUT-16",
         "position": {
-          "x": 180,
-          "y": -22
+          "x": 780,
+          "y": -60
         },
         "rotation": 0,
         "label": "CONSTANT",
@@ -80,8 +80,8 @@
         "id": "interface-output-isa",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 22
+          "x": 780,
+          "y": 60
         },
         "rotation": 0,
         "label": "IS A",
@@ -94,7 +94,7 @@
         "id": "split",
         "name": "16-1BIT",
         "position": {
-          "x": -180,
+          "x": -590,
           "y": 0
         },
         "rotation": 0,
@@ -108,7 +108,7 @@
         "id": "merge",
         "name": "1-16BIT",
         "position": {
-          "x": 180,
+          "x": 590,
           "y": 0
         },
         "rotation": 0,
@@ -123,7 +123,7 @@
         "name": "CONST-0",
         "position": {
           "x": 0,
-          "y": 180
+          "y": 200
         },
         "rotation": 0,
         "label": "",
@@ -137,7 +137,7 @@
         "name": "N2T NOT",
         "position": {
           "x": 0,
-          "y": -160
+          "y": -60
         },
         "rotation": 0,
         "label": "",
@@ -418,7 +418,7 @@
         "text": "An A-instruction carries a 15-bit literal; the generator widens it to a 16-bit data word and exposes the opcode test.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -350
         },
         "width": 480,
         "height": 70,
@@ -454,10 +454,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -360,
-        "y": -342,
-        "w": 720,
-        "h": 602
+        "x": -880,
+        "y": -280,
+        "w": 1760,
+        "h": 560
       }
     }
   },
@@ -483,7 +483,7 @@
           "name": "IN",
           "bits": 1,
           "direction": "input",
-          "x": -320,
+          "x": -460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -495,7 +495,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 320,
+          "x": 460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -506,7 +506,7 @@
           "id": "interface-input-in",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -360,
             "y": 0
           },
           "rotation": 0,
@@ -520,7 +520,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 360,
             "y": 0
           },
           "rotation": 0,
@@ -595,7 +595,7 @@
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -250
           },
           "width": 480,
           "height": 70,
@@ -625,10 +625,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -142,
-          "w": 640,
-          "h": 284
+          "x": -460,
+          "y": -180,
+          "w": 920,
+          "h": 360
         }
       }
     },
@@ -649,8 +649,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": -22,
+          "x": -260,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -659,8 +659,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": 22,
+          "x": -260,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -671,7 +671,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 280,
+          "x": 260,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -682,8 +682,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -160,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -696,8 +696,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -160,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -710,7 +710,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 160,
             "y": 0
           },
           "rotation": 0,
@@ -785,7 +785,7 @@
           "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -210
           },
           "width": 480,
           "height": 70,
@@ -821,10 +821,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -102,
-          "w": 560,
-          "h": 204
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
         }
       }
     }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { getDescription, createProject, instanceFor, normalizeProject, TYPE } from "../src/model.js";
+import { annotationBoundingBox, chipBoundingBox, getDescription, createProject, instanceFor, normalizeProject, TYPE } from "../src/model.js";
 import { readProjectFile } from "../src/io/project-import.js";
 import { Simulator } from "../src/simulation.js";
 
@@ -59,6 +59,33 @@ test("Nand2Tetris bundle contains the complete hardware progression and software
     assert.equal(chip.schema, "digital-logic-sim-web/chip/1");
     assert.equal(chip.description.name, entry.name);
     assert.deepEqual(chip.dependencyNames, Object.keys(chip.dependencies));
+  }
+});
+
+test("Nand2Tetris compositions are collision-free after leaf-to-root layout", async () => {
+  for (const file of ["projects/nand2tetris-bit-lab.json", "projects/nand2tetris-hardware-lab.json", "projects/nand2tetris-computer-lab.json"]) {
+    const project = normalizeProject(await readJson(file));
+    const descriptions = [["root", project.root], ...Object.entries(project.customChips)];
+    for (const [name, description] of descriptions) {
+      const boxes = description.instances.map((instance) => ({ instance, box: chipBoundingBox(project, instance) }));
+      for (let index = 0; index < boxes.length; index += 1) {
+        for (let other = index + 1; other < boxes.length; other += 1) {
+          const a = boxes[index].box;
+          const b = boxes[other].box;
+          const overlapX = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+          const overlapY = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+          assert.ok(!(overlapX > 1 && overlapY > 1), `${file} / ${name}: ${boxes[index].instance.id} overlaps ${boxes[other].instance.id}`);
+        }
+      }
+      for (const annotation of description.annotations ?? []) {
+        const note = annotationBoundingBox(annotation);
+        for (const { instance, box } of boxes) {
+          const overlapX = Math.min(note.x + note.w, box.x + box.w) - Math.max(note.x, box.x);
+          const overlapY = Math.min(note.y + note.h, box.y + box.h) - Math.max(note.y, box.y);
+          assert.ok(!(overlapX > 1 && overlapY > 1), `${file} / ${name}: annotation overlaps ${instance.id}`);
+        }
+      }
+    }
   }
 });
 

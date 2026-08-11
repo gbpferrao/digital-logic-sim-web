@@ -19,7 +19,7 @@
         "name": "INSTRUCTION",
         "bits": 16,
         "direction": "input",
-        "x": -320,
+        "x": -970,
         "y": 0,
         "valueDisplay": "off",
         "colour": "gray"
@@ -31,8 +31,8 @@
         "name": "IS C",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -308,
+        "x": 970,
+        "y": -840,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -41,8 +41,8 @@
         "name": "IS A",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -264,
+        "x": 970,
+        "y": -720,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -51,8 +51,8 @@
         "name": "A",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -220,
+        "x": 970,
+        "y": -600,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -61,8 +61,8 @@
         "name": "ZX",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -176,
+        "x": 970,
+        "y": -480,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -71,8 +71,8 @@
         "name": "NX",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -132,
+        "x": 970,
+        "y": -360,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -81,8 +81,8 @@
         "name": "ZY",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -88,
+        "x": 970,
+        "y": -240,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -91,8 +91,8 @@
         "name": "NY",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": -44,
+        "x": 970,
+        "y": -120,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -101,7 +101,7 @@
         "name": "F",
         "bits": 1,
         "direction": "output",
-        "x": 540,
+        "x": 970,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -111,8 +111,8 @@
         "name": "NO",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 44,
+        "x": 970,
+        "y": 120,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -121,8 +121,8 @@
         "name": "DEST A",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 88,
+        "x": 970,
+        "y": 240,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -131,8 +131,8 @@
         "name": "DEST D",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 132,
+        "x": 970,
+        "y": 360,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -141,8 +141,8 @@
         "name": "DEST M",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 176,
+        "x": 970,
+        "y": 480,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -151,8 +151,8 @@
         "name": "J2",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 220,
+        "x": 970,
+        "y": 600,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -161,8 +161,8 @@
         "name": "J1",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 264,
+        "x": 970,
+        "y": 720,
         "valueDisplay": "off",
         "colour": "green"
       },
@@ -171,8 +171,8 @@
         "name": "J0",
         "bits": 1,
         "direction": "output",
-        "x": 540,
-        "y": 308,
+        "x": 970,
+        "y": 840,
         "valueDisplay": "off",
         "colour": "green"
       }
@@ -182,7 +182,7 @@
         "id": "interface-input-instruction",
         "name": "IN-16",
         "position": {
-          "x": -180,
+          "x": -870,
           "y": 0
         },
         "rotation": 0,
@@ -196,8 +196,8 @@
         "id": "interface-output-isc",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -308
+          "x": 870,
+          "y": -840
         },
         "rotation": 0,
         "label": "IS C",
@@ -210,8 +210,8 @@
         "id": "interface-output-isa",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -264
+          "x": 870,
+          "y": -720
         },
         "rotation": 0,
         "label": "IS A",
@@ -224,8 +224,8 @@
         "id": "interface-output-a",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -220
+          "x": 870,
+          "y": -600
         },
         "rotation": 0,
         "label": "A",
@@ -238,8 +238,8 @@
         "id": "interface-output-zx",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -176
+          "x": 870,
+          "y": -480
         },
         "rotation": 0,
         "label": "ZX",
@@ -252,8 +252,8 @@
         "id": "interface-output-nx",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -132
+          "x": 870,
+          "y": -360
         },
         "rotation": 0,
         "label": "NX",
@@ -266,8 +266,8 @@
         "id": "interface-output-zy",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -88
+          "x": 870,
+          "y": -240
         },
         "rotation": 0,
         "label": "ZY",
@@ -280,8 +280,8 @@
         "id": "interface-output-ny",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": -44
+          "x": 870,
+          "y": -120
         },
         "rotation": 0,
         "label": "NY",
@@ -294,7 +294,7 @@
         "id": "interface-output-f",
         "name": "OUT-1",
         "position": {
-          "x": 180,
+          "x": 870,
           "y": 0
         },
         "rotation": 0,
@@ -308,8 +308,8 @@
         "id": "interface-output-no",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 44
+          "x": 870,
+          "y": 120
         },
         "rotation": 0,
         "label": "NO",
@@ -322,8 +322,8 @@
         "id": "interface-output-desta",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 88
+          "x": 870,
+          "y": 240
         },
         "rotation": 0,
         "label": "DEST A",
@@ -336,8 +336,8 @@
         "id": "interface-output-destd",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 132
+          "x": 870,
+          "y": 360
         },
         "rotation": 0,
         "label": "DEST D",
@@ -350,8 +350,8 @@
         "id": "interface-output-destm",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 176
+          "x": 870,
+          "y": 480
         },
         "rotation": 0,
         "label": "DEST M",
@@ -364,8 +364,8 @@
         "id": "interface-output-jump2",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 220
+          "x": 870,
+          "y": 600
         },
         "rotation": 0,
         "label": "J2",
@@ -378,8 +378,8 @@
         "id": "interface-output-jump1",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 264
+          "x": 870,
+          "y": 720
         },
         "rotation": 0,
         "label": "J1",
@@ -392,8 +392,8 @@
         "id": "interface-output-jump0",
         "name": "OUT-1",
         "position": {
-          "x": 180,
-          "y": 308
+          "x": 870,
+          "y": 840
         },
         "rotation": 0,
         "label": "J0",
@@ -406,7 +406,7 @@
         "id": "decoder",
         "name": "N2T INSTRUCTION DECODER",
         "position": {
-          "x": 0,
+          "x": -480,
           "y": 0
         },
         "rotation": 0,
@@ -420,8 +420,8 @@
         "id": "not-c",
         "name": "N2T NOT",
         "position": {
-          "x": 180,
-          "y": -160
+          "x": 310,
+          "y": 0
         },
         "rotation": 0,
         "label": "",
@@ -663,7 +663,7 @@
         "text": "The raw instruction fields plus the complementary A-instruction signal used by control paths.",
         "position": {
           "x": -240,
-          "y": -190
+          "y": -990
         },
         "width": 480,
         "height": 70,
@@ -777,10 +777,10 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -320,
-        "y": -406,
-        "w": 860,
-        "h": 812
+        "x": -970,
+        "y": -920,
+        "w": 1940,
+        "h": 1840
       }
     }
   },
@@ -807,7 +807,7 @@
           "name": "INSTRUCTION",
           "bits": 16,
           "direction": "input",
-          "x": -280,
+          "x": -290,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -819,8 +819,8 @@
           "name": "IS C",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -286,
+          "x": 290,
+          "y": -780,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -829,8 +829,8 @@
           "name": "A",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -242,
+          "x": 290,
+          "y": -660,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -839,8 +839,8 @@
           "name": "ZX",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -198,
+          "x": 290,
+          "y": -540,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -849,8 +849,8 @@
           "name": "NX",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -154,
+          "x": 290,
+          "y": -420,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -859,8 +859,8 @@
           "name": "ZY",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -110,
+          "x": 290,
+          "y": -300,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -869,8 +869,8 @@
           "name": "NY",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -66,
+          "x": 290,
+          "y": -180,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -879,8 +879,8 @@
           "name": "F",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": -22,
+          "x": 290,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -889,8 +889,8 @@
           "name": "NO",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 22,
+          "x": 290,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -899,8 +899,8 @@
           "name": "DEST A",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 66,
+          "x": 290,
+          "y": 180,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -909,8 +909,8 @@
           "name": "DEST D",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 110,
+          "x": 290,
+          "y": 300,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -919,8 +919,8 @@
           "name": "DEST M",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 154,
+          "x": 290,
+          "y": 420,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -929,8 +929,8 @@
           "name": "J2",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 198,
+          "x": 290,
+          "y": 540,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -939,8 +939,8 @@
           "name": "J1",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 242,
+          "x": 290,
+          "y": 660,
           "valueDisplay": "off",
           "colour": "green"
         },
@@ -949,8 +949,8 @@
           "name": "J0",
           "bits": 1,
           "direction": "output",
-          "x": 280,
-          "y": 286,
+          "x": 290,
+          "y": 780,
           "valueDisplay": "off",
           "colour": "green"
         }
@@ -960,7 +960,7 @@
           "id": "interface-input-instruction",
           "name": "IN-16",
           "position": {
-            "x": -180,
+            "x": -190,
             "y": 0
           },
           "rotation": 0,
@@ -974,8 +974,8 @@
           "id": "interface-output-isc",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -286
+            "x": 190,
+            "y": -780
           },
           "rotation": 0,
           "label": "IS C",
@@ -988,8 +988,8 @@
           "id": "interface-output-a",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -242
+            "x": 190,
+            "y": -660
           },
           "rotation": 0,
           "label": "A",
@@ -1002,8 +1002,8 @@
           "id": "interface-output-zx",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -198
+            "x": 190,
+            "y": -540
           },
           "rotation": 0,
           "label": "ZX",
@@ -1016,8 +1016,8 @@
           "id": "interface-output-nx",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -154
+            "x": 190,
+            "y": -420
           },
           "rotation": 0,
           "label": "NX",
@@ -1030,8 +1030,8 @@
           "id": "interface-output-zy",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -110
+            "x": 190,
+            "y": -300
           },
           "rotation": 0,
           "label": "ZY",
@@ -1044,8 +1044,8 @@
           "id": "interface-output-ny",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -66
+            "x": 190,
+            "y": -180
           },
           "rotation": 0,
           "label": "NY",
@@ -1058,8 +1058,8 @@
           "id": "interface-output-f",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": -22
+            "x": 190,
+            "y": -60
           },
           "rotation": 0,
           "label": "F",
@@ -1072,8 +1072,8 @@
           "id": "interface-output-no",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 22
+            "x": 190,
+            "y": 60
           },
           "rotation": 0,
           "label": "NO",
@@ -1086,8 +1086,8 @@
           "id": "interface-output-desta",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 66
+            "x": 190,
+            "y": 180
           },
           "rotation": 0,
           "label": "DEST A",
@@ -1100,8 +1100,8 @@
           "id": "interface-output-destd",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 110
+            "x": 190,
+            "y": 300
           },
           "rotation": 0,
           "label": "DEST D",
@@ -1114,8 +1114,8 @@
           "id": "interface-output-destm",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 154
+            "x": 190,
+            "y": 420
           },
           "rotation": 0,
           "label": "DEST M",
@@ -1128,8 +1128,8 @@
           "id": "interface-output-jump2",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 198
+            "x": 190,
+            "y": 540
           },
           "rotation": 0,
           "label": "J2",
@@ -1142,8 +1142,8 @@
           "id": "interface-output-jump1",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 242
+            "x": 190,
+            "y": 660
           },
           "rotation": 0,
           "label": "J1",
@@ -1156,8 +1156,8 @@
           "id": "interface-output-jump0",
           "name": "OUT-1",
           "position": {
-            "x": 180,
-            "y": 286
+            "x": 190,
+            "y": 780
           },
           "rotation": 0,
           "label": "J0",
@@ -1387,7 +1387,7 @@
           "text": "The instruction bit positions are surfaced as named control signals for the CPU.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -930
           },
           "width": 480,
           "height": 70,
@@ -1495,10 +1495,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -366,
-          "w": 560,
-          "h": 732
+          "x": -290,
+          "y": -860,
+          "w": 580,
+          "h": 1720
         }
       }
     },
@@ -1519,7 +1519,7 @@
           "name": "IN",
           "bits": 1,
           "direction": "input",
-          "x": -320,
+          "x": -460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
@@ -1531,7 +1531,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 320,
+          "x": 460,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -1542,7 +1542,7 @@
           "id": "interface-input-in",
           "name": "IN-1",
           "position": {
-            "x": -180,
+            "x": -360,
             "y": 0
           },
           "rotation": 0,
@@ -1556,7 +1556,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 360,
             "y": 0
           },
           "rotation": 0,
@@ -1631,7 +1631,7 @@
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -250
           },
           "width": 480,
           "height": 70,
@@ -1661,10 +1661,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -320,
-          "y": -142,
-          "w": 640,
-          "h": 284
+          "x": -460,
+          "y": -180,
+          "w": 920,
+          "h": 360
         }
       }
     },
@@ -1685,8 +1685,8 @@
           "name": "A",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": -22,
+          "x": -260,
+          "y": -60,
           "valueDisplay": "off",
           "colour": "gray"
         },
@@ -1695,8 +1695,8 @@
           "name": "B",
           "bits": 1,
           "direction": "input",
-          "x": -280,
-          "y": 22,
+          "x": -260,
+          "y": 60,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -1707,7 +1707,7 @@
           "name": "OUT",
           "bits": 1,
           "direction": "output",
-          "x": 280,
+          "x": 260,
           "y": 0,
           "valueDisplay": "off",
           "colour": "green"
@@ -1718,8 +1718,8 @@
           "id": "interface-input-a",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": -22
+            "x": -160,
+            "y": -60
           },
           "rotation": 0,
           "label": "A",
@@ -1732,8 +1732,8 @@
           "id": "interface-input-b",
           "name": "IN-1",
           "position": {
-            "x": -180,
-            "y": 22
+            "x": -160,
+            "y": 60
           },
           "rotation": 0,
           "label": "B",
@@ -1746,7 +1746,7 @@
           "id": "interface-output-out",
           "name": "OUT-1",
           "position": {
-            "x": 180,
+            "x": 160,
             "y": 0
           },
           "rotation": 0,
@@ -1821,7 +1821,7 @@
           "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
           "position": {
             "x": -240,
-            "y": -190
+            "y": -210
           },
           "width": 480,
           "height": 70,
@@ -1857,10 +1857,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -280,
-          "y": -102,
-          "w": 560,
-          "h": 204
+          "x": -260,
+          "y": -140,
+          "w": 520,
+          "h": 280
         }
       }
     }
