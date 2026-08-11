@@ -783,7 +783,8 @@ export class WorldRenderer {
     if (xrayDepth > 0 && description.kind === "custom" && (description.instances ?? []).length) {
       this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")], [...signalScope, String(instance.id)]);
     }
-    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered || selected);
+    const displayLabel = ["led", "sevenSegment", "dot", "rgb"].includes(description.special);
+    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered || selected, displayLabel ? "top" : "center");
     ctx.restore();
     if (selected || hovered || invalid) {
       ctx.save();
@@ -958,7 +959,7 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawChipCaption(ctx, value, width, height, hovered = false) {
+  drawChipCaption(ctx, value, width, height, hovered = false, placement = "center") {
     const text = String(value || "CHIP").trim() || "CHIP";
     const available = Math.max(32, width - 12);
     let fontSize = Math.min(12, Math.max(8, height * .22));
@@ -978,7 +979,9 @@ export class WorldRenderer {
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 0, 0, .65)";
     ctx.shadowBlur = 2;
-    const firstLineY = -((lines.length - 1) * lineHeight) / 2;
+    const firstLineY = placement === "top"
+      ? -height / 2 + 5 + lineHeight / 2
+      : -((lines.length - 1) * lineHeight) / 2;
     lines.forEach((line, index) => ctx.fillText(line, 0, firstLineY + index * lineHeight));
     ctx.restore();
   }
@@ -1032,22 +1035,23 @@ export class WorldRenderer {
       const ledColour = instance.outputPinColours?.display || "#78f1a7";
       ctx.fillStyle = input.tri === 0 && isHigh(input) ? ledColour : "#344455";
       ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = input.tri === 0 && isHigh(input) ? 14 : 0;
-      ctx.beginPath(); ctx.arc(0, 0, Math.min(description.size.x, description.size.y) * .27, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.beginPath(); ctx.arc(0, description.size.y * .12, Math.min(description.size.x, description.size.y) * .27, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
     } else if (description.special === "sevenSegment") {
       const pins = description.inputPins.map((pin) => snapshot?.signals?.[pin.id] ?? disconnected());
       const segments = [pins[0], pins[1], pins[2], pins[3], pins[4], pins[5], pins[6]].map((s) => s.tri === 0 && isHigh(s));
       const halfWidth = description.size.x * .29;
       const halfHeight = description.size.y * .30;
+      const centerY = description.size.y * .12;
       const thickness = Math.max(2, description.size.x * .032);
       const inset = thickness * .72;
       const lines = [
-        [-halfWidth + inset, -halfHeight, halfWidth - inset, -halfHeight],
-        [halfWidth, -halfHeight + inset, halfWidth, -inset],
-        [halfWidth, inset, halfWidth, halfHeight - inset],
-        [-halfWidth + inset, halfHeight, halfWidth - inset, halfHeight],
-        [-halfWidth, inset, -halfWidth, halfHeight - inset],
-        [-halfWidth, -halfHeight + inset, -halfWidth, -inset],
-        [-halfWidth + inset, 0, halfWidth - inset, 0]
+        [-halfWidth + inset, -halfHeight + centerY, halfWidth - inset, -halfHeight + centerY],
+        [halfWidth, -halfHeight + inset + centerY, halfWidth, -inset + centerY],
+        [halfWidth, inset + centerY, halfWidth, halfHeight - inset + centerY],
+        [-halfWidth + inset, halfHeight + centerY, halfWidth - inset, halfHeight + centerY],
+        [-halfWidth, inset + centerY, -halfWidth, halfHeight - inset + centerY],
+        [-halfWidth, -halfHeight + inset + centerY, -halfWidth, -inset + centerY],
+        [-halfWidth + inset, centerY, halfWidth - inset, centerY]
       ];
       lines.forEach(([x1, y1, x2, y2], index) => {
         ctx.strokeStyle = segments[index] ? "#f3d36b" : "#3b4850";
@@ -1061,13 +1065,13 @@ export class WorldRenderer {
       for (let row = 0; row < height; row += 1) for (let col = 0; col < width; col += 1) {
         const value = pixels[row * width + col];
         ctx.fillStyle = value ? "#76eaa0" : "#273543";
-        ctx.fillRect((col - width / 2) * 9 + 4, (row - height / 2) * 9 + 4, 6, 6);
+        ctx.fillRect((col - width / 2) * 9 + 4, (row - height / 2) * 9 + 4 + description.size.y * .10, 6, 6);
       }
     } else if (description.special === "rgb") {
       const value = internal.display?.[0] ?? 0;
       const colour = `rgb(${(value & 15) * 17}, ${((value >> 4) & 15) * 17}, ${((value >> 8) & 15) * 17})`;
       ctx.fillStyle = colour; ctx.shadowColor = colour; ctx.shadowBlur = 18;
-      ctx.fillRect(-description.size.x * .31, -description.size.y * .31, description.size.x * .62, description.size.y * .62); ctx.shadowBlur = 0;
+      ctx.fillRect(-description.size.x * .31, -description.size.y * .31 + description.size.y * .10, description.size.x * .62, description.size.y * .62); ctx.shadowBlur = 0;
     }
   }
 

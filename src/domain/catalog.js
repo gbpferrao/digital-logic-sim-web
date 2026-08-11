@@ -160,7 +160,7 @@ function createBuiltins() {
 
   add(builtin(TYPE.SEVEN_SEG, TYPE.SEVEN_SEG,
     ["A", "B", "C", "D", "E", "F", "G", "COL"].map((name, id) => pin(id, name)), [], {
-      width: GRID * 10, height: GRID * 7, colour: COLORS.display, special: "sevenSegment", nameLocation: "hidden", displays: [{ type: "sevenSegment" }]
+      width: GRID * 8, height: GRID * 9, colour: COLORS.display, special: "sevenSegment", nameLocation: "hidden", displays: [{ type: "sevenSegment" }]
     }));
   add(builtin(TYPE.LED, TYPE.LED, [pin(0, "IN")], [], { width: GRID * 4, height: GRID * 4, colour: COLORS.display, special: "led", nameLocation: "hidden", displays: [{ type: "led" }] }));
   add(builtin(TYPE.DOT, TYPE.DOT,
