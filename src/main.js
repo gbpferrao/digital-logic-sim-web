@@ -37,6 +37,7 @@ import { createLibraryController } from "./ui/library-controller.js";
 import { createNotificationCenter } from "./ui/notifications.js";
 import { createPointerSession, hasPointerMoved } from "./ui/pointer-session.js";
 import { createPerformanceDiagnostics, createRenderScheduler } from "./ui/performance.js";
+import { createHoverTooltipController } from "./ui/hover-tooltip.js";
 import { createSimulationBake, createSimulationController } from "./simulation-controller.js";
 
 const APP_METADATA = Object.freeze({
@@ -52,7 +53,10 @@ const renderer = new WorldRenderer(canvas);
 const notifications = createNotificationCenter({ root: $("#notifications"), refreshIcons });
 const performanceDiagnostics = createPerformanceDiagnostics();
 const renderScheduler = createRenderScheduler({ onFrame: (lanes) => renderScheduled(lanes) });
+const hoverTooltipLayer = createHoverTooltipController({ element: $("#canvas-hover-tooltip"), container: canvas.parentElement });
 let cachedCanvasRect = null;
+let hoverResolveFrame = null;
+let pendingHoverResolution = null;
 
 function contextIcon(action) {
   return {
@@ -115,6 +119,8 @@ const state = {
   lastCollectionDragAt: 0,
   hover: null,
   hoverTooltip: null,
+  mouseScreen: { x: 0, y: 0 },
+  hoverPointerActive: false,
   pan: null,
   zoomDrag: null,
   simRunning: false,
@@ -1683,8 +1689,11 @@ function toggleGrid() {
 
 function toggleXray() {
   state.xray = !state.xray;
-  if (state.xray) updateCanvasHover(state.mouseWorld);
-  else state.hoverTooltip = null;
+  if (state.xray) updateCanvasHover(state.mouseWorld, state.mouseScreen);
+  else {
+    state.hoverTooltip = null;
+    hoverTooltipLayer.hide();
+  }
   setStatus(`X-ray ${state.xray ? "enabled" : "disabled"}.`);
   render();
 }
@@ -1721,6 +1730,10 @@ function resetEditorStateForProject() {
   state.zoomDrag = null;
   state.hover = null;
   state.hoverTooltip = null;
+  state.mouseScreen = { x: 0, y: 0 };
+  state.hoverPointerActive = false;
+  cancelPendingHoverResolution();
+  hoverTooltipLayer.hide();
   state.undo.length = 0;
   state.redo.length = 0;
   state.savedRevision = state.projectSaved ? 0 : -1;
@@ -1951,10 +1964,11 @@ function renderCanvasFrame({ simulation = false, coordinates = true } = {}) {
   canvas.parentElement.classList.toggle("causal-preview", Boolean(state.preview));
   const visibleSimulator = state.preview?.simulator ?? simulator;
   performanceDiagnostics.measure("renderer.draw", () => renderer.draw(project, visibleSimulator, state));
+  hoverTooltipLayer.move(state.mouseScreen);
   updateCanvasInspectButton();
   if (coordinates) {
     $("#zoom-readout").textContent = formatZoomReadout(renderer.camera.zoom);
-    $("#coordinate-readout").textContent = `${Math.round(state.mouseWorld.x)}, ${Math.round(state.mouseWorld.y)}`;
+    updateCoordinateReadout();
   }
   if (simulation) {
     renderSimulationControls();
@@ -2157,7 +2171,35 @@ function hoverFromHit(hit) {
   return null;
 }
 
-function updateCanvasHover(world) {
+function sameHoverTarget(left, right) {
+  return left?.kind === right?.kind
+    && left?.id === right?.id
+    && left?.owner === right?.owner
+    && left?.pin === right?.pin
+    && left?.wireId === right?.wireId
+    && left?.index === right?.index;
+}
+
+function sameHoverTooltip(left, right) {
+  return left?.kind === right?.kind && left?.id === right?.id && left?.name === right?.name;
+}
+
+function updateCoordinateReadout(world = state.mouseWorld) {
+  const readout = $("#coordinate-readout");
+  if (!readout) return;
+  const value = `${Math.round(world.x)}, ${Math.round(world.y)}`;
+  if (readout.textContent !== value) readout.textContent = value;
+}
+
+function cancelPendingHoverResolution() {
+  if (hoverResolveFrame !== null) cancelAnimationFrame(hoverResolveFrame);
+  hoverResolveFrame = null;
+  pendingHoverResolution = null;
+}
+
+function updateCanvasHover(world, screen = state.mouseScreen) {
+  const previousHover = state.hover;
+  const previousTooltip = state.hoverTooltip;
   const hit = canvasHitTarget(world);
   state.hover = hoverFromHit(hit);
   const deepTarget = state.xray ? renderer.findXrayHoverTarget(project, world) : null;
@@ -2166,12 +2208,36 @@ function updateCanvasHover(world) {
     const description = descriptorForInstance(project, hit.value);
     state.hoverTooltip = { kind: "chip", id: String(hit.value.id), name: String(hit.value.label || description?.name || hit.value.name || "CHIP") };
   } else state.hoverTooltip = null;
+  hoverTooltipLayer.setName(state.hoverTooltip?.name, screen);
+  hoverTooltipLayer.move(screen);
+  return !sameHoverTarget(previousHover, state.hover) || !sameHoverTooltip(previousTooltip, state.hoverTooltip);
+}
+
+function requestCanvasHover(world, screen) {
+  state.hoverPointerActive = true;
+  state.mouseScreen = { ...screen };
+  // Keep the visible label on the direct pointer path. The name resolution
+  // below is intentionally coalesced because X-ray hit testing can traverse
+  // many nested descriptions.
+  hoverTooltipLayer.move(screen);
+  pendingHoverResolution = { world: { ...world }, screen: { ...screen } };
+  if (hoverResolveFrame !== null) return;
+  hoverResolveFrame = requestAnimationFrame(() => {
+    hoverResolveFrame = null;
+    const pending = pendingHoverResolution;
+    pendingHoverResolution = null;
+    if (!pending || !state.hoverPointerActive) return;
+    if (updateCanvasHover(pending.world, pending.screen)) scheduleCanvasRender();
+  });
 }
 
 function handlePointerDown(event) {
   if (state.pointerSession) return;
   updatePointerModifiers(event);
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
+  state.mouseScreen = { ...screen };
+  state.hoverPointerActive = true;
+  hoverTooltipLayer.move(screen);
   if (isCanvasInteractionBlocked()) {
     event.preventDefault();
     closeBottomMenu();
@@ -2329,6 +2395,8 @@ function handlePointerMove(event) {
   updatePointerModifiers(event);
   if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag) renderer.invalidateGeometry?.();
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
+  state.mouseScreen = { ...screen };
+  hoverTooltipLayer.move(screen);
   const session = state.pointerSession;
   if (session && !session.moved && hasPointerMoved(session, screen)) {
     session.moved = true;
@@ -2356,7 +2424,7 @@ function handlePointerMove(event) {
       canvas.parentElement.classList.add("selecting");
     }
   }
-  updateCanvasHover(world);
+  requestCanvasHover(world, screen);
   if (state.zoomDrag) {
     const deltaY = screen.y - state.zoomDrag.screen.y;
     renderer.zoomAt(screen.x, screen.y, Math.exp(-deltaY * 0.006));
@@ -2367,6 +2435,7 @@ function handlePointerMove(event) {
   if (state.pan) {
     renderer.camera.x = state.pan.camera.x - (screen.x - state.pan.x) / renderer.camera.zoom;
     renderer.camera.y = state.pan.camera.y - (screen.y - state.pan.y) / renderer.camera.zoom;
+    requestCanvasHover(renderer.toWorld(screen.x, screen.y), screen);
     state.viewCameras[viewKey()] = { ...renderer.camera };
     scheduleCanvasRender(); return;
   }
@@ -2401,11 +2470,15 @@ function handlePointerMove(event) {
       state.wireTargetValid = result.ok;
       setStatus(result.ok ? "Pin target ready." : result.message);
     } else state.wireTargetValid = null;
+    scheduleCanvasRender();
+    return;
   }
   if (state.drag) {
     applyDrag(world, event);
+    scheduleCanvasRender();
+    return;
   }
-  scheduleCanvasRender();
+  updateCoordinateReadout(world);
 }
 
 function handlePointerUp(event) {
@@ -2416,6 +2489,8 @@ function handlePointerUp(event) {
   const screen = canvasPoint(event);
   const world = renderer.toWorld(screen.x, screen.y);
   state.mouseWorld = world;
+  state.mouseScreen = { ...screen };
+  hoverTooltipLayer.move(screen);
   const finishPointer = () => releaseCanvasPointer(event.pointerId);
   if (state.zoomDrag) { state.zoomDrag = null; finishPointer(); return; }
   if (state.pan) { state.pan = null; canvas.parentElement.classList.remove("panning"); finishPointer(); return; }
@@ -2833,7 +2908,15 @@ canvas.addEventListener("pointercancel", (event) => {
 canvas.addEventListener("lostpointercapture", () => {
   if (state.pointerSession) cancelActiveCanvasPointerSession();
 });
-canvas.addEventListener("pointerleave", () => { if (!state.drag && !state.annotationDrag && !state.annotationResize && !state.wirePointDrag && !state.selectionBox && !state.wireStart) { state.hover = null; state.hoverTooltip = null; render(); } });
+canvas.addEventListener("pointerleave", () => {
+  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag || state.selectionBox || state.wireStart) return;
+  state.hoverPointerActive = false;
+  cancelPendingHoverResolution();
+  state.hover = null;
+  state.hoverTooltip = null;
+  hoverTooltipLayer.hide();
+  render();
+});
 canvas.addEventListener("dblclick", (event) => {
   cancelPendingInputToggle();
   if (state.pointerSession) cancelActiveCanvasPointerSession({ renderState: false });
@@ -2873,7 +2956,10 @@ window.addEventListener("pointercancel", (event) => {
 });
 window.addEventListener("blur", () => { if (state.pointerSession) cancelActiveCanvasPointerSession(); });
 document.addEventListener("visibilitychange", () => { if (document.hidden && state.pointerSession) cancelActiveCanvasPointerSession(); });
-window.addEventListener("resize", () => requestAnimationFrame(updateCanvasInspectButton));
+window.addEventListener("resize", () => requestAnimationFrame(() => {
+  hoverTooltipLayer.refresh(state.mouseScreen);
+  updateCanvasInspectButton();
+}));
 window.addEventListener("pointerdown", commitProjectNameEditIfOutside, true);
 window.addEventListener("pointerdown", (event) => {
   if (!event.target.closest("#context-menu")) hideContextMenu();

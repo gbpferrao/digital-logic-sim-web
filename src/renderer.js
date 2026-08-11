@@ -528,33 +528,6 @@ export class WorldRenderer {
     if (editorState.wireStart && editorState.mouseWorld) this.drawWirePreview(ctx, project, simulator, editorState);
     if (editorState.selectionBox) this.drawSelectionBox(ctx, editorState.selectionBox);
     ctx.restore();
-    this.drawHoverTooltip(ctx, editorState.hoverTooltip, editorState.mouseWorld);
-  }
-
-  drawHoverTooltip(ctx, tooltip, mouseWorld = null) {
-    const name = String(tooltip?.name || "").trim();
-    if (!name || !mouseWorld) return;
-    const cursor = this.toScreen(mouseWorld);
-    const paddingX = 8;
-    const height = 24;
-    const maxWidth = Math.max(96, Math.min(320, this.width - 16));
-    ctx.save();
-    ctx.font = "600 11px JetBrains Mono, Consolas, monospace";
-    const width = Math.min(maxWidth, ctx.measureText(name).width + paddingX * 2);
-    // Keep the anchor southeast of the cursor. The viewport clamp only keeps
-    // the bubble readable when the cursor is close to the canvas edge.
-    const x = Math.max(8, Math.min(this.width - width - 8, cursor.x + 12));
-    const y = Math.max(8, Math.min(this.height - height - 8, cursor.y + 12));
-    ctx.fillStyle = "rgba(82, 132, 190, .24)";
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, 4);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.globalAlpha = .92;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(name, x + paddingX, y + height / 2, maxWidth - paddingX * 2);
-    ctx.restore();
   }
 
   drawGrid(ctx, visible) {
