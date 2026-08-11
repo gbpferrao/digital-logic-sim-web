@@ -1015,6 +1015,7 @@ function deleteWireEditPoint(index = null) {
 
 function cancelActiveCanvasPointerSession({ renderState = true } = {}) {
   const wasZooming = state.pointerSession?.kind === "zoom";
+  const rolledBackDrag = Boolean(state.drag);
   if (state.drag) restoreDrag();
   if (state.annotationDrag) restoreAnnotationDrag();
   if (state.annotationResize) restoreAnnotationResize();
@@ -1031,6 +1032,7 @@ function cancelActiveCanvasPointerSession({ renderState = true } = {}) {
   if (wasZooming) state.suppressContextMenu = false;
   canvas.parentElement.classList.remove("panning", "selecting");
   releaseCanvasPointer();
+  if (rolledBackDrag && state.hoverPointerActive) updateCanvasHover(state.mouseWorld, state.mouseScreen);
   if (renderState) render();
 }
 
@@ -1286,6 +1288,11 @@ function restoreDrag() {
     const wire = project.root.wires.find((candidate) => candidate.id === wireId);
     if (wire) wire.points = clone(points);
   }
+  // Dragging mutates positions without changing the project revision. The
+  // renderer caches geometry by revision, so a rollback must invalidate that
+  // cache before the next non-drag render/hit-test can use the committed
+  // position again.
+  renderer.invalidateGeometry?.();
 }
 
 function applyDrag(world, event) {
@@ -1943,7 +1950,7 @@ function renderSimulationControls() {
     bakeButton.disabled = ready;
     bakeButton.classList.toggle("active", baking);
     if (bakeButton.dataset.visualState !== bakeVisualState) {
-      bakeButton.innerHTML = `${icon(baking ? "square" : "layers-2")}<span id="bake-sim-label">${baking ? "STOP" : ready ? "BAKED" : "BAKE"}</span>`;
+      bakeButton.innerHTML = `${icon(baking ? "square" : "layers-2")}<span id="bake-sim-label">${baking ? "STOP" : ready ? "BAKED" : "RECORD"}</span>`;
       bakeButton.dataset.visualState = bakeVisualState;
       refreshIcons();
     }
@@ -1954,7 +1961,7 @@ function renderSimulationControls() {
       ? "Stop recording and keep the current bake"
       : ready
         ? `Recorded bake complete${state.bake.reason ? ` (${state.bake.reason})` : ""}`
-        : "Start recording a simulation bake");
+        : "Start recording the simulation");
     bakeButton.title = ready
       ? `Bake is complete${state.bake.reason ? ` (${state.bake.reason})` : ""}; clear or change the flow before baking again`
       : baking
@@ -1986,7 +1993,6 @@ function renderCanvasFrame({ simulation = false, coordinates = true } = {}) {
   canvas.parentElement.classList.toggle("causal-preview", Boolean(state.preview));
   const visibleSimulator = state.preview?.simulator ?? simulator;
   performanceDiagnostics.measure("renderer.draw", () => renderer.draw(project, visibleSimulator, state));
-  hoverTooltipLayer.move(state.mouseScreen);
   updateCanvasInspectButton();
   if (coordinates) {
     $("#zoom-readout").textContent = formatZoomReadout(renderer.camera.zoom);
@@ -2234,16 +2240,15 @@ function updateCanvasHover(world, screen = state.mouseScreen) {
     state.hoverTooltip = { kind: "chip", id: String(hit.value.id), name: String(hit.value.label || description?.name || hit.value.name || "CHIP") };
   } else state.hoverTooltip = null;
   hoverTooltipLayer.setName(state.hoverTooltip?.name, screen);
-  hoverTooltipLayer.move(screen);
   return !sameHoverTarget(previousHover, state.hover) || !sameHoverTooltip(previousTooltip, state.hoverTooltip);
 }
 
 function requestCanvasHover(world, screen) {
   state.hoverPointerActive = true;
   state.mouseScreen = { ...screen };
-  // Keep the visible label on the direct pointer path. The name resolution
-  // below is intentionally coalesced because X-ray hit testing can traverse
-  // many nested descriptions.
+  // Hide immediately on raw movement. Name resolution remains coalesced
+  // because X-ray hit testing can traverse many nested descriptions; once it
+  // settles, the tooltip controller waits 500 ms before revealing the name.
   hoverTooltipLayer.move(screen);
   pendingHoverResolution = { world: { ...world }, screen: { ...screen } };
   if (hoverResolveFrame !== null) return;
@@ -2262,7 +2267,6 @@ function handlePointerDown(event) {
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
   state.mouseScreen = { ...screen };
   state.hoverPointerActive = true;
-  hoverTooltipLayer.move(screen);
   if (isCanvasInteractionBlocked()) {
     event.preventDefault();
     closeBottomMenu();
@@ -2421,7 +2425,6 @@ function handlePointerMove(event) {
   if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag) renderer.invalidateGeometry?.();
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
   state.mouseScreen = { ...screen };
-  hoverTooltipLayer.move(screen);
   const session = state.pointerSession;
   if (session && !session.moved && hasPointerMoved(session, screen)) {
     session.moved = true;
@@ -2515,7 +2518,6 @@ function handlePointerUp(event) {
   const world = renderer.toWorld(screen.x, screen.y);
   state.mouseWorld = world;
   state.mouseScreen = { ...screen };
-  hoverTooltipLayer.move(screen);
   const finishPointer = () => releaseCanvasPointer(event.pointerId);
   if (state.zoomDrag) { state.zoomDrag = null; finishPointer(); return; }
   if (state.pan) { state.pan = null; canvas.parentElement.classList.remove("panning"); finishPointer(); return; }
@@ -2612,8 +2614,10 @@ function handlePointerUp(event) {
     return;
   }
   if (state.drag) {
+    let rolledBack = false;
     if (state.drag.invalid) {
       restoreDrag();
+      rolledBack = true;
       setStatus("Move cancelled: an element overlaps another element.");
       notify("Move cancelled: overlap.", true);
     } else if (state.drag.moved) {
@@ -2622,6 +2626,10 @@ function handlePointerUp(event) {
       touch("Elements moved.");
     }
     state.drag = null;
+    // The pointer is still over the rejected drop location. Resolve hover
+    // against the restored geometry so the node is not left looking/clicking
+    // as if it still lived at the blocked position.
+    if (rolledBack) updateCanvasHover(world, screen);
     finishPointer();
     render();
     return;
@@ -2764,10 +2772,6 @@ libraryController = createLibraryController({
 });
 libraryController.bind();
 $("#save-chip").addEventListener("click", createCustomChip);
-$("#new-project").addEventListener("click", resetProject);
-$("#save-project").addEventListener("click", saveCurrentProject);
-$("#export-project").addEventListener("click", () => { downloadProject(project); notify("Project JSON exported."); });
-$("#import-project").addEventListener("click", () => $("#import-file").click());
 $("#import-file").addEventListener("change", async (event) => {
   const file = event.target.files?.[0]; if (!file) return;
   if (!confirmDiscardChanges("Import this project?")) { event.target.value = ""; return; }

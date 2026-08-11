@@ -140,8 +140,10 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   assert.match(renderer, /const XRAY_RECURSION_DEPTH = Number\.POSITIVE_INFINITY/);
   assert.match(renderer, /XRAY_MAX_INSTANCES/);
   assert.match(renderer, /drawXrayComposite/);
-  assert.match(renderer, /drawXrayInterfaceNode/);
-  assert.match(renderer, /description\.kind === "input" \|\| description\.kind === "output"/);
+  assert.match(renderer, /isXrayInterfaceDescription/);
+  assert.match(renderer, /drawXrayInterfaceBridges/);
+  assert.doesNotMatch(renderer, /drawXrayInterfaceBridgeStubs/);
+  assert.doesNotMatch(renderer, /drawXrayInterfaceNodeWire/);
   assert.match(renderer, /path\.includes\(identity\)/);
 });
 
@@ -244,6 +246,42 @@ test("project menu keeps persistence actions in the library boundary", async () 
   assert.equal(main.includes("readProjectFiles"), false);
   assert.equal(storage.includes("readProjectFiles"), false);
   assert.equal(importer.includes("readProjectFiles"), false);
+});
+
+test("active shell does not retain removed legacy command surfaces", async () => {
+  const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const styles = await readFile(path.join(process.cwd(), "src", "styles.css"), "utf8");
+  const bake = await readFile(path.join(process.cwd(), "src", "simulation-timeline.js"), "utf8");
+
+  for (const id of ["new-project", "save-project", "export-project", "import-project"]) {
+    assert.equal(html.includes(`id="${id}"`), false);
+    assert.equal(main.includes(`#${id}`), false);
+  }
+  assert.match(html, /id="import-file"/);
+  assert.doesNotMatch(styles, /\.topbar|\.brand|\.top-actions/);
+  assert.doesNotMatch(styles, /bottom-inspector/);
+  assert.doesNotMatch(bake, /SimulationTimeline|SIMULATION_TIMELINE_VERSION/);
+});
+
+test("canceled chip drags invalidate geometry and refresh rejected-drop hover state", async () => {
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const restoreStart = main.indexOf("function restoreDrag()");
+  const restoreEnd = main.indexOf("\n}\n\nfunction applyDrag", restoreStart);
+  const restoreBody = main.slice(restoreStart, restoreEnd);
+
+  assert.ok(restoreStart >= 0 && restoreEnd > restoreStart);
+  assert.match(restoreBody, /renderer\.invalidateGeometry\?\.\(\)/);
+  assert.match(main, /if \(rolledBack\) updateCanvasHover\(world, screen\);/);
+});
+
+test("primary simulation control uses recording language", async () => {
+  const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+
+  assert.match(html, /id="bake-sim-label">RECORD<\/span>/);
+  assert.match(html, /<kbd>RECORD \/ STOP<\/kbd>/);
+  assert.match(main, /ready \? "BAKED" : "RECORD"/);
 });
 
 test("json repository cleans runtime fields and round-trips projects and chips", async (t) => {

@@ -1,7 +1,6 @@
 import { SimulationTrace } from "./simulation-trace.js";
 
 export const SIMULATION_BAKE_VERSION = 1;
-export const SIMULATION_TIMELINE_VERSION = SIMULATION_BAKE_VERSION;
 export const DEFAULT_BAKE_MAX_BYTES = 32 * 1024 * 1024;
 export const DEFAULT_BAKE_MAX_INTERACTIONS = 256;
 
@@ -308,7 +307,3 @@ export class SimulationBake {
     return this.estimatedBytes;
   }
 }
-
-// Kept as a compatibility name for the existing timeline tests and any small
-// integrations. New simulation code should use SimulationBake directly.
-export class SimulationTimeline extends SimulationBake {}

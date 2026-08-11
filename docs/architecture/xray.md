@@ -39,12 +39,19 @@ The per-level budgets keep large descriptions readable, while the cycle guard pr
 
 ## Rendering flow
 
-1. Draw the normal chip body and its normal pins.
-2. If X-ray is active and the description is composite, clip an inset frame inside that body.
-3. Map the description's reusable fit into the inset.
-4. Draw internal wires, child bodies, and small internal pin markers.
-5. Recurse through every finite level while the cycle guard and per-level budgets allow.
-6. Restore the normal canvas context and draw the ordinary chip caption/selection treatment.
+1. If X-ray is active and the description is composite, draw one low-opacity,
+   color-tinted composite shell with a single boundary stroke. Its normal
+   top-left caption and pins remain the visible identity of the group.
+2. Clip an inset region inside that shell and map the description's reusable
+   fit into it. The inset is a clipping boundary only; it is not another
+   visible box or dark wrapper.
+3. Draw internal wires, child bodies, and small internal pin markers. Bound
+   `IN`/`OUT` interface instances are hidden as proxy bodies and labels. The
+   public group port is bridged directly to the real internal interface-pin
+   coordinate, so the signal remains one continuous path without an extra
+   interface-node tail.
+4. Recurse through every finite level while the cycle guard and per-level budgets allow.
+5. Restore the normal canvas context and draw the ordinary caption/selection treatment.
 
 Because the projection is rendered from the same normalized description and geometry helpers as ordinary placement, it does not introduce a parallel data model or interaction handler family.
 

@@ -21,25 +21,17 @@ body { min-width: 1100px; background: var(--bg); overflow: hidden; }
 button, input { font: inherit; }
 button { color: inherit; }
 
-.topbar { height: 64px; display: flex; align-items: center; gap: 26px; padding: 0 18px; border-bottom: 1px solid var(--line); background: #111112; }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 220px; }
-.brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #6f6f74; color: var(--ui-accent); font: 700 11px/1 "JetBrains Mono", monospace; letter-spacing: -1px; background: #242426; }
-.brand strong { display: block; font-size: 14px; letter-spacing: .01em; }
-.brand-subtitle { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .13em; }
 .project-title { display: flex; flex: 1; flex-direction: column; gap: 3px; max-width: 360px; }
 .project-name-row { display: flex; align-items: center; gap: 8px; }
 .save-state { color: var(--ui-subtle); font: 9px "JetBrains Mono", monospace; letter-spacing: .08em; }
 .save-state.dirty { color: #ffd18f; }
 .project-title input { width: 100%; border: 0; outline: 0; padding: 0; color: var(--text); background: transparent; font-weight: 600; }
 .eyebrow { color: var(--ui-subtle); font-size: 9px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
-.top-actions { display: flex; gap: 7px; }
-.button, .tool-button, .icon-button { border: 1px solid var(--line); background: var(--ui-control); cursor: pointer; transition: .16s ease; }
-.button { border-radius: 4px; padding: 7px 12px; font-size: 11px; }
+.tool-button, .icon-button { border: 1px solid var(--line); background: var(--ui-control); cursor: pointer; transition: .16s ease; }
 .button-with-icon { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .icon-glyph { display: block; width: 14px; height: 14px; flex: 0 0 auto; margin: 0; stroke-width: 1.8; vertical-align: middle; }
 .action-label { display: inline-flex; min-width: 0; align-items: center; gap: 7px; }
-.button:hover, .tool-button:hover, .icon-button:hover { background: var(--ui-control-hover); }
-.button.subtle { color: var(--ui-muted); }
+.tool-button:hover, .icon-button:hover { background: var(--ui-control-hover); }
 
 .workspace { height: calc(100vh - 64px); display: grid; grid-template-columns: 235px minmax(560px, 1fr) 245px; }
 .panel { background: var(--panel); border-right: 1px solid var(--line); overflow: hidden; }
@@ -137,8 +129,11 @@ h2 { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
   text-overflow: ellipsis;
   pointer-events: none;
   contain: layout paint;
-  will-change: transform;
+  opacity: 0;
+  transition: opacity .12s ease;
+  will-change: opacity;
 }
+.canvas-hover-tooltip.visible { opacity: 1; }
 .canvas-wrap.selecting #world { cursor: default; }
 .canvas-wrap.panning #world { cursor: grabbing; }
 .hidden { display: none !important; }
@@ -293,8 +288,6 @@ h2 { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
    strip and command surface anchored to the bottom edge. */
 body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; background: #242629; }
 #app { position: relative; min-height: 100vh; background: #242629; }
-.topbar { position: fixed; top: 9px; left: 50%; z-index: 5; width: min(420px, calc(100vw - 32px)); height: 34px; padding: 0 8px; border: 0; background: rgb(0 0 0 / 48%); box-shadow: 0 3px 10px rgb(0 0 0 / 16%); transform: translateX(-50%); pointer-events: none; }
-.brand, .top-actions { display: none; }
 .project-title { width: 100%; max-width: none; align-items: center; pointer-events: auto; }
 .project-title .eyebrow { display: none; }
 .project-name-row { width: 100%; justify-content: center; }
@@ -306,7 +299,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 .canvas-toolbar { position: absolute; top: 48px; left: 12px; z-index: 3; min-height: 0; padding: 0; border: 0; background: transparent; opacity: .72; }
 .canvas-toolbar:hover { opacity: 1; }
 .tool-button, .bake-button { border-color: #5a5a5d; border-radius: 2px; background: #2d2d30; font-family: inherit; }
-.tool-button:hover, .button:hover, .icon-button:hover { background: var(--ui-control-hover); }
+.tool-button:hover, .icon-button:hover { background: var(--ui-control-hover); }
 .tool-button.active { color: var(--ui-accent-strong); background: var(--ui-control-active); }
 .bake-button { border-color: var(--sim-run-border); border-radius: 2px; background: var(--sim-run-surface); }
 .bake-button.active { background: var(--sim-pause-surface); }
@@ -342,7 +335,7 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 .bottom-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 15; display: flex; align-items: center; gap: 6px; height: 54px; padding: 7px 9px; border-top: 0; background: #1d1d1f; box-shadow: none; }
 .bottom-menu-button, .bottom-action { flex: 0 0 auto; height: 38px; padding: 0 12px; border: 1px solid var(--ui-control-border); border-radius: 2px; color: var(--ui-text); background: var(--ui-control); cursor: pointer; font-size: 11px; }
 .bottom-menu-button:hover, .bottom-action:hover { background: var(--ui-control-hover); }
-.bottom-menu-button.active, #app.library-open #bottom-library, #app.inspector-open #bottom-inspector { color: var(--ui-accent-strong); background: var(--ui-control-active); }
+.bottom-menu-button.active, #app.library-open #bottom-library { color: var(--ui-accent-strong); background: var(--ui-control-active); }
 .bottom-action { height: 30px; padding: 0 8px; border-color: var(--ui-line); color: var(--ui-muted); background: var(--ui-control); font-size: 10px; }
 .bottom-action.hidden { display: none; }
 .collection-tabs { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
@@ -427,7 +420,6 @@ body { min-width: 0; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, m
 body, #app, .canvas-panel, .canvas-wrap { background: var(--world); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 
-.topbar { display: none; }
 .project-title input { font-size: 11px; font-weight: 500; }
 .save-state {
   display: inline-flex;

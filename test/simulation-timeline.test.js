@@ -1,40 +1,40 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SimulationBake, SimulationTimeline, createTimelineFrame } from "../src/simulation-timeline.js";
+import { SimulationBake, createTimelineFrame } from "../src/simulation-timeline.js";
 
 function frame(step, signature) {
   return createTimelineFrame({ step, signature, snapshot: { step, signature } });
 }
 
 test("timeline keeps a meaningful checkpoint rail and an exact execution head", () => {
-  const timeline = new SimulationTimeline({ maxFrames: 8 });
-  timeline.reset(frame(0, "LOW"));
-  timeline.record(frame(1, "LOW"), { visible: false });
-  timeline.record(frame(2, "LOW"), { visible: false });
+  const bake = new SimulationBake({ maxFrames: 8 });
+  bake.reset(frame(0, "LOW"));
+  bake.record(frame(1, "LOW"), { visible: false });
+  bake.record(frame(2, "LOW"), { visible: false });
 
-  assert.equal(timeline.length, 1);
-  assert.equal(timeline.currentIndex, 0);
-  assert.equal(timeline.executionFrame.step, 2);
+  assert.equal(bake.length, 1);
+  assert.equal(bake.currentIndex, 0);
+  assert.equal(bake.executionFrame.step, 2);
 
-  timeline.record(frame(3, "HIGH"));
-  assert.equal(timeline.length, 2);
-  assert.equal(timeline.latestCheckpoint.step, 3);
-  assert.equal(timeline.latestCheckpoint.signature, "HIGH");
+  bake.record(frame(3, "HIGH"));
+  assert.equal(bake.length, 2);
+  assert.equal(bake.latestCheckpoint.step, 3);
+  assert.equal(bake.latestCheckpoint.signature, "HIGH");
 });
 
 test("timeline branches cleanly after scrubbing back", () => {
-  const timeline = new SimulationTimeline({ maxFrames: 8 });
-  timeline.reset(frame(0, "A"));
-  timeline.record(frame(1, "B"));
-  timeline.record(frame(2, "C"));
-  timeline.setCursor(1);
-  timeline.record(frame(5, "D"));
+  const bake = new SimulationBake({ maxFrames: 8 });
+  bake.reset(frame(0, "A"));
+  bake.record(frame(1, "B"));
+  bake.record(frame(2, "C"));
+  bake.setCursor(1);
+  bake.record(frame(5, "D"));
 
-  assert.equal(timeline.length, 3);
-  assert.equal(timeline.frameAt(0).step, 0);
-  assert.equal(timeline.frameAt(1).step, 1);
-  assert.equal(timeline.frameAt(2).step, 5);
-  assert.equal(timeline.latestCheckpoint.signature, "D");
+  assert.equal(bake.length, 3);
+  assert.equal(bake.frameAt(0).step, 0);
+  assert.equal(bake.frameAt(1).step, 1);
+  assert.equal(bake.frameAt(2).step, 5);
+  assert.equal(bake.latestCheckpoint.signature, "D");
 });
 
 test("bake owns recording, stability detection, and finalization", () => {

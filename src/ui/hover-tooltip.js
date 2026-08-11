@@ -2,6 +2,7 @@ const TOOLTIP_OFFSET = 12;
 const VIEWPORT_MARGIN = 8;
 const FALLBACK_WIDTH = 96;
 const FALLBACK_HEIGHT = 24;
+const HOVER_REVEAL_DELAY = 500;
 
 function clamp(value, minimum, maximum) {
   return Math.max(minimum, Math.min(maximum, value));
@@ -29,14 +30,28 @@ export function hoverTooltipPosition({
   };
 }
 
-// The tooltip is deliberately a separate layer from the world canvas. Its
-// content changes at hover-resolution cadence, but its transform can follow
-// every pointer event without asking the renderer to redraw the circuit.
-export function createHoverTooltipController({ element, container } = {}) {
+// The tooltip is deliberately a separate layer from the world canvas. It is
+// a stationary-hover affordance, not a cursor follower: raw movement hides
+// it immediately, and a resolved target is revealed only after the pointer
+// has stayed still for a short settling period.
+export function createHoverTooltipController({ element, container, revealDelay = HOVER_REVEAL_DELAY } = {}) {
   let name = "";
   let lastCursor = null;
   let metrics = null;
   let lastTransform = "";
+  let revealTimer = null;
+  let visible = false;
+
+  const clearRevealTimer = () => {
+    if (revealTimer !== null) clearTimeout(revealTimer);
+    revealTimer = null;
+  };
+
+  const hideVisual = () => {
+    visible = false;
+    element?.classList.remove("visible");
+    element?.setAttribute?.("aria-hidden", "true");
+  };
 
   const measure = () => {
     if (!element || !container) return;
@@ -49,11 +64,10 @@ export function createHoverTooltipController({ element, container } = {}) {
     };
   };
 
-  const move = (cursor) => {
+  const applyPosition = (cursor) => {
     if (!element || !container || !name || !cursor) return false;
-    lastCursor = { x: Number(cursor.x) || 0, y: Number(cursor.y) || 0 };
     if (!metrics) measure();
-    const position = hoverTooltipPosition({ ...metrics, cursor: lastCursor });
+    const position = hoverTooltipPosition({ ...metrics, cursor });
     const transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
     if (transform === lastTransform) return false;
     element.style.transform = transform;
@@ -61,34 +75,71 @@ export function createHoverTooltipController({ element, container } = {}) {
     return true;
   };
 
-  const setName = (nextName, cursor = lastCursor) => {
-    const normalized = String(nextName || "").trim();
-    if (normalized === name) {
-      if (normalized) move(cursor);
-      return false;
-    }
-    name = normalized;
+  const reveal = () => {
+    revealTimer = null;
+    if (!element || !container || !name || !lastCursor) return;
+    element.classList.remove("hidden");
+    metrics = null;
+    measure();
+    lastTransform = "";
+    applyPosition(lastCursor);
+    element.classList.add("visible");
+    element.setAttribute?.("aria-hidden", "false");
+    visible = true;
+  };
+
+  const scheduleReveal = () => {
+    clearRevealTimer();
+    if (!name || !lastCursor) return;
+    const delay = Math.max(0, Number(revealDelay) || 0);
+    revealTimer = setTimeout(reveal, delay);
+  };
+
+  const move = (cursor) => {
+    if (!cursor) return false;
+    const nextCursor = { x: Number(cursor.x) || 0, y: Number(cursor.y) || 0 };
+    const changed = !lastCursor || nextCursor.x !== lastCursor.x || nextCursor.y !== lastCursor.y;
+    lastCursor = nextCursor;
+    if (!changed) return false;
+    clearRevealTimer();
+    hideVisual();
     lastTransform = "";
     metrics = null;
-    if (!name) {
-      element?.classList.add("hidden");
-      return true;
-    }
-    element.textContent = name;
-    element.classList.remove("hidden");
-    measure();
-    move(cursor);
     return true;
   };
 
-  const hide = () => setName("");
+  const setName = (nextName, cursor = lastCursor) => {
+    const normalized = String(nextName || "").trim();
+    if (cursor) lastCursor = { x: Number(cursor.x) || 0, y: Number(cursor.y) || 0 };
+    if (normalized === name) {
+      if (normalized && !visible && revealTimer === null) scheduleReveal();
+      return false;
+    }
+    clearRevealTimer();
+    name = normalized;
+    hideVisual();
+    lastTransform = "";
+    metrics = null;
+    if (!name) return true;
+    element.textContent = name;
+    element.classList.remove("hidden");
+    scheduleReveal();
+    return true;
+  };
+
+  const hide = () => {
+    clearRevealTimer();
+    name = "";
+    hideVisual();
+  };
 
   const refresh = (cursor = lastCursor) => {
-    if (!element || !name) return false;
+    if (!element || !name || !visible || !cursor) return false;
+    lastCursor = { x: Number(cursor.x) || 0, y: Number(cursor.y) || 0 };
     metrics = null;
     measure();
     lastTransform = "";
-    return move(cursor);
+    return applyPosition(lastCursor);
   };
 
   return {

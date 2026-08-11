@@ -12,6 +12,8 @@ behavior:
   internals.
 - [`performance.md`](performance.md) records the browser performance plan and
   implementation waves.
+- [`legacy-audit.md`](legacy-audit.md) separates removable dead paths from
+  compatibility code that still needs a deliberate migration decision.
 - [`interaction/`](interaction/) contains the interaction audit and its
   evidence reports.
 

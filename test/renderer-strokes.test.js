@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry, xrayWireAlpha } from "../src/renderer.js";
-import { BUILTINS, TYPE } from "../src/model.js";
+import { BUILTINS, TYPE, createProject, instanceFor } from "../src/model.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
   assert.equal(canvasStroke(1, 1), 2);
@@ -16,12 +16,107 @@ test("wire strokes preserve their reduced world width and floor when zoomed out"
   assert.equal(wireStroke(2, .25), 4);
 });
 
+test("geometry rollback refreshes restored chip and wire hit targets", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.geometryCaches = new Map();
+  renderer.geometryCache = null;
+  renderer.geometryCacheHits = 0;
+  renderer.geometryCacheMisses = 0;
+  renderer.camera = { zoom: 1 };
+
+  const project = createProject("rollback");
+  const input = instanceFor(TYPE.IN_1, { x: -80, y: 0 });
+  const output = instanceFor(TYPE.OUT_1, { x: 80, y: 0 });
+  project.root.instances.push(input, output);
+  project.root.wires.push({
+    id: "rollback-wire",
+    source: { owner: input.id, pin: "0" },
+    target: { owner: output.id, pin: "0" },
+    points: []
+  });
+
+  const committed = renderer.geometryFor(project);
+  const committedInputBox = committed.instances.find(({ instance }) => instance.id === input.id).box;
+  const committedWirePoints = committed.wireById.get("rollback-wire").points;
+
+  input.position = { x: 160, y: 0 };
+  assert.equal(renderer.geometryFor(project), committed, "same-revision geometry demonstrates the stale-drop cache");
+
+  input.position = { x: -80, y: 0 };
+  renderer.invalidateGeometry();
+  const restored = renderer.geometryFor(project);
+  const restoredInputBox = restored.instances.find(({ instance }) => instance.id === input.id).box;
+  const restoredWirePoints = restored.wireById.get("rollback-wire").points;
+
+  assert.deepEqual(restoredInputBox, committedInputBox);
+  assert.deepEqual(restoredWirePoints, committedWirePoints);
+  assert.equal(renderer.findInstance(project, { x: input.position.x, y: input.position.y }), input);
+  assert.equal(renderer.findInstance(project, { x: 160, y: 0 }), null);
+});
+
 test("xray continuation wires share one signal opacity contract", () => {
-  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 1), .96);
-  assert.equal(xrayWireAlpha({ bits: 0, tri: 0 }, 1), .74);
-  assert.equal(xrayWireAlpha({ bits: 0, tri: 1 }, 1), .48);
-  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, .66), .6336);
-  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 2), .96);
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 1), .88);
+  assert.equal(xrayWireAlpha({ bits: 0, tri: 0 }, 1), .88);
+  assert.equal(xrayWireAlpha({ bits: 0, tri: 1 }, 1), .88);
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, .66), .5808);
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 2), .88);
+});
+
+test("xray bridges inherit a driven wire colour when one endpoint snapshot is floating", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.camera = { zoom: 1 };
+  const calls = [];
+  const ctx = {
+    globalAlpha: 1,
+    strokeStyle: "",
+    lineWidth: 0,
+    save() {},
+    restore() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    stroke() { calls.push({ colour: this.strokeStyle, alpha: this.globalAlpha, width: this.lineWidth }); }
+  };
+  const simulator = {
+    snapshotForScope: () => ({ endpoints: {
+      "interface-output:0": { bits: 0, tri: 1 },
+      "root:out": { bits: 1, tri: 0 }
+    } }),
+    stateFor: () => ({ bits: 0, tri: 1 })
+  };
+  renderer.drawXrayInterfaceBridges(ctx, [{
+    binding: { instanceId: "interface-output", pinId: "0", publicId: "out" },
+    signalEndpoint: { owner: "interface-output", pin: "0" },
+    publicPoint: { x: 0, y: 0 },
+    internalPoint: { x: 20, y: 0 }
+  }], simulator);
+
+  assert.deepEqual(calls, [{ colour: "#7df2a8", alpha: .88, width: wireStroke(2.4, 1) }]);
+});
+
+test("xray bridge draws one mapped segment from the group pin to the internal pin", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.camera = { zoom: 1 };
+  const points = [];
+  const ctx = {
+    globalAlpha: 1,
+    strokeStyle: "",
+    save() {},
+    restore() {},
+    beginPath() {},
+    moveTo(x, y) { points.push({ x, y }); },
+    lineTo(x, y) { points.push({ x, y }); },
+    stroke() {}
+  };
+
+  renderer.drawXrayInterfaceBridges(ctx, [{
+    binding: { instanceId: "interface-in", pinId: "0", publicId: "in" },
+    publicPoint: { x: -20, y: 0 },
+    outerPoint: { x: -100, y: 0 },
+    internalPoint: { x: 40, y: 20 }
+  }], { stateFor: () => ({ bits: 0, tri: 1 }) }, [], 1, { scale: .5, translate: { x: -10, y: 5 } });
+
+  assert.deepEqual(points, [{ x: -100, y: 0 }, { x: 10, y: 15 }]);
 });
 
 test("minor grid lines disappear once their screen spacing becomes cramped", () => {
@@ -63,9 +158,7 @@ test("xray bridges composite public ports into their movable interface nodes", (
   assert.ok(inputBridge);
   assert.ok(outputBridge);
   assert.equal(inputBridge.outerPoint.x, -200);
-  assert.equal(inputBridge.framePoint.x, -100);
   assert.ok(inputBridge.internalPoint.x > inputBridge.publicPoint.x);
-  assert.ok(outputBridge.framePoint.x < outputBridge.outerPoint.x);
   assert.ok(outputBridge.internalPoint.x < outputBridge.publicPoint.x);
   assert.deepEqual(outputBridge.signalEndpoint, { owner: "driver", pin: "2" });
   assert.equal(inputBridge.scale, .5);
@@ -154,7 +247,7 @@ test("xray hover resolves the deepest visible chip name", () => {
   }
 });
 
-test("xray interface tails stay in the wire layer before child bodies", () => {
+test("xray keeps one direct bridge in the wire layer before child bodies", () => {
   const renderer = Object.create(WorldRenderer.prototype);
   renderer.camera = { zoom: 1 };
   renderer.lastState = { preview: false };
@@ -167,10 +260,8 @@ test("xray interface tails stay in the wire layer before child bodies", () => {
     }],
     wires: []
   });
-  renderer.drawXrayInterfaceBridgeStubs = () => order.push("stubs");
   renderer.drawXrayWires = () => order.push("wires");
   renderer.drawXrayInterfaceBridges = () => order.push("bridges");
-  renderer.drawXrayInterfaceNodeWire = () => order.push("interface-wire");
   renderer.drawXrayInstance = () => order.push("instance");
   renderer.drawXrayRootPins = () => order.push("root-pins");
   const ctx = {
@@ -188,5 +279,5 @@ test("xray interface tails stay in the wire layer before child bodies", () => {
   };
 
   renderer.drawXrayComposite(ctx, { root: description, customChips: {} }, description, null, 1, ["outer"], []);
-  assert.deepEqual(order, ["stubs", "wires", "bridges", "interface-wire", "instance"]);
+  assert.deepEqual(order, ["bridges", "wires"]);
 });

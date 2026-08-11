@@ -131,7 +131,7 @@ Signal states are two bitmasks: bits for values and tri for driven/disconnected 
 
 For a custom runtime, the parent still supplies a map keyed by public input IDs and receives a map keyed by public output IDs. The runtime resolves those IDs through `interfaceBindings`: input values are injected into the bound `IN-*` instance outputs before settling the child network, and bound `OUT-*` instance inputs are projected back into the public output map afterward. This keeps nested composite flow compatible with the existing bake and scrub snapshots.
 
-SimulationBake accepts frames shaped as { version, step, snapshot, signature, cause, source, visible, traceStart, traceEnd, estimatedBytes } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and step-field restoration. Each bake also owns a bounded semantic interaction list and a bounded SimulationTrace of official engine ticks. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. Frame count, snapshot byte budgets, interaction caps, and trace caps preserve browser responsiveness. SimulationTimeline remains as a compatibility export for older tests/integrations.
+SimulationBake accepts frames shaped as { version, step, snapshot, signature, cause, source, visible, traceStart, traceEnd, estimatedBytes } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and step-field restoration. Each bake also owns a bounded semantic interaction list and a bounded SimulationTrace of official engine ticks. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. Frame count, snapshot byte budgets, interaction caps, and trace caps preserve browser responsiveness.
 
 ### Renderer interface
 
@@ -317,7 +317,7 @@ WorldRenderer handles camera math, grid, wires, pins, chip bodies, special displ
 
 #### 6. styles.css contains layered overrides
 
-The file begins with a general application layout and later applies a reference-style shell that overrides many of the earlier rules. This is effective during iteration but makes the final value of a rule depend on location. It also leaves legacy selectors such as the hidden topbar concepts near the active shell.
+The file still contains an initial application layer followed by a reference-style shell and later refinement rules. This is effective during iteration but makes the final value of a rule depend on location. The hidden topbar and its duplicate command controls were removed; the remaining cascade is a maintainability concern rather than a second active shell.
 
 #### 7. Runtime and editor revisions are coupled
 

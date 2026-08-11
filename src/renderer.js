@@ -74,13 +74,15 @@ function signalColour(signal, { high = "#7df2a8", low = "#7b858f", floating = "#
 }
 
 // X-ray wires are still wires: their opacity is a signal-state treatment,
-// not a special treatment for the virtual boundary bridge. Keeping this in
-// one place prevents the bridge, its interface-node continuation, and normal
-// X-ray wires from becoming subtly different layers over time.
+// not a special treatment for the virtual composite boundary. Keeping this in
+// one place prevents bridges and nested wires from becoming subtly different
+// layers over time.
 export function xrayWireAlpha(signal, previewAlpha = 1) {
   const preview = Number.isFinite(Number(previewAlpha)) ? Math.max(0, Math.min(1, Number(previewAlpha))) : 1;
-  const signalAlpha = signal?.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48;
-  return signalAlpha * preview;
+  // Match the ordinary canvas wire opacity. Signal state is communicated by
+  // the standard high/low/floating colours; LOW and floating wires should not
+  // look like a separate, weaker nested layer.
+  return .88 * preview;
 }
 
 function snapshotEndpointState(simulator, endpoint, scopePath = []) {
@@ -104,14 +106,17 @@ function xrayBridgeSignal(simulator, bridge, scopePath = []) {
   if (!simulator || !bridge?.binding) return disconnected();
   const internalEndpoint = bridge.signalEndpoint ?? { owner: bridge.binding.instanceId, pin: bridge.binding.pinId };
   const publicEndpoint = { owner: "root", pin: bridge.binding.publicId };
-  // Prefer the movable interface endpoint. It is the actual endpoint of the
-  // continuation line and avoids a one-frame opacity discontinuity when a
-  // composite output has not yet copied its internal value to its public view.
-  return snapshotEndpointState(simulator, internalEndpoint, scopePath)
-    ?? snapshotEndpointState(simulator, publicEndpoint, scopePath)
-    ?? simulator.stateFor(internalEndpoint, scopePath)
-    ?? simulator.stateFor(publicEndpoint, scopePath)
-    ?? disconnected();
+  // The bridge represents one connection, so a present-but-floating snapshot
+  // on one side must not hide a driven value on the other side. Prefer any
+  // driven candidate first; only render the darker floating-wire treatment
+  // when every available view of the connection is actually floating.
+  const candidates = [
+    snapshotEndpointState(simulator, internalEndpoint, scopePath),
+    snapshotEndpointState(simulator, publicEndpoint, scopePath),
+    simulator.stateFor(internalEndpoint, scopePath),
+    simulator.stateFor(publicEndpoint, scopePath)
+  ].filter(Boolean);
+  return candidates.find((value) => value.tri === 0) ?? candidates[0] ?? disconnected();
 }
 
 // The canvas is drawn in world coordinates. Keep the authored width in that
@@ -288,6 +293,10 @@ function chipHoverName(instance, description) {
   return String(instance?.label || description?.name || instance?.name || "CHIP").trim() || "CHIP";
 }
 
+function isXrayInterfaceDescription(description) {
+  return description?.kind === "input" || description?.kind === "output";
+}
+
 // A composite's public port and its movable interface node are two views of
 // the same connection. X-ray needs the coordinates on both sides of that
 // boundary so the signal can be drawn as one continuous path.
@@ -302,15 +311,12 @@ export function xrayInterfaceBridgeGeometry(project, description, binding, scale
   };
   const internalPoint = instancePinPosition({ ...project, root: description }, interfaceInstance, binding.pinId);
   const outerPoint = reusablePoint(description, publicPoint);
-  const innerPoint = reusablePoint(description, internalPoint);
   const safeScale = Number.isFinite(Number(scale)) && Number(scale) > 0 ? Number(scale) : 1;
   return {
     binding,
     publicPoint,
     internalPoint,
     outerPoint,
-    framePoint: { x: outerPoint.x * safeScale, y: outerPoint.y * safeScale },
-    innerPoint,
     signalEndpoint: interfaceSignalEndpoint(description, interfaceInstance.id, binding.pinId),
     scale: safeScale
   };
@@ -856,7 +862,7 @@ export class WorldRenderer {
     if (editorState.preview) ctx.restore();
   }
 
-  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0, signalScope = []) {
+  drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0, signalScope = [], xrayShell = false) {
     const box = chipBoundingBox(project, instance);
     const rotation = (instance.rotation ?? 0) * Math.PI / 2;
     ctx.save();
@@ -868,6 +874,9 @@ export class WorldRenderer {
     const labelBounds = chipBoundsSize(description);
     const bodyColour = description.colour || "#202b3a";
     const bodyOutline = darken(bodyColour);
+    const compositeShell = description.kind === "custom"
+      && (description.instances?.length ?? 0) > 0
+      && (xrayDepth > 0 || xrayShell);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     if (description.kind === "input") {
@@ -896,13 +905,23 @@ export class WorldRenderer {
       ctx.fillStyle = active ? "#7df2a8" : "#687279";
       ctx.beginPath(); ctx.arc(0, 0, Math.min(w, h) * .22, 0, TAU); ctx.fill();
     } else {
-      ctx.fillStyle = bodyColour;
-       ctx.strokeStyle = invalid ? "#f47883" : selected ? "#bedcff" : hovered ? "#94c9ff" : bodyOutline;
-      ctx.lineWidth = canvasStroke(selected ? 2.2 : hovered ? 2 : 1.8, this.camera.zoom);
-      if (description.special === "logicGate") this.drawLogicGate(ctx, description.gate, w, h);
-      else {
+      if (compositeShell) {
+        // X-ray composites use one quiet, coloured shell. Their internals are
+        // clipped inside it, so an additional dark inset frame would make
+        // every nesting level look like a stack of boxes.
+        ctx.fillStyle = rgba(bodyColour, .16);
+        ctx.strokeStyle = invalid ? "#f47883" : selected ? "#bedcff" : hovered ? rgba(bodyColour, .86) : rgba(bodyColour, .58);
+        ctx.lineWidth = canvasStroke(selected ? 2.2 : hovered ? 2 : 1.4, this.camera.zoom);
         ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 5); ctx.fill(); ctx.stroke();
-        this.drawSpecialDisplay(ctx, project, instance, description, simulator, signalScope);
+      } else {
+        ctx.fillStyle = bodyColour;
+        ctx.strokeStyle = invalid ? "#f47883" : selected ? "#bedcff" : hovered ? "#94c9ff" : bodyOutline;
+        ctx.lineWidth = canvasStroke(selected ? 2.2 : hovered ? 2 : 1.8, this.camera.zoom);
+        if (description.special === "logicGate") this.drawLogicGate(ctx, description.gate, w, h);
+        else {
+          ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 5); ctx.fill(); ctx.stroke();
+          this.drawSpecialDisplay(ctx, project, instance, description, simulator, signalScope);
+        }
       }
     }
     if (xrayDepth > 0 && description.kind === "custom" && (description.instances ?? []).length) {
@@ -932,33 +951,32 @@ export class WorldRenderer {
     if (depth <= 0 || !(description.instances ?? []).length) return;
     const frameGeometry = xrayFrameGeometry(description);
     if (!frameGeometry) return;
-    const { visualSize, fit, frame, scale, translate } = frameGeometry;
+    const { frame, scale, translate } = frameGeometry;
     const scopedProject = { ...project, root: description };
     const geometry = this.geometryFor(scopedProject, { rawDescriptionPins: true });
     const bridges = interfaceBindingsFor(description).map((binding) => xrayInterfaceBridgeGeometry(project, description, binding, scale)).filter(Boolean);
     const previewAlpha = this.lastState?.preview ? .66 : 1;
-    this.drawXrayInterfaceBridgeStubs(ctx, bridges, simulator, scopePath, previewAlpha);
+    // Draw the public pin to the real hidden interface pin as one wire. The
+    // endpoint is mapped with the same transform used by the internal render,
+    // so the boundary does not introduce a visible stub/continuation seam.
+    this.drawXrayInterfaceBridges(ctx, bridges, simulator, scopePath, previewAlpha, { scale, translate });
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3);
     ctx.clip();
-    ctx.fillStyle = "rgba(6, 10, 15, .30)";
-    ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
     ctx.translate(translate.x, translate.y);
     ctx.scale(scale, scale);
     ctx.globalAlpha = .86 * previewAlpha;
     this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath, geometry);
-    this.drawXrayInterfaceBridges(ctx, bridges, simulator, scopePath, previewAlpha);
     const visibleInstances = geometry.instances.slice(0, XRAY_MAX_INSTANCES);
-    // Interface-node tails are virtual wires too. Draw them with the other
-    // wires before any child body so their z-order matches ordinary wires,
-    // even when an interface node appears after a chip in the instance list.
+    // Bound IN/OUT nodes are implementation endpoints, not additional chips
+    // to show. The bridge above already runs directly to their real pin
+    // position, so drawing their proxy body, label, or tail would split the
+    // path and duplicate the public group label.
     for (const child of visibleInstances) {
-      if (child.description?.kind === "input" || child.description?.kind === "output") {
-        this.drawXrayInterfaceNodeWire(ctx, scopedProject, child.instance, child.description, simulator, scopePath, previewAlpha);
-      }
+      if (isXrayInterfaceDescription(child.description)) continue;
+      this.drawXrayInstance(ctx, scopedProject, child.instance, simulator, depth - 1, path, scopePath, child.description);
     }
-    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child.instance, simulator, depth - 1, path, scopePath, child.description);
     const boundPorts = new Set(interfaceBindingsFor(description).map((binding) => String(binding.publicId)));
     const hasUnboundPorts = [...(description.inputPins ?? []), ...(description.outputPins ?? [])]
       .some((pin) => !boundPorts.has(String(pin.id)));
@@ -969,46 +987,30 @@ export class WorldRenderer {
     if (hasUnboundPorts) this.drawXrayRootPins(ctx, description, simulator, scopePath);
     ctx.restore();
 
-    ctx.save();
-    ctx.strokeStyle = "rgba(218, 232, 244, .24)";
-    ctx.lineWidth = worldStroke(2, this.camera.zoom);
-    ctx.beginPath(); ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3); ctx.stroke();
     if ((description.instances?.length ?? 0) > XRAY_MAX_INSTANCES) {
       ctx.fillStyle = "rgba(230, 238, 246, .72)";
       ctx.font = "600 8px JetBrains Mono, Consolas, monospace";
       ctx.textAlign = "right"; ctx.textBaseline = "bottom";
       ctx.fillText(`+${description.instances.length - XRAY_MAX_INSTANCES}`, frame.x + frame.w - 5, frame.y + frame.h - 4);
     }
-    ctx.restore();
   }
 
-  drawXrayInterfaceBridgeStubs(ctx, bridges, simulator = null, scopePath = [], previewAlpha = 1) {
+  drawXrayInterfaceBridges(ctx, bridges, simulator = null, scopePath = [], previewAlpha = 1, mapping = null) {
     if (!bridges.length) return;
     ctx.save();
-    ctx.lineCap = "butt";
+    ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const bridge of bridges) {
       const signal = xrayBridgeSignal(simulator, bridge, scopePath);
+      const start = bridge.outerPoint ?? bridge.publicPoint;
+      const end = mapping
+        ? { x: mapping.translate.x + Number(bridge.internalPoint?.x || 0) * mapping.scale, y: mapping.translate.y + Number(bridge.internalPoint?.y || 0) * mapping.scale }
+        : bridge.internalPoint;
+      if (!start || !end) continue;
       ctx.strokeStyle = signalColour(signal);
       ctx.globalAlpha = xrayWireAlpha(signal, previewAlpha);
-      ctx.lineWidth = worldStroke(2.4 * bridge.scale, this.camera.zoom);
-      traceWirePath(ctx, [bridge.outerPoint, bridge.framePoint]);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  drawXrayInterfaceBridges(ctx, bridges, simulator = null, scopePath = [], previewAlpha = 1) {
-    if (!bridges.length) return;
-    ctx.save();
-    ctx.lineCap = "butt";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = worldStroke(2.4, this.camera.zoom);
-    for (const bridge of bridges) {
-      const signal = xrayBridgeSignal(simulator, bridge, scopePath);
-      ctx.strokeStyle = signalColour(signal);
-      ctx.globalAlpha = xrayWireAlpha(signal, previewAlpha);
-      traceWirePath(ctx, [bridge.publicPoint, bridge.internalPoint]);
+      ctx.lineWidth = wireStroke(signal?.tri === 0 ? 2.4 : 1.8, this.camera.zoom);
+      traceWirePath(ctx, [start, end]);
       ctx.stroke();
     }
     ctx.restore();
@@ -1017,9 +1019,8 @@ export class WorldRenderer {
   drawXrayWires(ctx, project, description, simulator = null, scopePath = [], geometry = this.geometryFor(project)) {
     const previewAlpha = this.lastState?.preview ? .66 : 1;
     ctx.save();
-    ctx.lineCap = "butt";
+    ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = worldStroke(3.2 * CANVAS_WIRE_SCALE, this.camera.zoom);
     for (const entry of geometry.wires.slice(0, XRAY_MAX_WIRES)) {
       const wire = entry.wire;
       const points = entry.points;
@@ -1027,7 +1028,8 @@ export class WorldRenderer {
       const signal = simulator?.stateFor(wire.source, scopePath) ?? disconnected();
       ctx.strokeStyle = signalColour(signal);
       ctx.globalAlpha = xrayWireAlpha(signal, previewAlpha);
-      traceWirePath(ctx, points, { rounded: true, radius: 3 });
+      ctx.lineWidth = wireStroke(signal?.tri === 0 ? 2.4 : 1.8, this.camera.zoom);
+      traceWirePath(ctx, points, { rounded: true, radius: 4 / this.camera.zoom });
       ctx.stroke();
     }
     if ((description.wires?.length ?? 0) > XRAY_MAX_WIRES) {
@@ -1035,62 +1037,6 @@ export class WorldRenderer {
       ctx.font = "600 9px JetBrains Mono, Consolas, monospace";
       ctx.fillText(`+${description.wires.length - XRAY_MAX_WIRES} wires`, reusableFitBounds(description).x, reusableFitBounds(description).y + 12);
     }
-    ctx.restore();
-  }
-
-  drawXrayInterfaceNodeWire(ctx, project, instance, description, simulator = null, scopePath = [], previewAlpha = 1) {
-    const isInput = description.kind === "input";
-    const pin = (isInput ? description.outputPins : description.inputPins)?.[0];
-    if (!pin) return;
-    const signalEndpoint = interfaceSignalEndpoint(description, instance.id, pin.id);
-    const signal = simulator?.stateFor(signalEndpoint, scopePath) ?? disconnected();
-    const pinX = Number.isFinite(Number(pin.x)) ? Number(pin.x) : (isInput ? description.size.x / 2 : -description.size.x / 2);
-    const pinY = Number(pin.y) || 0;
-    const width = Math.min(28, Math.max(20, chipVisualSize(description).x * .42));
-    const side = isInput ? 1 : -1;
-    ctx.save();
-    ctx.translate(instance.position.x, instance.position.y);
-    ctx.rotate((instance.rotation ?? 0) * Math.PI / 2);
-    ctx.lineCap = "butt";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = signalColour(signal, { high: "#5bc783", low: "#687279", floating: "#687279" });
-    ctx.globalAlpha = xrayWireAlpha(signal, previewAlpha);
-    ctx.lineWidth = worldStroke(2.4, this.camera.zoom);
-    ctx.beginPath();
-    ctx.moveTo(side * width / 2, 0);
-    ctx.lineTo(pinX, pinY);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  drawXrayInterfaceNode(ctx, project, instance, description, simulator = null, scopePath = []) {
-    const isInput = description.kind === "input";
-    const pin = (isInput ? description.outputPins : description.inputPins)?.[0];
-    if (!pin) return;
-    const signalEndpoint = interfaceSignalEndpoint(description, instance.id, pin.id);
-    const signal = simulator?.stateFor(signalEndpoint, scopePath) ?? disconnected();
-    const active = signal.tri === 0 && isHigh(signal);
-    const width = Math.min(28, Math.max(20, chipVisualSize(description).x * .42));
-    const height = Math.min(18, Math.max(14, chipVisualSize(description).y * .26));
-    const label = String(instance.label || (isInput ? "IN" : "OUT")).trim().slice(0, 6) || (isInput ? "IN" : "OUT");
-    ctx.save();
-    ctx.translate(instance.position.x, instance.position.y);
-    ctx.rotate((instance.rotation ?? 0) * Math.PI / 2);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.fillStyle = active ? "#2f7d54" : "#30383e";
-    ctx.strokeStyle = active ? "#5bc783" : "#687279";
-    ctx.lineWidth = worldStroke(1.2, this.camera.zoom);
-    ctx.beginPath();
-    ctx.roundRect(-width / 2, -height / 2, width, height, 3);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#ffffff";
-    ctx.globalAlpha = .78;
-    ctx.font = "700 6px JetBrains Mono, Consolas, monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, 0, 0);
     ctx.restore();
   }
 
@@ -1117,8 +1063,9 @@ export class WorldRenderer {
   drawXrayInstance(ctx, project, instance, simulator, depth, path, scopePath = [], descriptionOverride = null) {
     const description = descriptionOverride ?? descriptorForInstance(project, instance);
     if (!description) return;
-    if (description.kind === "input" || description.kind === "output") this.drawXrayInterfaceNode(ctx, project, instance, description, simulator, scopePath);
-    else this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0, scopePath);
+    if (isXrayInterfaceDescription(description)) return;
+    const nestedComposite = description.kind === "custom" && (description.instances?.length ?? 0) > 0;
+    this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0, scopePath, nestedComposite);
     this.drawXrayPins(ctx, project, instance, description, simulator, scopePath);
     if (description.kind !== "custom" || depth <= 0) return;
     const identity = String(description.name || description.id || instance.name || "custom");
