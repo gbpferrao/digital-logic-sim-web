@@ -137,9 +137,63 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   assert.match(html, /id="xray-toggle" class="status-button button-with-icon"/);
   assert.match(html, /id="bottom-xray"/);
   assert.match(html, /<kbd>X<\/kbd>/);
-  assert.match(renderer, /const XRAY_MAX_DEPTH = 3/);
+  assert.match(renderer, /const XRAY_RECURSION_DEPTH = Number\.POSITIVE_INFINITY/);
   assert.match(renderer, /XRAY_MAX_INSTANCES/);
   assert.match(renderer, /drawXrayComposite/);
+  assert.match(renderer, /drawXrayInterfaceNode/);
+  assert.match(renderer, /description\.kind === "input" \|\| description\.kind === "output"/);
+  assert.match(renderer, /path\.includes\(identity\)/);
+});
+
+test("direct signal tweaks use a non-recording causal preview track", async () => {
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");
+  const preview = await readFile(path.join(process.cwd(), "src", "simulation-preview.js"), "utf8");
+  const toggleInput = main.slice(main.indexOf("function toggleInput"), main.indexOf("function createCustomChip"));
+  assert.match(main, /import \{ createSimulationBake, createSimulationController \} from "\.\/simulation-controller\.js"/);
+  assert.match(main, /simulationController = createSimulationController\(/);
+  assert.match(main, /const visibleSimulator = state\.preview\?\.simulator \?\? simulator/);
+  assert.match(controller, /function startCausalPreview\(message, source = null\)/);
+  assert.match(controller, /const sourceSnapshot = source\?\.snapshot \?\? currentSimulator\.snapshot/);
+  assert.match(toggleInput, /simulationController\.startCausalPreview/);
+  assert.match(toggleInput, /const source = \{ snapshot: simulator\.snapshot, step: simulator\.stepCount \}/);
+  assert.doesNotMatch(toggleInput, /runStep\(/);
+  assert.match(preview, /this\.simulator\.restore\(sourceSnapshot, sourceStep\)/);
+  assert.match(preview, /this\.onFinish\(this\)/);
+});
+
+test("a completed bake is one-shot until clear or a flow change", async () => {
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");
+  assert.match(controller, /Bake already complete\. Clear or change the flow before baking again\./);
+  assert.match(main, /const baking = state\.bake\.isBaking/);
+  assert.match(main, /bakeButton\.disabled = ready/);
+  assert.match(controller, /if \(!state\.bake\.isBaking\) return null/);
+  assert.doesNotMatch(main, /state\.bake\.(begin|clear|finish|record|truncateFuture|observe|setCursor)\(/);
+});
+
+test("the bake scrubber stays mounted and activates only for a ready timeline", async () => {
+  const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");
+  assert.match(html, /id="step-scrubber-wrap" class="step-scrubber"/);
+  assert.match(main, /const scrubberReady = state\.bake\.isReady && maxIndex > 0/);
+  assert.match(main, /scrubber\.disabled = state\.simRunning \|\| !scrubberReady/);
+  assert.match(controller, /function scheduleSimulationTick\(/);
+  assert.match(controller, /const elapsed = .*startedAt/);
+});
+
+test("timeline uses an editable step field with relevant navigation only", async () => {
+  const html = await readFile(path.join(process.cwd(), "index.html"), "utf8");
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");
+  assert.match(html, /id="step-sim" class="step-input" type="number"/);
+  assert.match(html, /id="macro-prev-sim"[\s\S]*id="step-sim"[\s\S]*id="step-scrubber-wrap"[\s\S]*id="macro-next-sim"/);
+  assert.equal(html.includes('id="start-sim"'), false);
+  assert.equal(html.includes('id="end-sim"'), false);
+  assert.match(main, /simulationController\.jumpToStep/);
+  assert.doesNotMatch(main, /jumpToBoundary/);
+  assert.doesNotMatch(controller, /function jumpToBoundary/);
 });
 
 test("GitHub Pages is a static import/export distribution", async () => {
@@ -151,7 +205,7 @@ test("GitHub Pages is a static import/export distribution", async () => {
   assert.ok(workflow.includes('VITE_STATIC_MODE: "true"'));
   assert.ok(vite.includes('mode === "pages"'));
   assert.ok(storage.includes("if (STATIC_MODE) return null"));
-  assert.equal(manifest.projects.length, 6);
+  assert.equal(manifest.projects.length, 8);
   assert.equal(manifest.chips.length, 7);
 });
 

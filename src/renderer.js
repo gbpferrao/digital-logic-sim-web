@@ -24,9 +24,15 @@ const GRID_COLOURS = Object.freeze({
   line: "#2b2e33",
   highlight: "#353940"
 });
-const XRAY_MAX_DEPTH = 3;
+// Follow every finite custom-chip nesting level. The cycle guard in
+// drawXrayInstance is the recursion boundary; per-level instance and wire
+// budgets still keep large projections from overwhelming the canvas.
+const XRAY_RECURSION_DEPTH = Number.POSITIVE_INFINITY;
 const XRAY_MAX_INSTANCES = 160;
 const XRAY_MAX_WIRES = 240;
+const CANVAS_STROKE_SCALE = 2;
+const CANVAS_WIRE_SCALE = .75;
+const MIN_VIEWPORT_STROKE = 1;
 
 function rgba(hex, alpha = 1) {
   const value = hex.replace("#", "");
@@ -48,14 +54,84 @@ function signalColour(signal, { high = "#7df2a8", low = "#7b858f", floating = "#
   return floating;
 }
 
-function chipCaptionAnchor(description, width, height = description?.size?.y ?? 0) {
-  if (description?.kind === "input") return { x: -width / 6, y: 0 };
-  if (description?.special === "sevenSegment") return { x: 0, y: -height / 2 + 14 };
-  if (description?.special !== "logicGate") return { x: 0, y: 0 };
-  if (["not", "buffer"].includes(description.gate)) return { x: -width * .207, y: 0 };
-  if (["or", "nor", "xor", "xnor"].includes(description.gate)) return { x: -width * .118, y: 0 };
-  if (["and", "nand"].includes(description.gate)) return { x: -width * .026, y: 0 };
-  return { x: 0, y: 0 };
+// The canvas is drawn in world coordinates. Keep the authored width in that
+// space and only raise it enough to remain visible as a one-pixel viewport
+// stroke when zoomed far out.
+function worldStroke(width, zoom = 1) {
+  const safeWidth = Number.isFinite(Number(width)) ? Math.max(0, Number(width)) : 0;
+  const safeZoom = Number.isFinite(Number(zoom)) ? Math.max(.1, Number(zoom)) : 1;
+  return Math.max(safeWidth, MIN_VIEWPORT_STROKE / safeZoom);
+}
+
+export function canvasStroke(width, zoom = 1) {
+  return worldStroke(Number(width) * CANVAS_STROKE_SCALE, zoom);
+}
+
+export function wireStroke(width, zoom = 1) {
+  return worldStroke(Number(width) * CANVAS_STROKE_SCALE * CANVAS_WIRE_SCALE, zoom);
+}
+
+function traceWirePath(ctx, points, { rounded = false, radius = 0 } = {}) {
+  if (!points?.length) return;
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  if (!rounded || points.length < 3) {
+    for (let index = 1; index < points.length; index += 1) ctx.lineTo(points[index].x, points[index].y);
+    return;
+  }
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    const next = points[index + 1];
+    const incomingX = current.x - previous.x;
+    const incomingY = current.y - previous.y;
+    const outgoingX = next.x - current.x;
+    const outgoingY = next.y - current.y;
+    const incomingLength = Math.hypot(incomingX, incomingY);
+    const outgoingLength = Math.hypot(outgoingX, outgoingY);
+    const corner = Math.min(radius, incomingLength / 2, outgoingLength / 2);
+    if (!(corner > 0) || !Number.isFinite(corner)) {
+      ctx.lineTo(current.x, current.y);
+      continue;
+    }
+    const before = { x: current.x - incomingX / incomingLength * corner, y: current.y - incomingY / incomingLength * corner };
+    const after = { x: current.x + outgoingX / outgoingLength * corner, y: current.y + outgoingY / outgoingLength * corner };
+    ctx.lineTo(before.x, before.y);
+    ctx.quadraticCurveTo(current.x, current.y, after.x, after.y);
+  }
+  const last = points[points.length - 1];
+  ctx.lineTo(last.x, last.y);
+}
+
+function traceRoundedPolygon(ctx, vertices, radius = 0) {
+  if (!vertices?.length) return;
+  if (vertices.length < 3 || !(radius > 0)) {
+    ctx.beginPath();
+    ctx.moveTo(vertices[0].x, vertices[0].y);
+    for (let index = 1; index < vertices.length; index += 1) ctx.lineTo(vertices[index].x, vertices[index].y);
+    ctx.closePath();
+    return;
+  }
+  const corners = vertices.map((vertex, index) => {
+    const previous = vertices[(index + vertices.length - 1) % vertices.length];
+    const next = vertices[(index + 1) % vertices.length];
+    const previousLength = Math.hypot(vertex.x - previous.x, vertex.y - previous.y);
+    const nextLength = Math.hypot(next.x - vertex.x, next.y - vertex.y);
+    const distance = Math.min(radius, previousLength / 2, nextLength / 2);
+    return {
+      vertex,
+      entry: { x: vertex.x + (previous.x - vertex.x) / previousLength * distance, y: vertex.y + (previous.y - vertex.y) / previousLength * distance },
+      exit: { x: vertex.x + (next.x - vertex.x) / nextLength * distance, y: vertex.y + (next.y - vertex.y) / nextLength * distance }
+    };
+  });
+  ctx.beginPath();
+  ctx.moveTo(corners[0].entry.x, corners[0].entry.y);
+  for (const [index, corner] of corners.entries()) {
+    ctx.quadraticCurveTo(corner.vertex.x, corner.vertex.y, corner.exit.x, corner.exit.y);
+    const next = corners[(index + 1) % corners.length];
+    ctx.lineTo(next.entry.x, next.entry.y);
+  }
+  ctx.closePath();
 }
 
 function wrapCaptionLines(ctx, text, maxWidth) {
@@ -107,6 +183,15 @@ function distToSegment(point, a, b) {
   return Math.hypot(point.x - x, point.y - y);
 }
 
+function boundsForPoints(points = []) {
+  if (!points.length) return { x: 0, y: 0, w: 0, h: 0 };
+  const minX = Math.min(...points.map((point) => point.x));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxY = Math.max(...points.map((point) => point.y));
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
 export class WorldRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -115,6 +200,10 @@ export class WorldRenderer {
     this.height = 0;
     this.dpr = 1;
     this.camera = { x: 0, y: 0, zoom: 1 };
+    this.geometryCache = null;
+    this.geometryCaches = new Map();
+    this.geometryCacheHits = 0;
+    this.geometryCacheMisses = 0;
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas.parentElement);
     this.resize();
@@ -128,6 +217,82 @@ export class WorldRenderer {
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
     this.draw(this.lastProject, this.lastSimulator, this.lastState);
+  }
+
+  invalidateGeometry() {
+    this.geometryCache = null;
+    this.geometryCaches.clear();
+  }
+
+  get performanceStats() {
+    return {
+      geometryCacheHits: this.geometryCacheHits,
+      geometryCacheMisses: this.geometryCacheMisses,
+      geometryObjects: this.geometryCache?.instances.length ?? 0,
+      geometryWires: this.geometryCache?.wires.length ?? 0
+    };
+  }
+
+  worldViewport(padding = 48) {
+    const zoom = Math.max(.1, this.camera.zoom);
+    const margin = padding / zoom;
+    return {
+      x: this.camera.x - this.width / zoom / 2 - margin,
+      y: this.camera.y - this.height / zoom / 2 - margin,
+      w: this.width / zoom + margin * 2,
+      h: this.height / zoom + margin * 2
+    };
+  }
+
+  boxVisible(box, viewport = this.worldViewport()) {
+    return Boolean(box && box.x <= viewport.x + viewport.w && box.x + box.w >= viewport.x
+      && box.y <= viewport.y + viewport.h && box.y + box.h >= viewport.y);
+  }
+
+  geometryFor(project, { rawDescriptionPins = false } = {}) {
+    const root = project?.root;
+    if (!root) return { instances: [], annotations: [], wires: [], junctions: [], rootPins: [], wireById: new Map() };
+    const cacheKey = `${project._revision}:${rawDescriptionPins ? "raw" : "normal"}`;
+    const rootCaches = this.geometryCaches.get(root) ?? new Map();
+    const cached = rootCaches.get(cacheKey);
+    if (cached) {
+      this.geometryCacheHits += 1;
+      this.geometryCache = cached.geometry;
+      return cached.geometry;
+    }
+    this.geometryCacheMisses += 1;
+    const instances = (root.instances ?? []).map((instance) => {
+      const description = descriptorForInstance(project, instance);
+      const pins = [...(description?.inputPins ?? []), ...(description?.outputPins ?? [])].map((pin) => ({
+        pin,
+        position: instancePinPosition(project, instance, pin.id)
+      }));
+      return { instance, description, box: chipBoundingBox(project, instance), pins };
+    });
+    const annotations = (root.annotations ?? []).map((annotation) => ({ annotation, box: annotationBoundingBox(annotation) }));
+    const wires = (root.wires ?? []).map((wire) => {
+      const points = this.wirePoints(project, wire, null, null, { rawDescriptionPins });
+      return { wire, points, box: boundsForPoints(points) };
+    });
+    const junctions = (root.junctions ?? []).map((junction) => ({
+      junction,
+      box: { x: junction.position.x, y: junction.position.y, w: 0, h: 0 }
+    }));
+    const rootPins = interfaceBindingsFor(root).length
+      ? []
+      : [...(root.inputPins ?? []), ...(root.outputPins ?? [])].map((pin) => ({ pin, position: rootPinPosition(root, pin) }));
+    const geometry = {
+      instances,
+      annotations,
+      wires,
+      junctions,
+      rootPins,
+      wireById: new Map(wires.map((entry) => [String(entry.wire.id), entry]))
+    };
+    rootCaches.set(cacheKey, { geometry });
+    this.geometryCaches.set(root, rootCaches);
+    this.geometryCache = geometry;
+    return geometry;
   }
 
   toWorld(screenX, screenY) {
@@ -166,11 +331,50 @@ export class WorldRenderer {
     this.camera = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, zoom: Math.min((this.width - margin) / w, (this.height - margin) / h, 1.4) };
   }
 
+  drawEmptyState(ctx, zoom = this.camera.zoom) {
+    const iconCenterY = -18;
+    const radius = 23;
+    const plusHalfSize = 8;
+    const labelBaseline = 30;
+    const stroke = worldStroke(1, zoom);
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.strokeStyle = "#74787d";
+    ctx.lineWidth = stroke;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.arc(0, iconCenterY, radius, 0, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = "#d9d9dc";
+    ctx.lineWidth = worldStroke(1.4, zoom);
+    ctx.beginPath();
+    ctx.moveTo(-plusHalfSize, iconCenterY);
+    ctx.lineTo(plusHalfSize, iconCenterY);
+    ctx.moveTo(0, iconCenterY - plusHalfSize);
+    ctx.lineTo(0, iconCenterY + plusHalfSize);
+    ctx.stroke();
+
+    ctx.fillStyle = "#efefef";
+    ctx.font = "600 12px JetBrains Mono, Consolas, monospace";
+    ctx.fillText("Empty circuit", 0, labelBaseline);
+    ctx.restore();
+  }
+
   draw(project, simulator, editorState = {}) {
     this.lastProject = project;
     this.lastSimulator = simulator;
     this.lastState = editorState;
     if (!project || !this.ctx) return;
+    if (editorState.drag || editorState.annotationDrag || editorState.annotationResize || editorState.wirePointDrag) this.invalidateGeometry();
+    const geometry = this.geometryFor(project);
+    const viewport = this.worldViewport();
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.width, this.height);
@@ -183,12 +387,16 @@ export class WorldRenderer {
     ctx.translate(-this.camera.x, -this.camera.y);
     const forceGrid = Boolean(editorState.pointer?.ctrlKey || editorState.pointer?.metaKey) && Boolean(editorState.placement || editorState.drag || editorState.wireStart || editorState.wireEdit);
     this.drawGrid(ctx, project.settings.grid !== false || forceGrid);
-    this.drawAnnotations(ctx, project, editorState);
+    const hasCanvasContent = geometry.instances.length || geometry.annotations.length || geometry.wires.length || geometry.junctions.length || geometry.rootPins.length;
+    if (!hasCanvasContent) this.drawEmptyState(ctx);
+    this.drawAnnotations(ctx, project, editorState, geometry, viewport);
     if (editorState.annotationPlacement) this.drawAnnotationPlacement(ctx, editorState);
-    this.drawRootPins(ctx, project, simulator, editorState);
-    this.drawWires(ctx, project, simulator, editorState);
-    this.drawJunctions(ctx, project, editorState);
-    for (const instance of project.root.instances ?? []) this.drawInstance(ctx, project, instance, simulator, editorState);
+    this.drawRootPins(ctx, project, simulator, editorState, geometry, viewport);
+    this.drawWires(ctx, project, simulator, editorState, geometry, viewport);
+    this.drawJunctions(ctx, project, editorState, geometry, viewport);
+    for (const entry of geometry.instances) {
+      if (this.boxVisible(entry.box, viewport)) this.drawInstance(ctx, project, entry.instance, simulator, editorState);
+    }
     if (editorState.placement?.previewItems?.length) this.drawPlacementPreview(ctx, project, editorState);
     if (editorState.wireStart && editorState.mouseWorld) this.drawWirePreview(ctx, project, simulator, editorState);
     if (editorState.selectionBox) this.drawSelectionBox(ctx, editorState.selectionBox);
@@ -214,32 +422,34 @@ export class WorldRenderer {
     }
   }
 
-  drawWires(ctx, project, simulator, editorState) {
-    for (const wire of project.root.wires ?? []) {
-      const points = this.wirePoints(project, wire);
+  drawWires(ctx, project, simulator, editorState, geometry = this.geometryFor(project), viewport = this.worldViewport()) {
+    for (const entry of geometry.wires) {
+      if (!this.boxVisible(entry.box, viewport)) continue;
+      const wire = entry.wire;
+      const points = entry.points;
       if (points.length < 2) continue;
       const signal = simulator?.stateFor(wire.source) ?? disconnected();
       const colour = signal.tri === 0 ? (isHigh(signal) ? "#7df2a8" : "#7b858f") : "#687279";
       const hovered = editorState.hover?.kind === "wire" && editorState.hover.id === wire.id;
       const target = editorState.wireTarget?.owner === "wire" && editorState.wireTarget?.pin === String(wire.id);
       const editing = editorState.wireEdit?.wireId === wire.id;
+      const previewAlpha = editorState.preview ? .66 : 1;
       ctx.save();
       ctx.lineCap = editing ? "butt" : "round";
-      ctx.lineJoin = "round";
-      ctx.lineWidth = (wire.id === editorState.selectedWireId || hovered || target || editing ? 3.2 : signal.tri === 0 ? 2.4 : 1.8) / this.camera.zoom;
+      ctx.lineJoin = editing ? "miter" : "round";
+      ctx.lineWidth = wireStroke(wire.id === editorState.selectedWireId || hovered || target || editing ? 3.2 : signal.tri === 0 ? 2.4 : 1.8, this.camera.zoom);
       ctx.strokeStyle = target && editorState.wireTargetValid === false ? "#f47883" : target ? "#7df2a8" : hovered || editing ? "#b8d7ff" : colour;
-      ctx.globalAlpha = wire.id === editorState.selectedWireId || hovered || target || editing ? 1 : .88;
+      ctx.globalAlpha = (wire.id === editorState.selectedWireId || hovered || target || editing ? 1 : .88) * previewAlpha;
       ctx.setLineDash(editing ? [10 / this.camera.zoom, 7 / this.camera.zoom] : []);
-      ctx.beginPath();
-      points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      traceWirePath(ctx, points, { rounded: !editing, radius: 4 / this.camera.zoom });
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
       if (wire.id === editorState.selectedWireId || editing) {
         ctx.strokeStyle = "#b8d7ff";
-        ctx.lineWidth = 5 / this.camera.zoom;
-        ctx.globalAlpha = .25;
-        ctx.beginPath(); points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke();
+        ctx.lineWidth = wireStroke(5, this.camera.zoom);
+        ctx.globalAlpha = .25 * previewAlpha;
+        traceWirePath(ctx, points, { rounded: !editing, radius: 4 / this.camera.zoom }); ctx.stroke();
         ctx.globalAlpha = 1;
         for (const [index, point] of (wire.points ?? []).entries()) {
           const pointSelected = editorState.selectedWirePointKeys?.has(`${String(wire.id)}:${index}`);
@@ -260,21 +470,24 @@ export class WorldRenderer {
     }
   }
 
-  drawRootPins(ctx, project, simulator, editorState = {}) {
-    if (interfaceBindingsFor(project.root).length) return;
-    for (const pin of [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])]) {
-      const position = rootPinPosition(project.root, pin);
+  drawRootPins(ctx, project, simulator, editorState = {}, geometry = this.geometryFor(project), viewport = this.worldViewport()) {
+    for (const entry of geometry.rootPins) {
+      const pin = entry.pin;
+      const position = entry.position;
+      if (!this.boxVisible({ x: position.x - 28, y: position.y - 10, w: 56, h: 20 }, viewport)) continue;
+      ctx.save();
+      if (editorState.preview) ctx.globalAlpha = .66;
       const signal = simulator?.stateFor({ owner: "root", pin: pin.id }) ?? disconnected();
       const colour = signal.tri === 0 ? (isHigh(signal) ? "#7df2a8" : "#a1a7ab") : "#687279";
       const outward = pin.direction === "input" ? -1 : 1;
       const hovered = editorState.hover?.kind === "pin" && editorState.hover.owner === "root" && editorState.hover.pin === String(pin.id);
       const target = editorState.wireTarget?.owner === "root" && editorState.wireTarget?.pin === String(pin.id);
-      ctx.strokeStyle = "#314155"; ctx.lineWidth = 1 / this.camera.zoom;
+      ctx.strokeStyle = "#314155"; ctx.lineWidth = canvasStroke(1, this.camera.zoom);
       ctx.beginPath(); ctx.moveTo(position.x, position.y); ctx.lineTo(position.x + outward * 18, position.y); ctx.stroke();
       ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(position.x, position.y, 4.2, 0, TAU); ctx.fill();
       if (hovered || target) {
         ctx.strokeStyle = target && editorState.wireTargetValid === false ? "#f47883" : target ? "#7df2a8" : "#d7eaff";
-        ctx.lineWidth = 2 / this.camera.zoom;
+        ctx.lineWidth = canvasStroke(2, this.camera.zoom);
         ctx.beginPath(); ctx.arc(position.x, position.y, 7 / this.camera.zoom, 0, TAU); ctx.stroke();
       }
       if (this.camera.zoom > .62) {
@@ -285,12 +498,15 @@ export class WorldRenderer {
         ctx.fillText(`${pin.name}${pin.bits > 1 ? ` [${pin.bits}]` : ""}`, position.x + outward * 25, position.y);
         ctx.restore();
       }
+      ctx.restore();
     }
   }
 
-  drawAnnotations(ctx, project, editorState = {}) {
-    for (const annotation of project.root.annotations ?? []) {
-      const box = annotationBoundingBox(annotation);
+  drawAnnotations(ctx, project, editorState = {}, geometry = this.geometryFor(project), viewport = this.worldViewport()) {
+    for (const entry of geometry.annotations) {
+      const annotation = entry.annotation;
+      const box = entry.box;
+      if (!this.boxVisible(box, viewport)) continue;
       const id = String(annotation.id);
       const selected = editorState.selectedAnnotationIds?.has(id);
       const hovered = editorState.hover?.kind === "annotation" && editorState.hover.id === id;
@@ -310,7 +526,7 @@ export class WorldRenderer {
         ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 5); ctx.fill();
         ctx.globalAlpha = 1;
         ctx.strokeStyle = selected ? "#b8d7ff" : hovered ? "#80bcff" : palette.outline;
-        ctx.lineWidth = (selected ? 1.8 : 1) / this.camera.zoom;
+        ctx.lineWidth = canvasStroke(selected ? 1.8 : 1, this.camera.zoom);
         ctx.stroke();
         const paddingX = 12;
         const paddingY = 10;
@@ -319,17 +535,17 @@ export class WorldRenderer {
       if (selected || hovered) {
         ctx.strokeStyle = selected ? "#b8d7ff" : "#80bcff";
         ctx.globalAlpha = selected ? .55 : .35;
-        ctx.lineWidth = 5 / this.camera.zoom;
-        ctx.strokeRect(box.x, box.y, box.w, box.h);
+        ctx.lineWidth = canvasStroke(2.5, this.camera.zoom);
+        ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 4); ctx.stroke();
       }
       if (selected && annotation.type === "text") {
         const handleSize = 8 / this.camera.zoom;
         ctx.globalAlpha = 1;
         ctx.fillStyle = "#f5f5f6";
         ctx.strokeStyle = palette.outline;
-        ctx.lineWidth = 1 / this.camera.zoom;
+        ctx.lineWidth = canvasStroke(1, this.camera.zoom);
         ctx.fillRect(box.x + box.w - handleSize, box.y + box.h - handleSize, handleSize, handleSize);
-        ctx.strokeRect(box.x + box.w - handleSize, box.y + box.h - handleSize, handleSize, handleSize);
+        ctx.beginPath(); ctx.roundRect(box.x + box.w - handleSize, box.y + box.h - handleSize, handleSize, handleSize, 1.5); ctx.stroke();
       }
       ctx.restore();
     }
@@ -381,8 +597,10 @@ export class WorldRenderer {
     }
   }
 
-  drawJunctions(ctx, project, editorState = {}) {
-    for (const junction of project.root.junctions ?? []) {
+  drawJunctions(ctx, project, editorState = {}, geometry = this.geometryFor(project), viewport = this.worldViewport()) {
+    for (const entry of geometry.junctions) {
+      const junction = entry.junction;
+      if (!this.boxVisible({ x: junction.position.x - 8, y: junction.position.y - 8, w: 16, h: 16 }, viewport)) continue;
       const hovered = editorState.hover?.kind === "junction" && editorState.hover.id === String(junction.id);
       ctx.save();
       ctx.fillStyle = hovered ? "#d7eaff" : "#b8d7ff";
@@ -432,8 +650,8 @@ export class WorldRenderer {
     ctx.save();
     ctx.setLineDash([7 / this.camera.zoom, 5 / this.camera.zoom]);
     ctx.strokeStyle = editorState.wireTargetValid === false ? "#f47883" : editorState.wireTargetValid ? "#7df2a8" : "#b7d9ff";
-    ctx.lineWidth = 2 / this.camera.zoom;
-    ctx.beginPath(); points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke();
+    ctx.lineWidth = wireStroke(2, this.camera.zoom);
+    traceWirePath(ctx, points, { rounded: true, radius: 4 / this.camera.zoom }); ctx.stroke();
     ctx.restore();
   }
 
@@ -449,8 +667,8 @@ export class WorldRenderer {
       ctx.globalAlpha = 1;
       ctx.setLineDash([6 / this.camera.zoom, 4 / this.camera.zoom]);
       ctx.strokeStyle = invalid ? "#f47883" : "#9bc8ff";
-      ctx.lineWidth = 1.5 / this.camera.zoom;
-      ctx.strokeRect(box.x, box.y, box.w, box.h);
+      ctx.lineWidth = canvasStroke(1.5, this.camera.zoom);
+      ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 4); ctx.stroke();
       ctx.restore();
     }
     for (const wire of editorState.placement.previewWires ?? []) {
@@ -458,9 +676,8 @@ export class WorldRenderer {
       ctx.save();
       ctx.setLineDash([6 / this.camera.zoom, 4 / this.camera.zoom]);
       ctx.strokeStyle = invalid ? "#f47883" : "#9bc8ff";
-      ctx.lineWidth = 2 / this.camera.zoom;
-      ctx.beginPath();
-      points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      ctx.lineWidth = wireStroke(2, this.camera.zoom);
+      traceWirePath(ctx, points, { rounded: true, radius: 4 / this.camera.zoom });
       ctx.stroke();
       ctx.restore();
     }
@@ -489,11 +706,16 @@ export class WorldRenderer {
   drawInstance(ctx, project, instance, simulator, editorState) {
     const description = descriptorForInstance(project, instance);
     if (!description) return;
+    if (editorState.preview) {
+      ctx.save();
+      ctx.globalAlpha = .66;
+    }
     const selected = editorState.selectedIds?.has(String(instance.id));
     const hovered = editorState.hover?.kind === "instance" && editorState.hover.id === String(instance.id);
     const invalid = Boolean(editorState.drag?.invalid && selected);
-    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator, editorState.xray ? XRAY_MAX_DEPTH : 0, []);
+    this.drawChipBody(ctx, project, instance, description, selected, hovered, invalid, simulator, editorState.xray ? XRAY_RECURSION_DEPTH : 0, []);
     this.drawPins(ctx, project, instance, description, simulator, editorState);
+    if (editorState.preview) ctx.restore();
   }
 
   drawChipBody(ctx, project, instance, description, selected, hovered = false, invalid = false, simulator = null, xrayDepth = 0, signalScope = []) {
@@ -517,39 +739,43 @@ export class WorldRenderer {
         ? inputSignal.tri === 0 && isHigh(inputSignal)
         : Number(project.inputValues?.[instance.id] ?? 0) !== 0;
       ctx.fillStyle = active ? "#2f7d54" : "#3a444b";
-      ctx.beginPath(); ctx.moveTo(-w / 2, -h / 2); ctx.lineTo(w / 2, 0); ctx.lineTo(-w / 2, h / 2); ctx.closePath(); ctx.fill();
+      traceRoundedPolygon(ctx, [
+        { x: -w / 2, y: -h / 2 },
+        { x: w / 2, y: 0 },
+        { x: -w / 2, y: h / 2 }
+      ], Math.min(4, Math.min(w, h) * .08));
+      ctx.fill();
       ctx.strokeStyle = invalid ? "#f47883" : selected ? "#d8f5e2" : hovered ? "#b8e6c8" : active ? "#5bc783" : "#687279";
-      ctx.lineWidth = (selected ? 2.2 : 1.8) / this.camera.zoom; ctx.stroke();
+      ctx.lineWidth = canvasStroke(selected ? 2.2 : 1.8, this.camera.zoom); ctx.stroke();
     } else if (description.kind === "output") {
       const outputPin = description.inputPins?.[0];
       const outputSignal = simulator?.stateFor({ owner: instance.id, pin: outputPin?.id }, signalScope) ?? project._simSnapshot?.instances?.[instance.id]?.signals?.[String(outputPin?.id)] ?? disconnected();
       const active = outputSignal.tri === 0 && isHigh(outputSignal);
       ctx.fillStyle = "#3a444b";
       ctx.strokeStyle = invalid ? "#f47883" : selected ? "#d8f5e2" : hovered ? "#b8e6c8" : "#687279";
-      ctx.lineWidth = (selected ? 2.2 : 1.8) / this.camera.zoom;
-      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 3); ctx.fill(); ctx.stroke();
+      ctx.lineWidth = canvasStroke(selected ? 2.2 : 1.8, this.camera.zoom);
+      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 5); ctx.fill(); ctx.stroke();
       ctx.fillStyle = active ? "#7df2a8" : "#687279";
       ctx.beginPath(); ctx.arc(0, 0, Math.min(w, h) * .22, 0, TAU); ctx.fill();
     } else {
       ctx.fillStyle = bodyColour;
        ctx.strokeStyle = invalid ? "#f47883" : selected ? "#bedcff" : hovered ? "#94c9ff" : bodyOutline;
-      ctx.lineWidth = (selected ? 2.2 : hovered ? 2 : 1.8) / this.camera.zoom;
+      ctx.lineWidth = canvasStroke(selected ? 2.2 : hovered ? 2 : 1.8, this.camera.zoom);
       if (description.special === "logicGate") this.drawLogicGate(ctx, description.gate, w, h);
       else {
-        ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 4); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 5); ctx.fill(); ctx.stroke();
         this.drawSpecialDisplay(ctx, project, instance, description, simulator, signalScope);
       }
     }
     if (xrayDepth > 0 && description.kind === "custom" && (description.instances ?? []).length) {
       this.drawXrayComposite(ctx, project, description, simulator, xrayDepth, [String(description.name || description.id || "custom")], [...signalScope, String(instance.id)]);
     }
-    const captionAnchor = chipCaptionAnchor(description, w, h);
-    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered, captionAnchor);
+    this.drawChipCaption(ctx, instance.label || description.name, labelBounds.x, labelBounds.y, hovered || selected);
     ctx.restore();
     if (selected || hovered || invalid) {
       ctx.save();
-      ctx.strokeStyle = invalid ? "#f47883" : "#80bcff"; ctx.globalAlpha = selected || invalid ? .35 : .22; ctx.lineWidth = (invalid ? 6 : 5) / this.camera.zoom;
-      ctx.strokeRect(box.x, box.y, box.w, box.h);
+      ctx.strokeStyle = invalid ? "#f47883" : "#80bcff"; ctx.globalAlpha = selected || invalid ? .35 : .22; ctx.lineWidth = worldStroke(invalid ? 6 : 5, this.camera.zoom);
+      ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 4); ctx.stroke();
       ctx.restore();
     }
   }
@@ -568,6 +794,8 @@ export class WorldRenderer {
     const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
     if (!Number.isFinite(scale) || scale <= 0) return;
     const scopedProject = { ...project, root: description };
+    const geometry = this.geometryFor(scopedProject, { rawDescriptionPins: true });
+    const previewAlpha = this.lastState?.preview ? .66 : 1;
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3);
@@ -576,16 +804,16 @@ export class WorldRenderer {
     ctx.fillRect(frame.x, frame.y, frame.w, frame.h);
     ctx.translate(frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale, frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale);
     ctx.scale(scale, scale);
-    ctx.globalAlpha = .86;
-    this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath);
-    const visibleInstances = (description.instances ?? []).slice(0, XRAY_MAX_INSTANCES);
-    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child, simulator, depth - 1, path, scopePath);
+    ctx.globalAlpha = .86 * previewAlpha;
+    this.drawXrayWires(ctx, scopedProject, description, simulator, scopePath, geometry);
+    const visibleInstances = geometry.instances.slice(0, XRAY_MAX_INSTANCES);
+    for (const child of visibleInstances) this.drawXrayInstance(ctx, scopedProject, child.instance, simulator, depth - 1, path, scopePath, child.description);
     this.drawXrayRootPins(ctx, description, simulator, scopePath);
     ctx.restore();
 
     ctx.save();
     ctx.strokeStyle = "rgba(218, 232, 244, .24)";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = worldStroke(2, this.camera.zoom);
     ctx.beginPath(); ctx.roundRect(frame.x, frame.y, frame.w, frame.h, 3); ctx.stroke();
     if ((description.instances?.length ?? 0) > XRAY_MAX_INSTANCES) {
       ctx.fillStyle = "rgba(230, 238, 246, .72)";
@@ -596,19 +824,20 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawXrayWires(ctx, project, description, simulator = null, scopePath = []) {
+  drawXrayWires(ctx, project, description, simulator = null, scopePath = [], geometry = this.geometryFor(project)) {
+    const previewAlpha = this.lastState?.preview ? .66 : 1;
     ctx.save();
     ctx.lineCap = "butt";
     ctx.lineJoin = "round";
-    ctx.lineWidth = 1.6;
-    for (const wire of (description.wires ?? []).slice(0, XRAY_MAX_WIRES)) {
-      const points = this.wirePoints(project, wire, null, null, { rawDescriptionPins: true });
+    ctx.lineWidth = worldStroke(3.2 * CANVAS_WIRE_SCALE, this.camera.zoom);
+    for (const entry of geometry.wires.slice(0, XRAY_MAX_WIRES)) {
+      const wire = entry.wire;
+      const points = entry.points;
       if (points.length < 2) continue;
       const signal = simulator?.stateFor(wire.source, scopePath) ?? disconnected();
       ctx.strokeStyle = signalColour(signal);
-      ctx.globalAlpha = signal.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48;
-      ctx.beginPath();
-      points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      ctx.globalAlpha = (signal.tri === 0 ? (isHigh(signal) ? .96 : .74) : .48) * previewAlpha;
+      traceWirePath(ctx, points, { rounded: true, radius: 3 });
       ctx.stroke();
     }
     if ((description.wires?.length ?? 0) > XRAY_MAX_WIRES) {
@@ -619,10 +848,50 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawXrayInstance(ctx, project, instance, simulator, depth, path, scopePath = []) {
-    const description = descriptorForInstance(project, instance);
+  drawXrayInterfaceNode(ctx, project, instance, description, simulator = null, scopePath = []) {
+    const isInput = description.kind === "input";
+    const pin = (isInput ? description.outputPins : description.inputPins)?.[0];
+    if (!pin) return;
+    const signal = simulator?.stateFor({ owner: instance.id, pin: pin.id }, scopePath) ?? disconnected();
+    const active = signal.tri === 0 && isHigh(signal);
+    const pinX = Number.isFinite(Number(pin.x)) ? Number(pin.x) : (isInput ? description.size.x / 2 : -description.size.x / 2);
+    const pinY = Number(pin.y) || 0;
+    const width = Math.min(28, Math.max(20, chipVisualSize(description).x * .42));
+    const height = Math.min(18, Math.max(14, chipVisualSize(description).y * .26));
+    const side = isInput ? 1 : -1;
+    const label = String(instance.label || (isInput ? "IN" : "OUT")).trim().slice(0, 6) || (isInput ? "IN" : "OUT");
+    ctx.save();
+    ctx.translate(instance.position.x, instance.position.y);
+    ctx.rotate((instance.rotation ?? 0) * Math.PI / 2);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = signalColour(signal, { high: "#5bc783", low: "#687279", floating: "#687279" });
+    ctx.lineWidth = worldStroke(2.4, this.camera.zoom);
+    ctx.beginPath();
+    ctx.moveTo(side * width / 2, 0);
+    ctx.lineTo(pinX, pinY);
+    ctx.stroke();
+    ctx.fillStyle = active ? "#2f7d54" : "#30383e";
+    ctx.strokeStyle = active ? "#5bc783" : "#687279";
+    ctx.lineWidth = worldStroke(1.2, this.camera.zoom);
+    ctx.beginPath();
+    ctx.roundRect(-width / 2, -height / 2, width, height, 3);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = .78;
+    ctx.font = "700 6px JetBrains Mono, Consolas, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+
+  drawXrayInstance(ctx, project, instance, simulator, depth, path, scopePath = [], descriptionOverride = null) {
+    const description = descriptionOverride ?? descriptorForInstance(project, instance);
     if (!description) return;
-    this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0, scopePath);
+    if (description.kind === "input" || description.kind === "output") this.drawXrayInterfaceNode(ctx, project, instance, description, simulator, scopePath);
+    else this.drawChipBody(ctx, project, instance, description, false, false, false, simulator, 0, scopePath);
     this.drawXrayPins(ctx, project, instance, description, simulator, scopePath);
     if (description.kind !== "custom" || depth <= 0) return;
     const identity = String(description.name || description.id || instance.name || "custom");
@@ -676,7 +945,7 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  drawChipCaption(ctx, value, width, height, hovered = false, anchor = { x: 0, y: 0 }) {
+  drawChipCaption(ctx, value, width, height, hovered = false) {
     const text = String(value || "CHIP").trim() || "CHIP";
     const available = Math.max(32, width - 12);
     let fontSize = Math.min(12, Math.max(8, height * .22));
@@ -696,8 +965,8 @@ export class WorldRenderer {
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 0, 0, .65)";
     ctx.shadowBlur = 2;
-    const firstLineY = anchor.y - ((lines.length - 1) * lineHeight) / 2;
-    lines.forEach((line, index) => ctx.fillText(line, anchor.x, firstLineY + index * lineHeight));
+    const firstLineY = -((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, index) => ctx.fillText(line, 0, firstLineY + index * lineHeight));
     ctx.restore();
   }
 
@@ -769,7 +1038,7 @@ export class WorldRenderer {
       ];
       lines.forEach(([x1, y1, x2, y2], index) => {
         ctx.strokeStyle = segments[index] ? "#f3d36b" : "#3b4850";
-        ctx.lineWidth = thickness;
+        ctx.lineWidth = worldStroke(thickness, this.camera.zoom);
         ctx.lineCap = "butt";
         ctx.lineJoin = "miter";
         ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
@@ -790,6 +1059,8 @@ export class WorldRenderer {
   }
 
   drawPins(ctx, project, instance, description, simulator, editorState = {}) {
+    const instanceSelected = editorState.selectedIds?.has(String(instance.id));
+    const instanceHovered = editorState.hover?.kind === "instance" && editorState.hover.id === String(instance.id);
     for (const pin of [...description.inputPins, ...description.outputPins]) {
       const world = instancePinPosition(project, instance, pin.id);
       const pinLocal = description.kind === "custom" ? reusablePoint(description, pin) : { x: pin.x, y: pin.y };
@@ -800,20 +1071,21 @@ export class WorldRenderer {
       const hovered = editorState.hover?.kind === "pin" && editorState.hover.owner === String(instance.id) && editorState.hover.pin === String(pin.id);
       const target = editorState.wireTarget?.owner === String(instance.id) && editorState.wireTarget?.pin === String(pin.id);
       ctx.save();
-      ctx.fillStyle = colour; ctx.strokeStyle = "#0b1018"; ctx.lineWidth = 1 / this.camera.zoom;
+      ctx.fillStyle = colour; ctx.strokeStyle = "#0b1018"; ctx.lineWidth = canvasStroke(1, this.camera.zoom);
       ctx.beginPath(); ctx.arc(world.x, world.y, 4.2, 0, TAU); ctx.fill(); ctx.stroke();
       if (hovered || target) {
         ctx.strokeStyle = target && editorState.wireTargetValid === false ? "#f47883" : target ? "#7df2a8" : "#d7eaff";
-        ctx.lineWidth = 2 / this.camera.zoom;
+        ctx.lineWidth = canvasStroke(2, this.camera.zoom);
         ctx.beginPath(); ctx.arc(world.x, world.y, 7 / this.camera.zoom, 0, TAU); ctx.stroke();
       }
       if (this.camera.zoom > .62) {
-        ctx.fillStyle = "#ffffff"; ctx.globalAlpha = hovered ? 1 : .36;
+        const labelEmphasized = instanceSelected || instanceHovered || hovered || target;
+        ctx.fillStyle = "#ffffff"; ctx.globalAlpha = labelEmphasized ? 1 : .36;
         ctx.font = "9px JetBrains Mono, Consolas, monospace"; ctx.textBaseline = "middle";
         ctx.textAlign = pin.direction === "input" ? "right" : "left";
         ctx.fillText(`${pin.name}${pin.bits > 1 ? ` [${pin.bits}]` : ""}`, world.x + (local.x < 0 ? -8 : 8), world.y);
         if (this.camera.zoom > .9 && pin.bits > 1) {
-          ctx.fillStyle = "#75869c"; ctx.font = "8px JetBrains Mono, monospace"; ctx.textAlign = "center";
+          ctx.fillStyle = "#75869c"; ctx.globalAlpha = labelEmphasized ? .9 : .28; ctx.font = "8px JetBrains Mono, monospace"; ctx.textAlign = "center";
           ctx.fillText(stateLabel(state, pin.bits), world.x + (local.x < 0 ? -27 : 27), world.y - 9);
         }
       }
@@ -822,23 +1094,22 @@ export class WorldRenderer {
   }
 
   findJunction(project, world, radius = 9) {
-    for (const junction of project.root.junctions ?? []) {
+    for (const { junction } of [...this.geometryFor(project).junctions].reverse()) {
       if (Math.hypot(junction.position.x - world.x, junction.position.y - world.y) <= radius / this.camera.zoom) return { owner: "junction", pin: String(junction.id), junction: true, bits: junction.bits, direction: "output", position: junction.position };
     }
     return null;
   }
 
   findPin(project, world, radius = 9) {
-    if (!interfaceBindingsFor(project.root).length) {
-      for (const pin of [...(project.root.inputPins ?? []), ...(project.root.outputPins ?? [])]) {
-        const position = rootPinPosition(project.root, pin);
+    const geometry = this.geometryFor(project);
+    if (geometry.rootPins.length) {
+      for (const { pin, position } of geometry.rootPins) {
         if (Math.hypot(position.x - world.x, position.y - world.y) <= radius / this.camera.zoom) return { owner: "root", pin: String(pin.id), root: true, pinDescription: pin };
       }
     }
-    for (const instance of [...(project.root.instances ?? [])].reverse()) {
-      const desc = descriptorForInstance(project, instance);
-      for (const pin of [...(desc?.inputPins ?? []), ...(desc?.outputPins ?? [])]) {
-        const position = instancePinPosition(project, instance, pin.id);
+    for (const entry of [...geometry.instances].reverse()) {
+      const instance = entry.instance;
+      for (const { pin, position } of entry.pins) {
         if (Math.hypot(position.x - world.x, position.y - world.y) <= radius / this.camera.zoom) return { owner: String(instance.id), pin: String(pin.id), instance, pinDescription: pin };
       }
     }
@@ -846,25 +1117,22 @@ export class WorldRenderer {
   }
 
   findInstance(project, world) {
-    for (const instance of [...(project.root.instances ?? [])].reverse()) {
-      const box = chipBoundingBox(project, instance);
+    for (const { instance, box } of [...this.geometryFor(project).instances].reverse()) {
       if (world.x >= box.x - 3 && world.x <= box.x + box.w + 3 && world.y >= box.y - 3 && world.y <= box.y + box.h + 3) return instance;
     }
     return null;
   }
 
   findAnnotation(project, world) {
-    for (const annotation of [...(project.root.annotations ?? [])].reverse()) {
-      const box = annotationBoundingBox(annotation);
+    for (const { annotation, box } of [...this.geometryFor(project).annotations].reverse()) {
       if (world.x >= box.x && world.x <= box.x + box.w && world.y >= box.y && world.y <= box.y + box.h) return annotation;
     }
     return null;
   }
 
   findAnnotationResizeHandle(project, world, radius = 10) {
-    for (const annotation of [...(project.root.annotations ?? [])].reverse()) {
+    for (const { annotation, box } of [...this.geometryFor(project).annotations].reverse()) {
       if (annotation.type !== "text") continue;
-      const box = annotationBoundingBox(annotation);
       const handle = 8 / this.camera.zoom;
       const x = box.x + box.w - handle / 2;
       const y = box.y + box.h - handle / 2;
@@ -874,18 +1142,24 @@ export class WorldRenderer {
   }
 
   findWire(project, world, threshold = 7) {
-    for (const wire of [...(project.root.wires ?? [])].reverse()) {
-      const points = this.wirePoints(project, wire);
+    const viewport = {
+      x: world.x - threshold / this.camera.zoom,
+      y: world.y - threshold / this.camera.zoom,
+      w: threshold * 2 / this.camera.zoom,
+      h: threshold * 2 / this.camera.zoom
+    };
+    for (const { wire, points, box } of [...this.geometryFor(project).wires].reverse()) {
+      if (!this.boxVisible(box, viewport)) continue;
       for (let i = 0; i < points.length - 1; i += 1) if (distToSegment(world, points[i], points[i + 1]) <= threshold / this.camera.zoom) return wire;
     }
     return null;
   }
 
   findWirePoint(project, world, threshold = 10, wireId = null) {
-    const wires = wireId == null
-      ? [...(project.root.wires ?? [])].reverse()
-      : [...(project.root.wires ?? [])].filter((wire) => String(wire.id) === String(wireId));
-    for (const wire of wires) {
+    const entries = wireId == null
+      ? [...this.geometryFor(project).wires].reverse()
+      : [...this.geometryFor(project).wires].filter(({ wire }) => String(wire.id) === String(wireId));
+    for (const { wire } of entries) {
       for (let index = 0; index < (wire.points ?? []).length; index += 1) {
         const point = wire.points[index];
         if (Math.hypot(point.x - world.x, point.y - world.y) <= threshold / this.camera.zoom) return { wire, index };
@@ -895,7 +1169,7 @@ export class WorldRenderer {
   }
 
   closestWireSegment(project, wire, world) {
-    const points = this.wirePoints(project, wire);
+    const points = this.geometryFor(project).wireById.get(String(wire.id))?.points ?? this.wirePoints(project, wire);
     let best = { distance: Infinity, index: 0, point: world };
     for (let index = 0; index < points.length - 1; index += 1) {
       const a = points[index]; const b = points[index + 1];

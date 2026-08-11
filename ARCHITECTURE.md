@@ -2,7 +2,11 @@
 
 Status: current-state audit, reconciled refactoring plan, and first refactor wave
 
-Checkpoint: `a207fe6` (`Checkpoint before X-ray mode`) preserves the known-good state immediately before the X-ray pivot. Earlier architecture work is included in that checkpoint.
+Historical checkpoint: `a207fe6` (`Checkpoint before X-ray mode`) preserves the known-good state immediately before the X-ray pivot. Earlier architecture work is included in that checkpoint.
+
+Current checkpoint: the Git commit that contains this documentation refresh is
+the known-good checkpoint for the current implementation. The historical hash
+above remains useful as the architectural-refactor starting point.
 
 Scope: the standalone application in this directory, including the browser editor, canvas renderer, simulator, local JSON API, import adapters, tests, examples, and development scripts.
 
@@ -12,7 +16,7 @@ The project has a sound behavior spine:
 
 chip descriptions -> placed instances -> endpoint wires -> signal propagation -> simulation snapshot -> canvas/UI state
 
-The domain model and simulator are already useful, testable seams. The main architectural weakness remains the application shell. `src/main.js` still owns domain mutations, interaction state machines, persistence orchestration, inspector/help rendering, simulation controls, custom-chip navigation, and rendering coordination, but the library/collection feature now lives in `src/ui/library-controller.js` and shared DOM/icon helpers live in `src/ui/dom-icons.js`.
+The domain model and simulator are already useful, testable seams. The main architectural weakness remains the application shell. `src/main.js` still owns domain mutations, interaction state machines, persistence orchestration, inspector/help rendering, custom-chip navigation, and rendering coordination, but the simulation lifecycle now lives behind `src/simulation-controller.js`; the library/collection feature lives in `src/ui/library-controller.js`, and shared DOM/icon helpers live in `src/ui/dom-icons.js`.
 
 The next refactor should preserve the existing vanilla JavaScript approach. It should create explicit boundaries around the application shell and I/O, not introduce a framework, global event bus, or a generalized plugin system before the product needs one.
 
@@ -28,6 +32,9 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | src/styles.css | All interface and canvas-adjacent CSS | Presentation; currently has an initial layer plus a later override layer |
 | src/ui/dom-icons.js | DOM lookup, Lucide icon snippets, escaping, and icon refresh | Shared browser UI utility |
 | src/ui/library-controller.js | Library rendering, collection tabs/popups, chip drag placement, and collection reorder | Feature UI controller |
+| src/ui/notifications.js | Transient notification creation, stacking, auto-dismissal, and close actions | Feedback UI controller |
+| src/ui/pointer-session.js | Stable pointer origin and click-versus-drag threshold | Input contract utility |
+| src/ui/performance.js | Animation-frame lane scheduler and opt-in diagnostics | Rendering/performance utility |
 
 ### Domain and runtime
 
@@ -38,6 +45,8 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | src/domain/catalog.js | Built-in descriptions, types, colors, collections, and catalog metadata | Built-in catalog |
 | src/simulation.js | Signal algebra, runtime graph, built-in chip execution, recursive custom-chip evaluation, snapshots | Simulation domain/runtime |
 | src/simulation-timeline.js | SimulationBake lifecycle, bounded run recording, stability detection, exact execution head, scrub branching, and bounded pruning | Simulation bake/history policy |
+| src/simulation-preview.js | Short-lived cloned simulator for non-recording causal feedback | Simulation preview policy |
+| src/simulation-controller.js | Browser-facing bake/preview transitions, stepping, scrubbing, timer, and status coordination | Application simulation controller |
 | src/unity-compat.js | Unity-shaped project/chip conversion | Import adapter |
 
 ### Persistence and tooling
@@ -53,7 +62,7 @@ The next refactor should preserve the existing vanilla JavaScript approach. It s
 | storage/projects/*.json | Complete example projects and regression fixtures | Data fixtures, not application source |
 | storage/chips/*.json | Saved custom-chip records | Persistence fixtures |
 | scripts/*.mjs | Example generation and annotation utilities | One-off data tooling |
-| test/*.test.js | Simulator/model/example-project tests | Domain regression suite |
+| test/*.test.js | Simulator/model/example, interaction-contract, bake, performance, and renderer tests | Regression suite |
 
 The package has one runtime dependency surface beyond the browser platform: Vite for development/build tooling. Lucide is loaded from a pinned CDN script in index.html and used as the interface icon source.
 
@@ -121,7 +130,7 @@ Signal states are two bitmasks: bits for values and tri for driven/disconnected 
 
 For a custom runtime, the parent still supplies a map keyed by public input IDs and receives a map keyed by public output IDs. The runtime resolves those IDs through `interfaceBindings`: input values are injected into the bound `IN-*` instance outputs before settling the child network, and bound `OUT-*` instance inputs are projected back into the public output map afterward. This keeps nested composite flow compatible with the existing bake and scrub snapshots.
 
-SimulationBake accepts frames shaped as { version, step, snapshot, signature } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and boundary restoration. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. SimulationTimeline remains as a compatibility export for older tests/integrations.
+SimulationBake accepts frames shaped as { version, step, snapshot, signature, estimatedBytes } and owns the lifecycle states empty, baking, and ready. Its checkpoint rail stores only meaningful visual changes, while executionFrame retains the exact current tick for reliable step counts and step-field restoration. Scrubbing moves the cursor; a subsequent step truncates the future branch. Macro navigation only visits frames already recorded in the current bake and never launches a hidden second simulation. Frame count and estimated byte budgets preserve the first and current/latest frames when pruning. SimulationTimeline remains as a compatibility export for older tests/integrations.
 
 ### Renderer interface
 
@@ -133,9 +142,12 @@ WorldRenderer owns a canvas and exposes:
 - wirePoints and endpointPosition
 - findPin, findJunction, findInstance, findAnnotation, findWire, findWirePoint, and resize-handle queries
 
-When `editorState.xray` is enabled, the renderer adds a clipped, read-only recursive projection for custom instances. The projection is bounded to three levels, 160 child instances, and 240 wires per level, with a cycle guard. It does not alter hit testing, selection, simulation, or project ownership; the full rationale and flow are in [XRAY-ARCHITECTURE.md](XRAY-ARCHITECTURE.md).
+When `editorState.xray` is enabled, the renderer adds a clipped, read-only recursive projection for custom instances. The projection follows every finite nesting level below the current root, with 160 child instances and 240 wires per level plus a cycle guard. It does not alter hit testing, selection, simulation, or project ownership; the full rationale and flow are in [XRAY-ARCHITECTURE.md](XRAY-ARCHITECTURE.md).
 
 The renderer is intentionally imperative and canvas-based. The editor supplies project data plus an editorState snapshot; the renderer does not mutate the project.
+Canvas object strokes are authored in world units and scale with zoom, with a
+one-device-pixel viewport floor so objects remain legible when zoomed out. The
+renderer shares cached world geometry between drawing and hit testing.
 
 ### Persistence interface
 
@@ -159,7 +171,7 @@ The server writes complete project documents atomically through temporary files 
 
 ### Implicit DOM contracts
 
-The application shell depends on stable IDs such as world, project-name, inspector, collection-tabs, collection-popup, bottom-menu-popup, run-sim, step-sim, step-scrubber, and viewed-back. Dynamic controls communicate through data-action, data-field, data-chip, data-collection, and data-context-action attributes.
+The application shell depends on stable IDs such as world, project-name, inspector, collection-tabs, collection-popup, bottom-menu-popup, bake-sim, clear-bake, macro-prev-sim, step-sim, step-scrubber, macro-next-sim, sim-speed, xray-toggle, notifications, and viewed-back. Dynamic controls communicate through data-action, data-field, data-chip, data-collection, data-context-action, and data-notification-close attributes.
 
 These attributes are effectively interfaces, but they are not centralized or type-checked. A renamed ID or action string can fail at runtime during module initialization or delegated event handling.
 
@@ -176,9 +188,9 @@ HTTP API -> JSON repository
 
 The domain must not depend on DOM, canvas, browser storage, or HTTP.
 
-Current ownership is mostly aligned. The first refactor wave removed several leaks; the remaining broad areas are:
+Current ownership is mostly aligned. The first refactor waves removed several leaks; the remaining broad areas are:
 
-- main.js still directly constructs and mutates the project and simulator while also rendering inspector/help and coordinating most editor interactions.
+- main.js still directly constructs and mutates the project and simulator while also rendering inspector/help and coordinating most editor interactions. Simulation transitions are now delegated to simulation-controller.js rather than duplicated across the shell.
 - storage.js remains a compatibility facade around browser cache, export, import, and the extracted API client.
 - server/api.mjs now delegates filesystem behavior to json-repository.mjs.
 - model.js now delegates catalog construction to domain/catalog.js, but remains the project/schema facade until a later rename or move.
@@ -191,8 +203,8 @@ Current ownership is mostly aligned. The first refactor wave removed several lea
 1. index.html creates the shell and loads the Lucide runtime.
 2. main.js loads the browser cache synchronously.
 3. The project is normalized and a Simulator is constructed with an evaluated step-zero snapshot.
-4. The simulation bake is cleared or opened from that snapshot before library, renderer, inspector, and controls are rendered.
-5. The camera fits the current project and the simulation timer starts if not paused.
+4. The simulation controller clears the bake from that snapshot before library, renderer, inspector, and controls are rendered.
+5. The camera fits the current project. The simulation timer remains stopped until the user starts Bake; projects never autoplay on load.
 6. hydrateProjectFromServer asynchronously loads the last/latest server project, replaces the project and simulator, rebuilds the step-zero bake state, then renders again.
 
 This gives fast local-first startup, but the hydration boundary is hidden inside the same module as all editing behavior.
@@ -205,17 +217,20 @@ This gives fast local-first startup, but the hydration boundary is hidden inside
 4. render copies the simulator snapshot onto the project, asks WorldRenderer to draw, updates DOM readouts, renders inspector/help/simulation controls, and refreshes Lucide icons.
 5. Explicit Save or selected autosave paths call saveCurrentProject.
 
-The flow is understandable but broad. A single render can rebuild the inspector, update the help metadata, redraw the canvas, and replace dynamic icons even when only one small region changed.
+The flow is understandable but broad. Full command renders can still rebuild the
+inspector, update Help metadata, redraw the canvas, and replace dynamic icons;
+ordinary pointer movement and simulation paints now use scheduled canvas/UI
+lanes so they do not pay that full-render cost.
 
 ### Simulation loop
 
-1. Run starts a fresh SimulationBake from evaluated step zero; Pause only stops its timer.
-2. runStep syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, and records the exact execution head in the open bake.
-3. Only visually meaningful snapshots become bake checkpoints, so stable combinational ticks do not inflate the scrubber.
-4. A stability window closes finite runs automatically; Bake closes indefinite runs manually.
-5. Paused scrubbing restores a checkpoint, and Start/End/visible-step controls navigate only the current bake.
+1. The simulation controller starts Bake from evaluated step zero; the same control reads Stop while the timer is active.
+2. The controller syncs the simulator to the project, truncates a future branch when necessary, advances the recursive runtime, and records the exact execution head in the open bake.
+3. Only visually meaningful snapshots become bake checkpoints: the signature follows connected signal flow and visible displays, so isolated oscillators and unused pins do not inflate or prolong the bake.
+4. A stability window closes finite bakes automatically; if no checkpoint appears beyond evaluated step zero, the controller canonicalizes the ready bake back to step zero. Stop closes indefinite bakes manually.
+5. Paused scrubbing restores a checkpoint, and the editable step field plus visible-step controls navigate only the current bake. Direct input/key tweaks use a cloned non-recording preview until Bake or Step commits a new official timeline.
 
-The runtime is separated well from the UI. The remaining application-level ownership is intentional: main.js coordinates timer/audio/UI policy, simulation.js owns signal/runtime semantics, and SimulationBake owns the recording contract consumed by the controls.
+The runtime is separated from the UI by three seams: `simulation.js` owns signal/runtime semantics, `simulation-timeline.js` owns recorded history, and `simulation-controller.js` owns browser-facing lifecycle policy. `main.js` supplies rendering, status, audio, and persistence callbacks.
 
 ### Chip placement and library flow
 
@@ -243,7 +258,7 @@ Single-file project import and Unity conversion now live in `io/project-import.j
 
 - Local-first persistence with asynchronous server synchronization.
 - Mutable normalized document as the application state.
-- Imperative controller with a single render pass.
+- Imperative controller with a full render path plus scheduled canvas/simulation lanes.
 - Canvas retained as a stateless projection of project plus editor state.
 - Recursive interpreter/runtime for custom chips.
 - Full-document undo snapshots.
@@ -260,17 +275,17 @@ These patterns are appropriate for a small educational simulator. The problem is
 
 #### 1. The application controller is too large
 
-main.js combines at least seven responsibilities:
+main.js combines at least six responsibilities:
 
 - application bootstrap and hydration
 - editor state and transient interaction state machines
 - project mutation/undo/selection commands
 - wire and placement geometry orchestration
-- dynamic library/collection/inspector/help rendering
-- simulation lifecycle/history/audio
+- dynamic library/inspector/help rendering
+- simulation state presentation and audio callback wiring
 - persistence and import action wiring
 
-The result is a high fan-in/fan-out file with hidden dependencies on global variables, DOM IDs, renderer methods, and callback ordering. New features tend to add another state flag, another branch in cancelTransientInteraction, another render side effect, and another delegated action string.
+The result is still a high fan-in/fan-out file with hidden dependencies on global variables, DOM IDs, renderer methods, and callback ordering. The simulation controller removes one of the most stateful slices; new editor features can still add another state flag, another branch in cancelTransientInteraction, another render side effect, or another delegated action string.
 
 #### 2. Domain definitions are distributed by concern rather than by chip
 
@@ -307,9 +322,14 @@ The file begins with a general application layout and later applies a reference-
 
 Simulator runtime rebuilds are keyed from project._revision. Some meaningful changes intentionally use a non-structural touch call, while bake/checkpoint policy now lives behind SimulationBake and runtime snapshots expose an explicit version/step contract. The distinction is clearer, but the controller still decides which project mutations are structural; a future feature can still update the wrong revision channel.
 
-#### 8. Test coverage is domain-heavy and UI-light
+#### 8. Test coverage is still domain-heavy and UI-light
 
-The tests cover simulator behavior, normalization, and saved examples. They do not cover storage API round trips, import adapters, collection ordering, command transitions, DOM rendering, pointer gestures, or custom-view lifecycle. The most fragile code therefore has the least automated protection.
+The tests now cover simulator behavior, normalization, saved examples,
+collection ordering, pointer-session invariants, render scheduling, stroke
+geometry, bake/timeline/preview transitions, and static-build contracts. They
+still do not cover the browser DOM end to end, storage HTTP round trips,
+full pointer gesture integration, or custom-view lifecycle. The most fragile
+application-shell paths therefore still have less protection than the domain.
 
 ### Lower-priority issues
 
@@ -381,7 +401,7 @@ The following plan removes contradictions and keeps the refactor incremental.
 
 ### First-wave result
 
-The required checkpoint was created before architectural code changes. Steps P0.2 through P0.4 and P1.5 through P1.8 are now implemented: focused contract tests were added; catalog/core, DOM/icon utilities, project import, API client, JSON repository, collection derivation, and the library controller have explicit boundaries. The compatibility facades remain deliberately in place. P2 remains future work because it carries higher behavior risk.
+The required checkpoint was created before architectural code changes. Steps P0.2 through P0.4 and P1.5 through P1.8 are implemented: focused contract tests were added; catalog/core, DOM/icon utilities, project import, API client, JSON repository, collection derivation, and the library controller have explicit boundaries. The simulation-controller extraction is now also implemented: bake/preview transitions, timer ownership, stepping, and scrubbing are no longer duplicated in main.js. The compatibility facades remain deliberately in place. P2 remains future work because it carries higher behavior risk.
 
 ### P0: protect behavior and establish seams
 
@@ -396,13 +416,14 @@ The required checkpoint was created before architectural code changes. Steps P0.
 6. Extract the server JSON repository from HTTP routing.
 7. Extract the library/collection controller from main.js using explicit getters and callbacks for project, editor state, placement, rendering, and menu closure.
 8. Centralize collection-group derivation in the domain layer and remove duplicate ordering logic from the controller.
+9. Extract the browser-facing simulation lifecycle into simulation-controller.js, keeping bake history and preview execution behind explicit callbacks.
 
 ### P2: improve extensibility after the seams are stable
 
-9. Move built-in behavior dispatch into a processor registry with contract tests for combinational, stateful, and display/audio devices.
-10. Split renderer internals by stable visual domains: wires/pins, annotations, chips, and special displays. Keep WorldRenderer as the public adapter.
-11. Replace the layered CSS override structure with a single active shell layer plus explicit legacy removal, preserving the current palette tokens.
-12. Add browser-level interaction tests for placement, group reorder, note resize, internal view navigation, inspector editing, and simulation scrubbing.
+10. Move built-in behavior dispatch into a processor registry with contract tests for combinational, stateful, and display/audio devices.
+11. Split renderer internals by stable visual domains: wires/pins, annotations, chips, and special displays. Keep WorldRenderer as the public adapter.
+12. Replace the layered CSS override structure with a single active shell layer plus explicit legacy removal, preserving the current palette tokens.
+13. Add browser-level interaction tests for placement, group reorder, note resize, internal view navigation, inspector editing, and simulation scrubbing.
 
 ### Explicitly not in this refactor
 
@@ -413,7 +434,7 @@ The required checkpoint was created before architectural code changes. Steps P0.
 - No change to user-facing circuit behavior.
 - No premature plugin system for chips.
 
-The checkpoint must precede steps 3 through 8. Each step should keep the old public import paths where practical and should end with tests/build passing.
+The checkpoint must precede steps 3 through 9. Each step should keep the old public import paths where practical and should end with tests/build passing.
 
 ## Final architectural target
 
@@ -426,7 +447,7 @@ The target topology is:
 - renderer/: WorldRenderer facade plus visual/hit-test subdomains
 - io/project-import.js: web and Unity file adapters
 - io/storage-client.js: local API client
-- ui/: DOM/icon helpers, library controller, inspector/help views
+- ui/: DOM/icon helpers, library controller, notifications, pointer sessions, performance scheduler, inspector/help views
 - app/: bootstrap, editor state, commands, lifecycle orchestration
 - server/json-repository.mjs: filesystem persistence
 - server/api.mjs: HTTP transport/routes

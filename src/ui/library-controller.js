@@ -1,6 +1,6 @@
 import { getDescription } from "../model.js";
 
-export function createLibraryController({ $, escapeHtml, refreshIcons, getProject, getState, collectionGroupsFor, canvas, renderer, beginPlacement, updatePlacementPreview, placeAt, cancelPlacement, closeBottomMenu, render, touch, saveCurrentProject }) {
+export function createLibraryController({ $, escapeHtml, refreshIcons, getProject, getState, collectionGroupsFor, canvas, renderer, beginPlacement, updatePlacementPreview, placeAt, cancelPlacement, closeBottomMenu, render, scheduleCanvasRender, getCanvasRect, touch, saveCurrentProject }) {
   function project() { return getProject(); }
   function state() { return getState(); }
 
@@ -136,10 +136,11 @@ export function createLibraryController({ $, escapeHtml, refreshIcons, getProjec
       beginPlacement(drag.name);
     }
     event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
+    const rect = getCanvasRect?.() ?? canvas.getBoundingClientRect();
     state().mouseWorld = renderer.toWorld(event.clientX - rect.left, event.clientY - rect.top);
     updatePlacementPreview(state().mouseWorld);
-    render();
+    if (scheduleCanvasRender) scheduleCanvasRender();
+    else render();
   }
 
   function finishChipDrag(event, cancelled = false) {
@@ -154,7 +155,7 @@ export function createLibraryController({ $, escapeHtml, refreshIcons, getProjec
       if (state().placement) cancelPlacement();
       return;
     }
-    const rect = canvas.getBoundingClientRect();
+    const rect = getCanvasRect?.() ?? canvas.getBoundingClientRect();
     const insideCanvas = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     if (!insideCanvas) {
       cancelPlacement();

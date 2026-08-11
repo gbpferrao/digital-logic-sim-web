@@ -4,6 +4,39 @@ Status: reconciled performance plan
 
 Baseline checkpoint: `72d8969` (`Checkpoint nested X-ray signal tracing`)
 
+## Implementation status
+
+The first implementation pass is now in place without changing the editor or
+simulation contracts:
+
+- Wave 0: opt-in diagnostics are available with `?perf=1` or
+  `globalThis.__DLS_PERF__ = true`; the report is exposed as
+  `globalThis.__DLS_PERF_REPORT__()`.
+- Wave 1: pointer and simulation paints are coalesced at the animation-frame
+  boundary; canvas/simulation paints no longer rebuild inspector, Help, or
+  global icons; canvas bounds are reused between layout changes.
+- Wave 2: shared world geometry covers root instances, pins, annotations,
+  junctions, and wires for drawing and hit testing, with viewport culling and
+  wire broad-phase checks.
+- Wave 3: X-ray definitions reuse cached nested geometry while signal lookup
+  and activation colours remain dynamic. There is no fixed visual-depth cutoff;
+  cycle detection and per-level instance/wire budgets bound the projection.
+- Wave 4: settle convergence uses output change counters instead of building
+  and serializing a complete runtime signal string on every pass. Simulator
+  diagnostics expose evaluation count, settle passes, depth, and safety-limit
+  hits.
+- Wave 5: bake frames carry estimated memory ownership and a conservative byte
+  budget while preserving the first and current/latest checkpoints.
+- Latest bake pass: the simulation clock uses a guarded self-scheduling timer,
+  so a slow step cannot accumulate interval callbacks; it preserves the target
+  cadence by subtracting the completed step time from the next delay. Visual
+  signature topology is cached for the active project, and simulator
+  diagnostics are computed lazily only when the opt-in report reads them.
+
+Periodic full keyframes/deltas, a spatial index, compiled dependency topology,
+and more aggressive snapshot compression remain deliberately deferred until
+the opt-in report demonstrates that they are needed.
+
 This is a practical performance plan for the vanilla browser application. It
 keeps the current interaction model, simulation behavior, X-ray traceability,
 and bake/scrub contract intact. It does not propose a framework migration or a
@@ -11,20 +44,22 @@ general-purpose rendering engine.
 
 ## Executive diagnosis
 
-The initial payload is already reasonable for this project. The current
-production build is approximately:
+The initial payload is already reasonable for this project. The latest
+production build reports:
 
-| Asset | Raw size | Approx. Brotli |
+| Asset | Raw size | Gzip |
 | --- | ---: | ---: |
-| JavaScript | 164 KB | 40.5 KB |
-| CSS | 38 KB | 6.6 KB |
-| HTML | 24 KB | 4.2 KB |
-| Core initial payload | 226 KB | about 51 KB |
+| JavaScript | 182.53 KB | 53.13 KB |
+| CSS | 40.10 KB | 7.77 KB |
+| HTML | 23.35 KB | 4.99 KB |
+| Core initial payload | 246.0 KB | 65.89 KB |
 
-The main browser cost is repeated work on the main thread:
+The remaining browser cost is concentrated in repeated work on the main
+thread. Ordinary pointer and simulation paints now use a scheduled canvas lane;
+full command renders still follow this broader path:
 
 ```text
-pointer/simulation change
+full command mutation
   -> full application render
   -> full canvas redraw
   -> inspector and status DOM work
@@ -41,29 +76,35 @@ one step
   -> visual-signature allocation and serialization
 ```
 
-The most valuable first boundary is therefore a small render coordinator,
-followed by contained simulation hot-path improvements.
+The render coordinator and contained simulation improvements are now the
+current baseline. The next valuable work is measured topology compilation or
+snapshot compression only if the opt-in report shows that the remaining costs
+justify their complexity.
 
 ## Current evidence
 
-The read-only reviews identified these repeated costs:
+The read-only reviews identified these repeated costs. The first implementation
+wave now addresses the marked geometry/settling issues; the remaining costs are
+kept here so future measurements have an explicit baseline:
 
-- `main.js` has many direct `render()` call sites. Pointer movement, wheel
-  zoom, dragging, wire routing, simulation steps, and hover changes can all
-  redraw synchronously.
+- `main.js` still has many direct full-render call sites for commands. Pointer
+  movement, wheel zoom, dragging, wire routing, simulation steps, and hover
+  changes use the scheduler where they only need canvas/status updates.
 - `render()` combines canvas drawing, inspector regeneration, simulation
   controls, status updates, help metadata, and icon hydration.
-- `refreshIcons()` performs a global Lucide scan even when only the canvas
-  changed.
-- Hit testing scans pins, junctions, annotations, instances, wires, and every
-  wire segment. Geometry is rebuilt for both hit testing and drawing.
-- The renderer draws all root objects whether they are inside the viewport or
-  not. X-ray has depth and count limits, but nested geometry is still rebuilt
-  each frame.
-- `settleNetwork()` may run up to 32 passes and compares full runtime signal
-  strings on each pass.
-- Every simulation step creates a full nested snapshot. The current bake cap is
-  a frame-count cap, not a memory cap.
+- Full renders still perform a global Lucide scan; targeted canvas/simulation
+  lanes avoid icon work when only the canvas changed.
+- Hit testing still scans pins, junctions, annotations, instances, wires, and
+  route segments, but it now reuses cached world geometry and wire broad-phase
+  bounds rather than rebuilding the geometry for every query.
+- Root drawing now uses viewport culling. X-ray has per-level instance/wire
+  budgets and a cycle guard; nested geometry is reused where the cache applies.
+- `settleNetwork()` still has a 32-pass safety limit, but convergence now uses
+  output-change counters instead of serializing the complete runtime signal
+  state on every pass.
+- Every simulation step creates a full nested snapshot. The bake now has both
+  frame-count and estimated-byte caps; the byte estimate is conservative and
+  remains a candidate for better measurement if long histories become common.
 - The visual signature scans, sorts, copies display arrays, and serializes
   nested signal state on every recorded step.
 
@@ -116,10 +157,10 @@ be rebuilt merely because the pointer moved over the canvas.
 
 ## Prioritized implementation waves
 
-### Wave 0 — measurement harness
+### Wave 0 — implemented measurement harness
 
-Add development-only timing and memory diagnostics before changing the hot
-paths. Instrument:
+The development-only timing and memory diagnostics are available behind
+`?perf=1` or `globalThis.__DLS_PERF__ = true`. They instrument:
 
 - `render()` total time;
 - `renderer.draw()` time;
@@ -152,14 +193,14 @@ Record p50, p95, worst frame, JavaScript heap growth, and visible-versus-total
 object counts. Keep one repeatable benchmark script for simulation timing and
 one browser trace checklist for interaction timing.
 
-### Wave 1 — frame scheduling and targeted UI updates
+### Wave 1 — implemented frame scheduling and targeted UI updates
 
-Highest return and lowest risk.
+This is the current low-risk scheduling boundary.
 
-1. Add a small render scheduler with `requestAnimationFrame` and a pending
-   flag. Mutations request a frame; they do not synchronously render multiple
-   times in one browser turn.
-2. Split the current render operation into lanes:
+1. `createRenderScheduler` coalesces requests with `requestAnimationFrame`
+   (and a timer fallback outside a browser). Mutations request a frame instead
+   of synchronously rendering multiple canvas updates in one turn.
+2. The render operation has lanes for:
 
    - canvas;
    - transient canvas status/coordinates;
@@ -167,14 +208,14 @@ Highest return and lowest risk.
    - simulation controls;
    - library and modal metadata.
 
-3. Give each lane an invalidation condition. Pointer motion should normally
-   update the canvas and coordinate readout, not rebuild the inspector,
-   library, Help metadata, and every toolbar icon.
-4. Let the simulation timer advance state and record its bake independently;
-   the next animation frame paints the latest state.
-5. Replace the current interval behavior with a guarded/self-scheduling clock
-   if measurements show callbacks can queue behind expensive steps. Never let
-   a slower step create overlapping simulation runs.
+3. Each lane has an invalidation condition. Pointer motion normally updates
+   the canvas and coordinate readout, not the inspector, library, Help
+   metadata, or every toolbar icon.
+4. The simulation timer advances state and records its bake independently; the
+   next animation frame paints the latest state.
+5. The clock is a guarded, self-scheduling timeout. A slow step cannot queue
+   overlapping simulation runs; the next delay subtracts completed step time
+   from the target cadence.
 6. Refresh Lucide icons only after a subtree’s markup changes. Initialize
    static icons once and scope refreshes to newly inserted dynamic regions.
 7. Cache the canvas `getBoundingClientRect()` through the existing resize
@@ -188,13 +229,11 @@ Acceptance criteria:
 - bake frame order and scrub behavior are unchanged;
 - no interaction task over 50 ms in the normal benchmark set.
 
-### Wave 2 — reusable geometry and viewport work
+### Wave 2 — implemented reusable geometry and viewport work
 
-Do this after Wave 1 so measurements distinguish scheduling gains from geometry
-gains.
+The renderer now derives a world-geometry cache after Wave 1 so scheduling and
+geometry gains remain separately measurable. It is shared across:
 
-Create a derived world-geometry cache, either inside `WorldRenderer` first or
-as a small focused module later. Share it across:
 
 - canvas drawing;
 - instance/pin/annotation hit testing;
@@ -210,19 +249,19 @@ Cache:
 - wire point arrays and segment bounds;
 - stable caption layout where text and dimensions are unchanged.
 
-Cache keys should include the active root/view and project revision. Invalidate
-only after a relevant topology, position, rotation, route, annotation, or
-custom-chip-definition change. Do not cache screen coordinates.
+Cache keys include the active root/view and project revision. Invalidate only
+after a relevant topology, position, rotation, route, annotation, or
+custom-chip-definition change. Screen coordinates are never cached.
 
-Then add:
+The implementation includes:
 
 1. A padded world-space viewport check for root instances, annotations,
    junctions, and wires.
 2. Broad-phase wire/instance bounds before exact segment-distance tests.
-3. A simple uniform spatial grid only when object counts or measured hit-test
-   time justify it. A general tree is unnecessary at this stage.
-4. Two batched grid paths (regular and highlighted) before considering a
-   separate offscreen grid layer.
+3. No general spatial tree or uniform grid yet; the simple broad-phase is the
+   current measured boundary.
+4. Batched regular and highlighted grid paths without a separate offscreen
+   layer.
 
 During active panning, hover hit testing can be skipped when no interaction
 depends on it. During an active drag, retain only the hit tests required for
@@ -236,15 +275,19 @@ Acceptance criteria:
 - heap growth stabilizes during continuous pan;
 - large-circuit frame time improves without changing visual output.
 
-### Wave 3 — bounded X-ray geometry
+### Wave 3 — implemented bounded X-ray geometry
 
 Keep the existing safety limits:
 
-- maximum depth: 3;
 - maximum instances: 160;
 - maximum wires: 240.
 
-Precompute a per-description X-ray render tree containing immutable structure:
+There is no fixed maximum nesting depth. The cycle guard stops recursive chip
+identity paths, while the per-level budgets prevent a single large definition
+from overwhelming the canvas.
+
+The renderer caches/reuses per-description geometry where possible. The
+projected structure contains:
 
 - nested child identity and scope path;
 - local transforms;
@@ -267,14 +310,14 @@ Acceptance criteria:
 - repeated custom-chip instances do not share signal state accidentally;
 - enabling X-ray stays bounded and has a measured activation cost.
 
-### Wave 4 — simulation hot path
+### Wave 4 — partially implemented simulation hot path
 
-This is the deeper algorithmic work and should follow measurement plus the
-renderer waves.
+The convergence part is implemented and the remaining topology work should
+follow measurement plus the renderer waves.
 
-1. Replace `snapshotRuntimeSignals()` string creation in settle convergence
-   checks with a direct mutation/change counter. Preserve the 32-pass safety
-   limit and add diagnostics when it is reached.
+1. Implemented: settle convergence uses a direct output-change counter,
+   preserves the 32-pass safety limit, and exposes diagnostics when it is
+   reached.
 2. Compile immutable runtime topology once per project revision:
 
    - pin lookup maps;
@@ -304,21 +347,21 @@ Acceptance criteria:
 - sophisticated composite step time improves in repeatable benchmarks;
 - no extra simulation path is introduced for X-ray.
 
-### Wave 5 — bake memory and restore policy
+### Wave 5 — implemented bake memory and restore policy
 
-First add diagnostics and a byte-oriented budget to `SimulationBake` while
-keeping its public frame/cursor API stable. Measure actual snapshot sizes before
-enforcing an aggressive limit.
+`SimulationBake` now has an estimated byte budget while keeping its public
+frame/cursor API stable. The estimate is a conservative diagnostic and pruning
+signal, not a claim about exact JavaScript heap usage.
 
-Conservative order:
+The implementation order is:
 
-1. Make bake-frame ownership explicit and avoid unnecessary defensive cloning
+1. Bake frames carry estimated ownership and avoid unnecessary defensive cloning
    during internal restore when the frame is already immutable to the UI.
 2. Estimate frame bytes and report bake memory in development diagnostics.
 3. Preserve the first frame and the current/latest frame when pruning by a
    memory budget.
-4. Only if measurements justify it, add periodic full keyframes plus compact
-   deltas inside `SimulationBake`.
+4. Periodic full keyframes plus compact deltas remain deferred until measured
+   memory pressure justifies the added representation.
 5. Keep `frameAt`, `setCursor`, `restore`, macro navigation, and scrubber
    semantics unchanged.
 

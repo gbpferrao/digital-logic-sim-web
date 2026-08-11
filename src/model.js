@@ -171,7 +171,7 @@ export function createProject(name = "Untitled project") {
       snapping: true,
       straightWires: false,
       grid: true,
-      simulationPaused: false,
+      simulationPaused: true,
       stepsPerSecond: 8,
       stepsPerClock: 8
     },
@@ -195,7 +195,9 @@ export function normalizeProject(raw) {
     project.customChips[name].fit = deriveReusableFit(project, project.customChips[name], { ignoreReusableChildFits: missingFits });
     refreshInterfacePorts(project, project.customChips[name]);
   }
-  project.settings = { ...base.settings, ...(raw?.settings ?? {}) };
+  // A loaded project is always opened paused. Running is an explicit UI
+  // action, never a persisted side effect of the previous session.
+  project.settings = { ...base.settings, ...(raw?.settings ?? {}), simulationPaused: true };
   project.collections = raw?.collections?.length ? raw.collections : clone(COLLECTIONS);
   project.collectionOrder = collectionOrderFor(raw?.collectionOrder, project.collections);
   project.starred = raw?.starred ?? ["IN/OUT", TYPE.NAND];

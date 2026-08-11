@@ -39,12 +39,22 @@ Light popup surfaces use the same grayscale scale in a separate set of tokens:
 
 ## Simulation controls
 
-The RUN/PAUSE control is intentionally an exception because it communicates simulation state, not interface hierarchy:
+Simulation controls use the same grayscale system as the rest of the interface. Their tokens are named by control role, not by hue:
 
-- `--sim-run-border`, `--sim-run-text`, and `--sim-run-surface` identify the runnable state with green.
-- `--sim-pause-border`, `--sim-pause-text`, and `--sim-pause-surface` identify the paused/running-toggle state with amber.
+- `--sim-run-border`, `--sim-run-text`, and `--sim-run-surface` identify the idle Bake/Clear treatment.
+- `--sim-pause-border`, `--sim-pause-text`, and `--sim-pause-surface` identify the active Baking/Stop treatment.
 
-Saved/dirty markers and other runtime warnings may also use green, amber, or red. These colors must stay tied to a clear state and should not become general-purpose UI decoration.
+The Bake rail follows the same interaction rule as every other UI button: borders remain structural and stable. Hover, active, selected, and disabled states are shown through fill, text/icon contrast, and opacity—not by changing the button stroke. The active Baking/Stop state uses the active grayscale fill; Clear is a normal action with the normal control fill and hover fill.
+
+The bake scrubber uses the same hierarchy inside its range track:
+
+- the filled progress portion and thumb use `--ui-accent-strong` (`#f5f5f6`) so the current history position is immediately legible;
+- the unfilled portion is a faint white tint over the dark control surface, so it remains present without competing with the current position;
+- a disabled or unavailable scrubber is muted by the enclosing rail's opacity rather than by introducing another color.
+
+The progress fill is driven by the current bake cursor, while the scrubber remains mounted even when a bake has no meaningful history to navigate.
+
+Saved/dirty markers and runtime warnings may use semantic colors. Those colors must stay tied to a clear state and should not become general-purpose UI decoration.
 
 ## Circuit-color boundary
 
@@ -72,14 +82,15 @@ Red is reserved for invalid connections, errors, and other genuinely problematic
 
 - New buttons, toolbar groups, drawers, cards, menus, help dialogs, status readouts, and dividers start with grayscale tokens.
 - Use `--ui-line` or `--ui-line-soft` according to the contrast needed by the surface. Light popups use the `--ui-light-*` equivalents.
-- Use luminance and border weight to distinguish hover, active, selected, and disabled states; do not introduce a blue replacement accent.
+- Use fill, text/icon contrast, and opacity to distinguish hover, active, selected, and disabled button states. Keep button borders/strokes structural and stable; do not use a brighter or colored stroke as the button-state highlight.
+- Reserve `:focus-visible` outlines for keyboard accessibility. Focus rings are the deliberate exception to the stable-button-border rule.
 - Use `--ui-focus` for keyboard focus so focus remains visible without competing with circuit colors.
-- Keep the run-control tokens local to simulation controls. Do not reuse green or amber as generic button states.
+- Keep the run-control tokens local to simulation controls. Their names describe state roles, while their values remain within the grayscale UI family.
 - When adding a new runtime/circuit state, place its color with the semantic model or renderer/component palette rather than adding it to the UI chrome tokens.
 
 ## Review checklist
 
-When adding or changing a UI surface, check that its normal, hover, active, focus, and divider colors all come from the grayscale token family. Then verify that the change did not alter canvas semantics such as wire state, pin state, output state, component identity, or user-selected annotation color.
+When adding or changing a UI surface, check that its normal, hover, active, focus, and divider colors all come from the grayscale token family. For buttons, verify that the state change is carried by fill, text/icon contrast, or opacity and that the border remains structural. Then verify that the change did not alter canvas semantics such as wire state, pin state, output state, component identity, or user-selected annotation color.
 
 ## Icon and signal audit
 

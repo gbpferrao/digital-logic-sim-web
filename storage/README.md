@@ -17,3 +17,12 @@ The local API is served at `http://127.0.0.1:5174` by default:
 The Vite dev server proxies `/api` to that port. Change it with `DLS_API_PORT`; change the web port with `DLS_WEB_PORT` when using `npm run dev`.
 
 The browser keeps a local cache so the UI can render immediately. The primary Save action writes the current project and its custom chips to the API source JSON files; its first use asks whether the new circuit should be saved as a project or as a chip. Server persistence happens asynchronously without a page reload; if the API is unavailable, Save still updates the browser cache and reports that fallback in the UI.
+
+## Static hosting
+
+The GitHub Pages build sets `VITE_STATIC_MODE=true`. In that mode `src/storage.js`
+never calls `/api`; Save writes the cleaned project to the browser's
+`digital-logic-sim-web:project` cache, and JSON export/import is the portable
+sharing path. The bundled files in `public/examples/` are copied from
+`storage/projects/` and `storage/chips/` during `npm run build`, so the hosted
+site does not need a backend or writable repository.

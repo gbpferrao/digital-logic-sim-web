@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { BUILTINS, TYPE, createProject, customFromRoot, instanceFor } from "../src/model.js";
+import { BUILTINS, TYPE, createProject, customFromRoot, instanceFor, normalizeProject } from "../src/model.js";
 import { Simulator, simulationScopeKey } from "../src/simulation.js";
 
 function addNandCircuit(aValue, bValue) {
@@ -40,6 +40,11 @@ function addGateCircuit(name, aValue, bValue = 0) {
   project._revision = 1;
   return { project, output, a, b };
 }
+
+test("projects always open paused, regardless of a persisted run flag", () => {
+  assert.equal(createProject("new").settings.simulationPaused, true);
+  assert.equal(normalizeProject({ settings: { simulationPaused: false } }).settings.simulationPaused, true);
+});
 
 test("all reference built-ins can execute one simulation step", () => {
   for (const name of Object.keys(BUILTINS)) {

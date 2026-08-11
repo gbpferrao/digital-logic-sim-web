@@ -57,35 +57,23 @@
             </div>
             <div class="sim-control-stack">
               <div class="sim-controls">
-                <button id="run-sim" class="run-button button-with-icon" title="Run simulation" aria-pressed="false"><i class="icon-glyph" data-lucide="play" aria-hidden="true"></i><span id="run-sim-label">RUN</span></button>
-                <label class="speed-control" title="Simulation steps per second">
-                  <span class="speed-input-shell">
-                    <span class="speed-label" aria-hidden="true">speed</span>
-                    <input id="sim-speed" type="number" min="1" max="30" step="1" value="8" inputmode="numeric" aria-label="Simulation steps per second" />
-                    <span class="speed-unit" aria-hidden="true">/s</span>
-                  </span>
-                </label>
-                <button id="bake-sim" class="tool-button button-with-icon simulation-bake-button" type="button" title="Register the current simulation as a bake" disabled><i class="icon-glyph" data-lucide="layers-2" aria-hidden="true"></i><span id="bake-sim-label">BAKE</span></button>
-                <button id="clear-bake" class="tool-button button-with-icon clear-bake-button" type="button" title="Clear the current simulation bake" disabled><i class="icon-glyph" data-lucide="eraser" aria-hidden="true"></i><span>CLEAR</span></button>
-                <div class="step-control-group" aria-label="Simulation stepping">
-                  <button id="start-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Jump to simulation start" aria-label="Jump to simulation start"><i class="icon-glyph" data-lucide="chevrons-left" aria-hidden="true"></i></button>
-                  <button id="macro-prev-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Previous canvas-visible simulation step" aria-label="Previous canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-back" aria-hidden="true"></i></button>
-                  <button id="step-sim" class="tool-button button-with-icon" type="button" title="Advance one exact simulation step"><i class="icon-glyph" data-lucide="step-forward" aria-hidden="true"></i><span id="step-sim-label">Step 0</span></button>
-                  <button id="macro-next-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Next canvas-visible simulation step" aria-label="Next canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-forward" aria-hidden="true"></i></button>
-                  <button id="end-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Jump to latest simulation step" aria-label="Jump to latest simulation step"><i class="icon-glyph" data-lucide="chevrons-right" aria-hidden="true"></i></button>
+                <div class="bake-control-group" aria-label="Simulation bake and timeline">
+                  <button id="bake-sim" class="bake-button button-with-icon simulation-bake-button" type="button" title="Bake the current circuit" aria-pressed="false"><i class="icon-glyph" data-lucide="layers-2" aria-hidden="true"></i><span id="bake-sim-label">BAKE</span></button>
+                  <div class="step-control-group" aria-label="Simulation stepping">
+                    <button id="macro-prev-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Previous canvas-visible simulation step" aria-label="Previous canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-back" aria-hidden="true"></i></button>
+                    <input id="step-sim" class="step-input" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="Current simulation step" title="Current simulation step; enter a recorded step to jump there" />
+                    <div id="step-scrubber-wrap" class="step-scrubber" title="Scrub the current bake">
+                      <input id="step-scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub simulation steps" />
+                    </div>
+                    <button id="macro-next-sim" class="tool-button button-with-icon step-jump-button" type="button" title="Next canvas-visible simulation step" aria-label="Next canvas-visible simulation step"><i class="icon-glyph" data-lucide="skip-forward" aria-hidden="true"></i></button>
+                  </div>
+                  <button id="clear-bake" class="tool-button button-with-icon clear-bake-button" type="button" title="Clear the current simulation bake" disabled><i class="icon-glyph" data-lucide="eraser" aria-hidden="true"></i><span>CLEAR</span></button>
                 </div>
-              </div>
-              <div id="step-scrubber-wrap" class="step-scrubber hidden">
-                <input id="step-scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub simulation steps" />
               </div>
             </div>
           </div>
           <div id="canvas-wrap" class="canvas-wrap">
             <canvas id="world" aria-label="Digital logic circuit editor"></canvas>
-            <div id="canvas-empty" class="canvas-empty">
-              <div class="empty-orbit" aria-hidden="true"><i class="icon-glyph" data-lucide="plus"></i></div>
-              <strong>Empty circuit</strong>
-            </div>
             <button id="canvas-inspect-button" class="canvas-inspect-button hidden" type="button" aria-label="Inspect selected chip" title="Inspect selected chip"><i class="icon-glyph" data-lucide="info" aria-hidden="true"></i></button>
           </div>
           <footer class="canvas-status" aria-label="Canvas status">
@@ -103,6 +91,13 @@
               </span>
               <button id="fit-view" class="status-button button-with-icon" title="Fit circuit to view"><i class="icon-glyph" data-lucide="maximize-2" aria-hidden="true"></i><span>FIT</span></button>
               <button id="xray-toggle" class="status-button button-with-icon" type="button" title="Show composite-chip internals (X)" aria-label="Toggle X-ray composite internals" aria-pressed="false"><i class="icon-glyph" data-lucide="scan-eye" aria-hidden="true"></i><span>X-RAY</span></button>
+              <label class="status-speed-control speed-control" title="Simulation steps per second">
+                <span class="status-readout-label">SPEED</span>
+                <span class="speed-input-shell">
+                  <input id="sim-speed" type="number" min="1" max="30" step="1" value="8" inputmode="numeric" aria-label="Simulation steps per second" />
+                  <span class="speed-unit" aria-hidden="true">steps/s</span>
+                </span>
+              </label>
             </div>
           </footer>
         </section>
@@ -160,7 +155,7 @@
                 <div class="help-guidance-item"><strong>Place</strong><span>Open the Library or a bottom-bar group, then click a chip to place it. Drag a chip directly onto the canvas for direct placement.</span></div>
                 <div class="help-guidance-item"><strong>Connect</strong><span>Click a pin to start or finish a compatible wire, or drag directly from one pin to another. Click empty canvas to add route points.</span></div>
                 <div class="help-guidance-item"><strong>Inspect</strong><span>Select an object to open its Inspector. Double-click chips, wires, notes, and labels for their edit action.</span></div>
-                <div class="help-guidance-item"><strong>Simulate</strong><span>Click input devices to toggle them, use RUN or STEP to advance the circuit, and START to return to its initial state.</span></div>
+                <div class="help-guidance-item"><strong>Simulate</strong><span>Click input devices to toggle them, use BAKE or SPACE to evaluate the circuit, and CLEAR to return to its initial state.</span></div>
               </div>
             </section>
             <div class="help-section-divider" aria-hidden="true"></div>
@@ -209,13 +204,11 @@
             <section class="help-group">
               <h3>Simulation</h3>
               <div class="help-command"><kbd>INPUT</kbd><span>Click an input device to toggle its value</span></div>
-              <div class="help-command"><kbd>SPACE</kbd><span>Advance one step while paused</span></div>
-              <div class="help-command"><kbd>CTRL + SPACE</kbd><span>Start a fresh bake or pause the current one</span></div>
-              <div class="help-command"><kbd>RUN</kbd><span>Start a fresh recorded simulation bake</span></div>
-              <div class="help-command"><kbd>BAKE</kbd><span>Manually register an open-ended run and stop it</span></div>
+              <div class="help-command"><kbd>SPACE</kbd><span>Advance one exact step, or move to the next recorded frame after baking</span></div>
+              <div class="help-command"><kbd>CTRL + SPACE</kbd><span>Start baking, or stop and keep the current bake</span></div>
+              <div class="help-command"><kbd>BAKE / STOP</kbd><span>Bake the circuit; while baking, stop and keep the recorded timeline</span></div>
               <div class="help-command"><kbd>CLEAR</kbd><span>Discard the current bake and return to evaluated step zero</span></div>
-              <div class="help-command"><kbd>STEP</kbd><span>Advance within or extend the current bake</span></div>
-              <div class="help-command"><kbd>START / END</kbd><span>Jump to the first or latest frame in the current bake</span></div>
+              <div class="help-command"><kbd>STEP FIELD</kbd><span>Enter a recorded step number to jump to its nearest baked frame</span></div>
               <div class="help-command"><kbd>VISIBLE STEP</kbd><span>Move between canvas-visible frames already recorded in the bake</span></div>
               <div class="help-command"><kbd>SPEED</kbd><span>Set simulation steps per second</span></div>
               <div class="help-command"><kbd>SCRUB</kbd><span>When paused, move through the current bake’s recorded frames</span></div>
@@ -243,8 +236,10 @@
                 <div>
                   <strong>PROJECTS</strong>
                   <div class="help-example-list">
+                    <a href="examples/projects/bake-controls-lab.json" download>Bake Controls Lab</a>
                     <a href="examples/projects/basic-alu.json" download>Basic ALU</a>
                     <a href="examples/projects/full-adder.json" download>1-bit Full Adder</a>
+                    <a href="examples/projects/indefinite-clock-lab.json" download>Indefinite Bake Lab</a>
                     <a href="examples/projects/simple-alu.json" download>Simple ALU</a>
                     <a href="examples/projects/sophisticated-alu.json" download>Sophisticated 4-bit ALU</a>
                     <a href="examples/projects/step-showcase.json" download>Step Progression Lab</a>

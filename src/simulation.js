@@ -116,7 +116,7 @@ function pinStateMap(description) {
   return map;
 }
 
-function runtimeFor(description, project) {
+function runtimeFor(description, project, depth = 0) {
   const interfaceInputs = new Map(interfaceBindingsFor(description, "input").map((binding) => [String(binding.instanceId), binding]));
   const interfaceOutputs = new Map(interfaceBindingsFor(description, "output").map((binding) => [String(binding.instanceId), binding]));
   const runtime = {
@@ -127,7 +127,11 @@ function runtimeFor(description, project) {
     rootOutputs: pinStateMap({ inputPins: [], outputPins: description.outputPins ?? [] }),
     interfaceInputs,
     interfaceOutputs,
-    lastTick: -1
+    lastTick: -1,
+    depth,
+    signalVersion: 0,
+    settlePasses: 0,
+    settleLimitHits: 0
   };
   for (const instance of description.instances ?? []) {
     const desc = getDescription(project, instance.name);
@@ -137,12 +141,13 @@ function runtimeFor(description, project) {
       description: desc,
       inputs: pinStateMap({ inputPins: desc.inputPins, outputPins: [] }),
       outputs: pinStateMap({ inputPins: [], outputPins: desc.outputPins }),
-      child: desc.kind === "custom" ? runtimeFor(desc, project) : null,
+      child: desc.kind === "custom" ? runtimeFor(desc, project, depth + 1) : null,
       interfaceInput: interfaceInputs.get(String(instance.id)) ?? null,
       interfaceOutput: interfaceOutputs.get(String(instance.id)) ?? null,
       interfaceInputValue: null,
       internal: clone(instance.internalData ?? {}),
-      lastTick: -1
+      lastTick: -1,
+      runtime
     });
   }
   return runtime;
@@ -191,7 +196,14 @@ function propagateAll(runtime) {
 }
 
 function setOutput(item, id, value) {
-  if (item.outputs.has(String(id))) item.outputs.set(String(id), copyState(value));
+  const key = String(id);
+  if (!item.outputs.has(key)) return;
+  const next = copyState(value);
+  const previous = item.outputs.get(key);
+  if (!stateEqual(previous, next)) {
+    item.outputs.set(key, next);
+    item.runtime.signalVersion += 1;
+  }
 }
 
 function getInput(item, id) { return item.inputs.get(String(id)) ?? disconnected(); }
@@ -378,13 +390,32 @@ function settleNetwork(runtime, simulator, tickId) {
   for (let pass = 0; pass < 32; pass += 1) {
     resetDerivedSignals(runtime);
     propagateAll(runtime);
-    const before = snapshotRuntimeSignals(runtime);
+    const beforeVersion = runtime.signalVersion;
     for (const item of runtime.instances.values()) processInstance(item, simulator, tickId, false);
-    if (before === snapshotRuntimeSignals(runtime)) break;
+    runtime.settlePasses += 1;
+    if (runtime.signalVersion === beforeVersion) break;
+    if (pass === 31) runtime.settleLimitHits += 1;
   }
 }
 
+function resetRuntimeMetrics(runtime) {
+  runtime.signalVersion = 0;
+  runtime.settlePasses = 0;
+  runtime.settleLimitHits = 0;
+  for (const item of runtime.instances.values()) if (item.child) resetRuntimeMetrics(item.child);
+}
+
+function collectRuntimeMetrics(runtime, metrics = { evaluations: 0, settlePasses: 0, settleLimitHits: 0, maxDepth: 0 }) {
+  metrics.evaluations += 1;
+  metrics.settlePasses += runtime.settlePasses;
+  metrics.settleLimitHits += runtime.settleLimitHits;
+  metrics.maxDepth = Math.max(metrics.maxDepth, runtime.depth ?? 0);
+  for (const item of runtime.instances.values()) if (item.child) collectRuntimeMetrics(item.child, metrics);
+  return metrics;
+}
+
 function evaluateNetwork(runtime, simulator, tickId, externalInputs = new Map(), commitState = true) {
+  resetRuntimeMetrics(runtime);
   runtime.lastTick = tickId;
   for (const pin of runtime.description.inputPins ?? []) runtime.rootInputs.set(String(pin.id), copyState(externalInputs.get(String(pin.id)) ?? disconnected()));
   for (const item of runtime.instances.values()) {
@@ -411,17 +442,6 @@ function evaluateNetwork(runtime, simulator, tickId, externalInputs = new Map(),
   const outputs = new Map();
   for (const pin of runtime.description.outputPins ?? []) outputs.set(String(pin.id), runtime.rootOutputs.get(String(pin.id)) ?? disconnected());
   return { outputs, runtime };
-}
-
-function snapshotRuntimeSignals(runtime) {
-  const values = [];
-  for (const [key, value] of runtime.rootOutputs) values.push(`r:${key}:${value.bits}:${value.tri}`);
-  for (const [key, value] of runtime.junctions) values.push(`j:${key}:${value.bits}:${value.tri}`);
-  for (const [id, item] of runtime.instances) {
-    for (const [key, value] of item.inputs) values.push(`i:${id}:${key}:${value.bits}:${value.tri}`);
-    for (const [key, value] of item.outputs) values.push(`o:${id}:${key}:${value.bits}:${value.tri}`);
-  }
-  return values.join("|");
 }
 
 function collectSnapshot(runtime, result = emptySnapshot(), scopePath = []) {
@@ -467,7 +487,19 @@ export class Simulator {
     this.runtime = null;
     this.snapshot = emptySnapshot();
     this.audioNotes = [];
+    this._diagnostics = { evaluations: 0, settlePasses: 0, settleLimitHits: 0, maxDepth: 0 };
+    this._diagnosticsDirty = true;
     this.syncProject(project);
+  }
+
+  get diagnostics() {
+    return this._diagnosticsDirty ? this.updateDiagnostics() : this._diagnostics;
+  }
+
+  updateDiagnostics() {
+    this._diagnostics = collectRuntimeMetrics(this.runtime);
+    this._diagnosticsDirty = false;
+    return this._diagnostics;
   }
 
   syncProject(project) {
@@ -481,6 +513,7 @@ export class Simulator {
       this.audioNotes = [];
       const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
       this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+      this._diagnosticsDirty = true;
     }
     return this;
   }
@@ -493,6 +526,7 @@ export class Simulator {
     this.audioNotes = [];
     const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
     this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+    this._diagnosticsDirty = true;
     return this.snapshot;
   }
 
@@ -501,6 +535,7 @@ export class Simulator {
     this.audioNotes = [];
     const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map(), false);
     this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+    this._diagnosticsDirty = true;
     return this.snapshot;
   }
 
@@ -531,6 +566,7 @@ export class Simulator {
     };
     restoreRuntime(this.runtime);
     this.snapshot = { ...saved, step: this.stepCount };
+    this._diagnosticsDirty = true;
     return this.snapshot;
   }
 
@@ -540,6 +576,7 @@ export class Simulator {
     this.audioNotes = [];
     const result = evaluateNetwork(this.runtime, this, this.stepCount, new Map());
     this.snapshot = collectSnapshot(this.runtime, emptySnapshot(this.stepCount, result.outputs));
+    this._diagnosticsDirty = true;
     return this.snapshot;
   }
 

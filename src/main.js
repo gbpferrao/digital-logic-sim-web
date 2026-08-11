@@ -29,14 +29,15 @@ import {
   refreshReusableFit,
   uid
 } from "./model.js";
-import { PIN_MASK, Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
+import { Simulator, disconnected, isHigh, stateLabel } from "./simulation.js";
 import { WorldRenderer } from "./renderer.js";
 import { STATIC_MODE, downloadProject, loadFromBrowser, loadFromServer, readProjectFile, saveToBrowser, saveToServer } from "./storage.js";
 import { $, actionLabel, escapeHtml, icon, inspectorAction, refreshIcons } from "./ui/dom-icons.js";
 import { createLibraryController } from "./ui/library-controller.js";
 import { createNotificationCenter } from "./ui/notifications.js";
 import { createPointerSession, hasPointerMoved } from "./ui/pointer-session.js";
-import { SimulationBake, createTimelineFrame } from "./simulation-timeline.js";
+import { createPerformanceDiagnostics, createRenderScheduler } from "./ui/performance.js";
+import { createSimulationBake, createSimulationController } from "./simulation-controller.js";
 
 const APP_METADATA = Object.freeze({
   name: "Digital Logic Simulator",
@@ -49,6 +50,9 @@ const APP_METADATA = Object.freeze({
 const canvas = $("#world");
 const renderer = new WorldRenderer(canvas);
 const notifications = createNotificationCenter({ root: $("#notifications"), refreshIcons });
+const performanceDiagnostics = createPerformanceDiagnostics();
+const renderScheduler = createRenderScheduler({ onFrame: (lanes) => renderScheduled(lanes) });
+let cachedCanvasRect = null;
 
 function contextIcon(action) {
   return {
@@ -112,11 +116,12 @@ const state = {
   hover: null,
   pan: null,
   zoomDrag: null,
-  simRunning: project.settings.simulationPaused !== true,
+  simRunning: false,
   simTimer: null,
+  preview: null,
   stepCount: 0,
   speed: Math.max(1, Math.min(30, Math.round(Number(project.settings.stepsPerSecond) || 8))),
-  bake: new SimulationBake(),
+  bake: createSimulationBake(),
   undo: [],
   redo: [],
   status: "Ready.",
@@ -137,6 +142,7 @@ const state = {
 };
 
 let libraryController = null;
+let simulationController = null;
 
 function renderLibrary() { libraryController?.renderLibrary(); }
 function closeCollectionPopup() { libraryController?.closeCollectionPopup(); }
@@ -275,7 +281,7 @@ function updateAnnotationToolDrag(event) {
   const screen = canvasPoint(event);
   state.mouseWorld = renderer.toWorld(screen.x, screen.y);
   updateAnnotationPlacementPreview(state.mouseWorld);
-  render();
+  scheduleCanvasRender();
 }
 
 function finishAnnotationToolDrag(event, cancelled = false) {
@@ -291,7 +297,7 @@ function finishAnnotationToolDrag(event, cancelled = false) {
     if (state.annotationPlacement) cancelTransientInteraction();
     return;
   }
-  const rect = canvas.getBoundingClientRect();
+  const rect = getCanvasRect();
   const insideCanvas = event.clientX >= rect.left && event.clientX <= rect.right
     && event.clientY >= rect.top && event.clientY <= rect.bottom;
   if (!insideCanvas) {
@@ -417,122 +423,11 @@ function updatePlacementPreview(world = state.mouseWorld, input = state.pointer)
   }
 }
 
-function simulationStabilityWindow() {
-  const period = Math.max(1, Math.round(Number(project.settings.stepsPerClock) || 8));
-  return Math.max(4, Math.min(64, period * 2));
-}
-
-function beginSimulationBake() {
-  simulator.syncProject(project);
-  simulator.reset();
-  const frame = simulationFrame();
-  state.bake.begin(frame, { stabilityWindow: simulationStabilityWindow() });
-  state.stepCount = simulator.stepCount;
-  project._simSnapshot = simulator.snapshot;
-  return frame;
-}
-
-function ensureSimulationBake() {
-  if (!state.bake.hasBake) beginSimulationBake();
-  state.stepCount = simulator.stepCount;
-}
-
-function truncateSimulationBake() {
-  ensureSimulationBake();
-  state.bake.truncateFuture();
-}
-
-function simulationFrame(snapshot = simulator.snapshot) {
-  return createTimelineFrame({
-    step: simulator.stepCount,
-    snapshot,
-    signature: simulationVisualSignature(snapshot)
-  });
-}
-
-function resetSimulationBake() {
-  simulator.syncProject(project);
-  simulator.reset();
-  const frame = simulationFrame();
-  state.bake.clear();
-  if (state.simRunning) state.bake.begin(frame, { stabilityWindow: simulationStabilityWindow() });
-  state.stepCount = simulator.stepCount;
-  project._simSnapshot = simulator.snapshot;
-}
-
-function recordSimulationFrame({ visible = null } = {}) {
-  ensureSimulationBake();
-  if (!state.bake.isBaking) state.bake.reopen({ stabilityWindow: simulationStabilityWindow() });
-  truncateSimulationBake();
-  const frame = simulationFrame();
-  const previous = state.bake.executionFrame;
-  const isVisible = visible == null
-    ? !previous || frame.signature !== (previous.signature || simulationVisualSignature(previous.snapshot))
-    : visible;
-  state.bake.record(frame, { visible: isVisible });
-  state.stepCount = simulator.stepCount;
-  return frame;
-}
-
-function syncSimulationBakeCursor() {
-  state.stepCount = simulator.stepCount;
-}
-
-function simulationVisualSignature(snapshot) {
-  const scopedSignals = Object.entries(snapshot?.scopes ?? {}).flatMap(([scope, scoped]) => Object.entries(scoped?.endpoints ?? {})
-    .filter(([, value]) => (value?.tri ?? PIN_MASK) !== PIN_MASK)
-    .map(([key, value]) => [`${scope}:${key}`, value.bits ?? 0, value.tri ?? PIN_MASK]));
-  const rootOwners = new Set(["root", ...(project.root.instances ?? []).map((instance) => String(instance.id))]);
-  const signals = (scopedSignals.length ? scopedSignals : Object.entries(snapshot?.endpoints ?? {})
-    .filter(([key]) => rootOwners.has(key.split(":", 1)[0]))
-    .filter(([, value]) => (value?.tri ?? PIN_MASK) !== PIN_MASK)
-    .map(([key, value]) => [key, value.bits ?? 0, value.tri ?? PIN_MASK]))
-    .sort(([left], [right]) => left.localeCompare(right));
-  const displays = {};
-  const scopedDisplays = Object.entries(snapshot?.scopes ?? {}).flatMap(([scope, scoped]) => Object.entries(scoped?.instances ?? {}).flatMap(([id, runtime]) => {
-    const display = runtime?.internal?.display;
-    return display === undefined ? [] : [[`${scope}:${id}`, Array.isArray(display) ? [...display] : display]];
-  }));
-  if (scopedDisplays.length) {
-    for (const [key, display] of scopedDisplays) displays[key] = display;
-  } else {
-    for (const instance of project.root.instances ?? []) {
-      const descriptor = descriptorForInstance(project, instance);
-      if (!descriptor?.special) continue;
-      const runtime = snapshot?.instances?.[String(instance.id)];
-      const display = runtime?.internal?.display ?? instance.internalData?.display;
-      if (display !== undefined) displays[String(instance.id)] = Array.isArray(display) ? [...display] : display;
-    }
-  }
-  return JSON.stringify({ signals, displays });
-}
-
-function previousVisibleHistoryIndex() {
-  const current = state.bake.executionFrame;
-  if (!current) return -1;
-  const currentSignature = current.signature || simulationVisualSignature(current.snapshot);
-  return state.bake.previousIndex((frame) => (frame.signature || simulationVisualSignature(frame.snapshot)) !== currentSignature);
-}
-
-function restoreSimulationFrame(index, message = null) {
-  if (state.simRunning || !state.bake.length) return;
-  const nextIndex = Math.max(0, Math.min(state.bake.length - 1, Number(index) || 0));
-  const frame = state.bake.frameAt(nextIndex);
-  if (!frame) return;
-  simulator.restore(frame.snapshot, frame.step);
-  state.bake.setCursor(nextIndex);
-  state.stepCount = frame.step;
-  project._simSnapshot = simulator.snapshot;
-  const latest = state.bake.latestCheckpoint?.step ?? frame.step;
-  setStatus(message || (nextIndex === state.bake.length - 1 ? "Simulation paused." : `Viewing step ${frame.step} of ${latest}.`));
-  render();
-}
-
 function touch(message = null, structural = true, resetSimulation = true) {
   if (state.viewStack.length && project.root?.kind === TYPE.CUSTOM) refreshInterfacePorts(project, project.root);
   if (structural) {
     project._revision += 1;
-    if (resetSimulation) resetSimulationBake();
+    if (resetSimulation) simulationController?.resetBake();
   }
   project.updatedAt = new Date().toISOString();
   if (message) setStatus(message);
@@ -561,6 +456,19 @@ function setStatus(message) {
 function notify(message, error = false) {
   return notifications.notify(message, { tone: error ? "error" : "info" });
 }
+
+// Simulation lifecycle is a feature boundary; the shell supplies state and UI callbacks.
+simulationController = createSimulationController({
+  getProject: () => project,
+  getSimulator: () => simulator,
+  getState: () => state,
+  setStatus,
+  render,
+  scheduleCanvasRender,
+  playAudio: (notes) => playAudio(notes),
+  touch,
+  measure: (label, action) => performanceDiagnostics.measure(label, action)
+});
 
 function isCompositeInterfaceInstance(instance) {
   if (!state.viewStack.length || !isInterfaceNode(instance)) return false;
@@ -1505,7 +1413,7 @@ function undo() {
   state.redo.push(current);
   project = normalizeProject(snapshot); project._revision += 1;
   simulator.syncProject(project);
-  resetSimulationBake();
+  simulationController.resetBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null;
   setStatus("Undo."); render();
 }
@@ -1517,18 +1425,19 @@ function redo() {
   state.undo.push(current);
   project = normalizeProject(snapshot); project._revision += 1;
   simulator.syncProject(project);
-  resetSimulationBake();
+  simulationController.resetBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null;
   setStatus("Redo."); render();
 }
 
 function toggleInput(instance) {
+  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
   const descriptor = descriptorForInstance(project, instance);
   const bits = descriptor?.outputPins?.[0]?.bits ?? 1;
   const mask = (1 << bits) - 1;
   project.inputValues[instance.id] = ((project.inputValues[instance.id] ?? 0) ^ 1) & mask;
   touch(`Input ${instance.label || instance.name} set to ${project.inputValues[instance.id]}.`, false);
-  runStep();
+  simulationController.startCausalPreview(`input ${instance.label || instance.name} set to ${project.inputValues[instance.id]}`, source);
 }
 
 function createCustomChip() {
@@ -1552,7 +1461,6 @@ function resetProject() {
   renderer.fit(project);
   setStatus("New project created.");
   render();
-  if (state.simRunning) setRunning(true);
 }
 
 function focusInstanceEditor(description) {
@@ -1583,7 +1491,7 @@ function enterCustomView(instance) {
  project.root = description;
  project.name = `${description.name} internals`;
  simulator.syncProject(project);
-  resetSimulationBake();
+  simulationController.resetBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
   state.wireEdit = null;
   state.wirePointDrag = null;
@@ -1606,87 +1514,11 @@ function exitCustomView() {
  project.root = frame.root;
  project.name = frame.name;
  simulator.syncProject(project);
-  resetSimulationBake();
+  simulationController.resetBake();
   state.selectedIds.clear(); state.selectedAnnotationIds.clear(); state.selectedWirePointKeys.clear(); state.selectedWireId = null; state.wireStart = null;
   restoreCamera(frame.parentViewKey || viewKey());
   setStatus(`Returned to ${frame.name}.`);
   render();
-}
-
-function runStep(options = {}) {
-  const renderFrame = !options || typeof options !== "object" || options.renderFrame !== false;
-  const playAudioFrame = !options || typeof options !== "object" || options.playAudio !== false;
-  const recordFrame = !options || typeof options !== "object" || options.recordFrame !== false;
-  simulator.syncProject(project);
-  ensureSimulationBake();
-  if (!state.bake.isBaking) state.bake.reopen({ stabilityWindow: simulationStabilityWindow() });
-  if (recordFrame) truncateSimulationBake();
-  simulator.step();
-  state.stepCount = simulator.stepCount;
-  const frame = recordFrame ? recordSimulationFrame() : null;
-  if (playAudioFrame) playAudio(simulator.audioNotes);
-  project._simSnapshot = simulator.snapshot;
-  if (state.simRunning && frame && state.bake.observe(frame.signature)) finishSimulationBake("stable");
-  if (renderFrame) render();
-}
-
-function macroStep(direction) {
-  if (state.simRunning) {
-    setStatus("Pause the simulation before using visible-step controls.");
-    render();
-    return;
-  }
-  if (!state.bake.hasBake) {
-    setStatus("No bake is available. Use Run or Step to create one.");
-    render();
-    return;
-  }
-  const current = state.bake.executionFrame ?? state.bake.currentCheckpoint;
-  if (!current) return;
-  const baseline = current.signature || simulationVisualSignature(current.snapshot);
-
-  if (direction < 0) {
-    const previousIndex = previousVisibleHistoryIndex();
-    if (previousIndex >= 0) {
-      const frame = state.bake.frameAt(previousIndex);
-      restoreSimulationFrame(previousIndex, `Previous visible step: ${frame.step}.`);
-      return;
-    }
-    const first = state.bake.frameAt(0);
-    if (first && current.step > first.step) {
-      restoreSimulationFrame(0, "Simulation start.");
-      return;
-    }
-    setStatus("Already at the first visible step.");
-    render();
-    return;
-  }
-
-  const nextIndex = state.bake.nextIndex((frame) => (frame.signature || simulationVisualSignature(frame.snapshot)) !== baseline);
-  if (nextIndex >= 0) {
-    const frame = state.bake.frameAt(nextIndex);
-    restoreSimulationFrame(nextIndex, `Next visible step: ${frame.step}.`);
-    return;
-  }
-
-  setStatus("No later visible step in this bake.");
-  render();
-}
-
-function jumpToSimulationBoundary(direction) {
-  if (state.simRunning) {
-    setStatus("Pause the simulation before using timeline controls.");
-    render();
-    return;
-  }
-  if (!state.bake.hasBake) {
-    setStatus("No bake is available. Use Run or Step to create one.");
-    render();
-    return;
-  }
-  syncSimulationBakeCursor();
-  const targetIndex = direction < 0 ? 0 : state.bake.length - 1;
-  restoreSimulationFrame(targetIndex, direction < 0 ? "Simulation start." : "Latest simulation step.");
 }
 
 function playAudio(notes) {
@@ -1703,53 +1535,6 @@ function playAudio(notes) {
   }
 }
 
-function finishSimulationBake(reason = "manual") {
-  if (!state.bake.hasBake) return;
-  state.bake.finish(reason);
-  const message = reason === "stable"
-    ? "Bake complete at step " + state.stepCount + "; no further visible change detected."
-    : "Bake registered at step " + state.stepCount + ".";
-  setRunning(false, false, message);
-}
-
-function clearSimulationBake() {
-  const wasRunning = state.simRunning;
-  clearInterval(state.simTimer);
-  state.simTimer = null;
-  state.simRunning = false;
-  project.settings.simulationPaused = true;
-  simulator.syncProject(project);
-  simulator.reset();
-  state.bake.clear();
-  state.stepCount = simulator.stepCount;
-  project._simSnapshot = simulator.snapshot;
-  if (wasRunning) touch("Bake cleared.", false, false);
-  else setStatus("Bake cleared.");
-  render();
-}
-
-function startSimulationRun(markDirty = false) {
-  beginSimulationBake();
-  setRunning(true, markDirty, "Simulation baking.");
-}
-
-function setRunning(running, markDirty = false, statusMessage = null) {
-  if (running && !state.bake.hasBake) beginSimulationBake();
-  const settingChanged = project.settings.simulationPaused === running;
-  state.simRunning = running;
-  project.settings.simulationPaused = !running;
-  clearInterval(state.simTimer);
-  state.simTimer = null;
-  if (running) state.simTimer = setInterval(runStep, 1000 / state.speed);
-  if (markDirty && settingChanged) touch("Simulation state updated.", false);
-  $("#run-sim").innerHTML = `${icon(running ? "pause" : "play")}<span id="run-sim-label">${running ? "PAUSE" : "RUN"}</span>`;
-  $("#run-sim").classList.toggle("running", running);
-  $("#run-sim").setAttribute("aria-pressed", String(running));
-  $("#run-sim").title = running ? "Pause simulation" : "Run simulation";
-  setStatus(statusMessage || (running ? "Simulation baking." : "Simulation paused."));
-  render();
-}
-
 function updateSimulationSpeed(value) {
   const next = Math.max(1, Math.min(30, Math.round(Number(value) || state.speed)));
   $("#sim-speed").value = String(next);
@@ -1757,7 +1542,7 @@ function updateSimulationSpeed(value) {
   state.speed = next;
   project.settings.stepsPerSecond = next;
   touch("Simulation speed updated.", false);
-  if (state.simRunning) setRunning(true);
+  if (state.simRunning) simulationController.setRunning(true);
   else render();
 }
 
@@ -1895,15 +1680,11 @@ function toggleXray() {
 }
 
 function resetEditorStateForProject() {
-  clearInterval(state.simTimer);
-  state.simTimer = null;
+  simulationController.resetForProject();
   cancelPendingInputToggle();
   cancelActiveCanvasPointerSession({ renderState: false });
-  state.simRunning = project.settings.simulationPaused !== true;
   state.speed = Math.max(1, Math.min(30, Math.round(Number(project.settings.stepsPerSecond) || 8)));
   $("#sim-speed").value = String(state.speed);
-  state.stepCount = 0;
-  resetSimulationBake();
   state.viewStack.length = 0;
   state.viewCameras = {};
   state.xray = false;
@@ -2099,80 +1880,133 @@ function renderHelpMetadata() {
 function renderSimulationControls() {
   const speedInput = $("#sim-speed");
   if (speedInput && document.activeElement !== speedInput) speedInput.value = String(state.speed);
-  const stepButton = $("#step-sim");
+  const stepInput = $("#step-sim");
   const bakeButton = $("#bake-sim");
   const clearBakeButton = $("#clear-bake");
-  const startButton = $("#start-sim");
   const previousButton = $("#macro-prev-sim");
   const nextButton = $("#macro-next-sim");
-  const endButton = $("#end-sim");
   const scrubber = $("#step-scrubber");
   const scrubberWrap = $("#step-scrubber-wrap");
   if (!scrubber || !scrubberWrap) return;
-  syncSimulationBakeCursor();
+  simulationController.syncStepCount();
   const hasBake = state.bake.hasBake;
   const maxIndex = Math.max(0, state.bake.length - 1);
   const currentIndex = Math.max(0, Math.min(maxIndex, state.bake.currentIndex));
   const firstStep = state.bake.frameAt(0)?.step ?? 0;
   const executionStep = state.bake.executionFrame?.step ?? firstStep;
+  const latestStep = state.bake.latestCheckpoint?.step ?? firstStep;
   const atStart = currentIndex <= 0 && executionStep <= firstStep;
-  if (stepButton) stepButton.disabled = state.simRunning;
-  if (startButton) startButton.disabled = state.simRunning || !hasBake || atStart;
-  if (previousButton) previousButton.disabled = state.simRunning || !hasBake || (previousVisibleHistoryIndex() < 0 && atStart);
-  if (nextButton) nextButton.disabled = state.simRunning || !hasBake;
-  if (endButton) endButton.disabled = state.simRunning || !hasBake || currentIndex >= maxIndex;
+  const atEnd = currentIndex >= maxIndex && executionStep >= latestStep;
+  if (stepInput) {
+    stepInput.disabled = state.simRunning || !hasBake || maxIndex <= 0;
+    stepInput.max = String(Math.max(firstStep, executionStep));
+    if (document.activeElement !== stepInput) stepInput.value = String(state.stepCount);
+  }
+  if (previousButton) previousButton.disabled = state.simRunning || !hasBake || (simulationController.previousVisibleHistoryIndex() < 0 && atStart);
+  if (nextButton) nextButton.disabled = state.simRunning || !hasBake || maxIndex <= 0 || atEnd;
   if (bakeButton) {
     const ready = state.bake.isReady;
-    bakeButton.disabled = !hasBake || ready;
-    bakeButton.classList.toggle("active", state.bake.isBaking);
-    bakeButton.title = ready ? "Bake is registered" : "Register the current simulation as a bake";
-    const label = $("#bake-sim-label");
-    if (label) label.textContent = ready ? "BAKED" : "BAKE";
+    const baking = state.bake.isBaking;
+    const bakeVisualState = baking ? "baking" : ready ? "ready" : "idle";
+    bakeButton.disabled = ready;
+    bakeButton.classList.toggle("active", baking);
+    if (bakeButton.dataset.visualState !== bakeVisualState) {
+      bakeButton.innerHTML = `${icon(baking ? "square" : "layers-2")}<span id="bake-sim-label">${baking ? "STOP" : ready ? "BAKED" : "BAKE"}</span>`;
+      bakeButton.dataset.visualState = bakeVisualState;
+      refreshIcons();
+    }
+    bakeButton.setAttribute("aria-pressed", String(baking));
+    bakeButton.title = ready
+      ? "Bake is complete; clear or change the flow before baking again"
+      : baking
+        ? "Stop baking and keep the current bake"
+        : "Bake the current circuit";
   }
   if (clearBakeButton) clearBakeButton.disabled = !hasBake;
   scrubber.max = String(maxIndex);
   scrubber.value = String(currentIndex);
-  scrubber.disabled = state.simRunning || !hasBake || maxIndex === 0;
-  scrubberWrap.classList.toggle("hidden", state.simRunning || !hasBake);
+  const scrubberProgress = maxIndex > 0 ? (currentIndex / maxIndex) * 100 : 0;
+  scrubber.style.setProperty("--scrubber-progress", `${Math.max(0, Math.min(100, scrubberProgress))}%`);
+  const scrubberReady = state.bake.isReady && maxIndex > 0;
+  scrubber.disabled = state.simRunning || !scrubberReady;
+  scrubberWrap.classList.toggle("ready", scrubberReady);
+  scrubberWrap.classList.toggle("disabled", scrubber.disabled);
+}
+
+function renderCanvasFrame({ simulation = false, coordinates = true } = {}) {
+  project._simSnapshot = simulator.snapshot;
+  canvas.parentElement.classList.toggle("resizing", Boolean(state.annotationResize || state.hover?.kind === "annotation-resize"));
+  canvas.parentElement.classList.toggle("causal-preview", Boolean(state.preview));
+  const visibleSimulator = state.preview?.simulator ?? simulator;
+  performanceDiagnostics.measure("renderer.draw", () => renderer.draw(project, visibleSimulator, state));
+  updateCanvasInspectButton();
+  if (coordinates) {
+    $("#zoom-readout").textContent = `${Math.round(renderer.camera.zoom * 100)}%`;
+    $("#coordinate-readout").textContent = `${Math.round(state.mouseWorld.x)}, ${Math.round(state.mouseWorld.y)}`;
+  }
+  if (simulation) {
+    renderSimulationControls();
+  }
+}
+
+function renderScheduled(lanes = {}) {
+  if (lanes.full) {
+    render();
+    return;
+  }
+  renderCanvasFrame({ simulation: lanes.simulation, coordinates: lanes.coordinates !== false });
+}
+
+function scheduleCanvasRender({ simulation = false, coordinates = true } = {}) {
+  renderScheduler.request({ canvas: true, simulation, coordinates });
 }
 
 function render() {
-  project._simSnapshot = simulator.snapshot;
-  canvas.parentElement.classList.toggle("resizing", Boolean(state.annotationResize || state.hover?.kind === "annotation-resize"));
-  renderer.draw(project, simulator, state);
-  updateCanvasInspectButton();
-  if (document.activeElement !== $("#project-name")) $("#project-name").value = project.name;
-  const viewed = state.viewStack.length > 0;
-  $("#app").classList.toggle("viewed-open", viewed);
-  const viewedBack = $("#viewed-back");
-  if (viewedBack) {
-    const parentName = state.viewStack.at(-1)?.name || "the parent chip";
-    viewedBack.classList.toggle("hidden", !viewed);
-    viewedBack.title = viewed ? "Back to " + parentName : "Return to the parent chip";
-    viewedBack.setAttribute("aria-label", viewed ? "Back to " + parentName : "Return to the parent chip");
-  }
-  const xrayToggle = $("#xray-toggle");
-  if (xrayToggle) {
-    xrayToggle.classList.toggle("active", state.xray);
-    xrayToggle.setAttribute("aria-pressed", String(state.xray));
-    xrayToggle.title = state.xray ? "Hide composite-chip internals (X)" : "Show composite-chip internals (X)";
-  }
-  const bottomXray = $("#bottom-xray");
-  if (bottomXray) {
-    bottomXray.classList.toggle("active", state.xray);
-    bottomXray.setAttribute("aria-pressed", String(state.xray));
-  }
-  $("#canvas-empty").classList.toggle("hidden", Boolean(project.root.instances.length || project.root.annotations?.length));
-  $("#zoom-readout").textContent = `${Math.round(renderer.camera.zoom * 100)}%`;
-  $("#coordinate-readout").textContent = `${Math.round(state.mouseWorld.x)}, ${Math.round(state.mouseWorld.y)}`;
-  const dirty = project._revision !== state.savedRevision;
-  $("#save-state").textContent = state.savePending ? "SAVING" : dirty ? "UNSAVED" : "SAVED";
-  $("#save-state").classList.toggle("dirty", dirty || state.savePending);
-  $("#step-sim-label").textContent = `Step ${state.stepCount}`;
-  renderSimulationControls();
-  renderHelpMetadata();
-  renderInspector();
-  refreshIcons();
+  renderScheduler.cancel();
+  cachedCanvasRect = null;
+  performanceDiagnostics.measure("render.total", () => {
+    renderCanvasFrame({ simulation: true, coordinates: true });
+    if (document.activeElement !== $("#project-name")) $("#project-name").value = project.name;
+    const viewed = state.viewStack.length > 0;
+    $("#app").classList.toggle("viewed-open", viewed);
+    const viewedBack = $("#viewed-back");
+    if (viewedBack) {
+      const parentName = state.viewStack.at(-1)?.name || "the parent chip";
+      viewedBack.classList.toggle("hidden", !viewed);
+      viewedBack.title = viewed ? "Back to " + parentName : "Return to the parent chip";
+      viewedBack.setAttribute("aria-label", viewed ? "Back to " + parentName : "Return to the parent chip");
+    }
+    const xrayToggle = $("#xray-toggle");
+    if (xrayToggle) {
+      xrayToggle.classList.toggle("active", state.xray);
+      xrayToggle.setAttribute("aria-pressed", String(state.xray));
+      xrayToggle.title = state.xray ? "Hide composite-chip internals (X)" : "Show composite-chip internals (X)";
+    }
+    const bottomXray = $("#bottom-xray");
+    if (bottomXray) {
+      bottomXray.classList.toggle("active", state.xray);
+      bottomXray.setAttribute("aria-pressed", String(state.xray));
+    }
+    const dirty = project._revision !== state.savedRevision;
+    $("#save-state").textContent = state.savePending ? "SAVING" : dirty ? "UNSAVED" : "SAVED";
+    $("#save-state").classList.toggle("dirty", dirty || state.savePending);
+    performanceDiagnostics.measure("ui.help", () => renderHelpMetadata());
+    performanceDiagnostics.measure("ui.inspector", () => renderInspector());
+    performanceDiagnostics.measure("ui.icons", () => refreshIcons());
+  });
+}
+
+if (performanceDiagnostics.enabled) {
+  globalThis.__DLS_PERF_REPORT__ = () => performanceDiagnostics.snapshot({
+    renderScheduler: renderScheduler.stats,
+    renderer: renderer.performanceStats,
+    simulation: simulator.diagnostics,
+    bake: {
+      frames: state.bake.length,
+      bytes: state.bake.memoryBytes,
+      maxBytes: state.bake.maxBytes
+    }
+  });
 }
 
 function hideContextMenu() { $("#context-menu").classList.add("hidden"); }
@@ -2254,33 +2088,50 @@ function showContextMenu(event) {
   refreshIcons();
 }
 
+function getCanvasRect() {
+  if (!cachedCanvasRect) {
+    const rect = canvas.getBoundingClientRect();
+    cachedCanvasRect = {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+  return cachedCanvasRect;
+}
+
 function canvasPoint(event) {
-  const rect = canvas.getBoundingClientRect();
+  const rect = getCanvasRect();
   return { x: event.clientX - rect.left, y: event.clientY - rect.top };
 }
 
 function canvasHitTarget(world) {
-  const selectedAnnotation = state.selectedAnnotationIds.size === 1
+  return performanceDiagnostics.measure("hit-test", () => {
+    const selectedAnnotation = state.selectedAnnotationIds.size === 1
     ? project.root.annotations?.find((item) => String(item.id) === [...state.selectedAnnotationIds][0])
     : null;
-  if (selectedAnnotation?.type === "text" && renderer.findAnnotationResizeHandle(project, world) === selectedAnnotation) {
-    return { kind: "annotation-resize", value: selectedAnnotation };
-  }
-  if (state.wireEdit) {
-    const point = renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
-    if (point) return { kind: "wire-point", value: point };
-  }
-  const pin = renderer.findPin(project, world);
-  if (pin) return { kind: "pin", value: pin };
-  const junction = renderer.findJunction(project, world);
-  if (junction) return { kind: "junction", value: junction };
-  const annotation = renderer.findAnnotation(project, world);
-  if (annotation) return { kind: "annotation", value: annotation };
-  const instance = renderer.findInstance(project, world);
-  if (instance) return { kind: "instance", value: instance };
-  const wire = renderer.findWire(project, world);
-  if (wire) return { kind: "wire", value: wire };
-  return { kind: "empty", value: null };
+    if (selectedAnnotation?.type === "text" && renderer.findAnnotationResizeHandle(project, world) === selectedAnnotation) {
+      return { kind: "annotation-resize", value: selectedAnnotation };
+    }
+    if (state.wireEdit) {
+      const point = renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
+      if (point) return { kind: "wire-point", value: point };
+    }
+    const pin = renderer.findPin(project, world);
+    if (pin) return { kind: "pin", value: pin };
+    const junction = renderer.findJunction(project, world);
+    if (junction) return { kind: "junction", value: junction };
+    const annotation = renderer.findAnnotation(project, world);
+    if (annotation) return { kind: "annotation", value: annotation };
+    const instance = renderer.findInstance(project, world);
+    if (instance) return { kind: "instance", value: instance };
+    const wire = renderer.findWire(project, world);
+    if (wire) return { kind: "wire", value: wire };
+    return { kind: "empty", value: null };
+  });
 }
 
 function hoverFromHit(hit) {
@@ -2457,6 +2308,7 @@ function handlePointerDown(event) {
 function handlePointerMove(event) {
   if (!ownsCanvasPointer(event)) return;
   updatePointerModifiers(event);
+  if (state.drag || state.annotationDrag || state.annotationResize || state.wirePointDrag) renderer.invalidateGeometry?.();
   const screen = canvasPoint(event); const world = renderer.toWorld(screen.x, screen.y); state.mouseWorld = world;
   const session = state.pointerSession;
   if (session && !session.moved && hasPointerMoved(session, screen)) {
@@ -2491,37 +2343,37 @@ function handlePointerMove(event) {
     renderer.zoomAt(screen.x, screen.y, Math.exp(-deltaY * 0.006));
     state.zoomDrag.screen = screen;
     state.viewCameras[viewKey()] = { ...renderer.camera };
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.pan) {
     renderer.camera.x = state.pan.camera.x - (screen.x - state.pan.x) / renderer.camera.zoom;
     renderer.camera.y = state.pan.camera.y - (screen.y - state.pan.y) / renderer.camera.zoom;
     state.viewCameras[viewKey()] = { ...renderer.camera };
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.annotationPlacement) {
     updateAnnotationPlacementPreview(world);
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.annotationResize && (!session || session.kind === "annotation-resize")) {
     applyAnnotationResize(world, event);
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.placement) {
     updatePlacementPreview(world);
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.annotationDrag) {
     applyAnnotationDrag(world, event);
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.wirePointDrag && (!session || session.moved)) {
     applyWirePointDrag(world, event);
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.selectionBox) {
     state.selectionBox.current = { ...world };
-    render(); return;
+    scheduleCanvasRender(); return;
   }
   if (state.wireStart) {
     state.wireTarget = wireTargetAt(world).endpoint;
@@ -2534,7 +2386,7 @@ function handlePointerMove(event) {
   if (state.drag) {
     applyDrag(world, event);
   }
-  render();
+  scheduleCanvasRender();
 }
 
 function handlePointerUp(event) {
@@ -2735,11 +2587,31 @@ function handleKeyDown(event) {
   if (event.key === " " || event.key === "Spacebar") {
     event.preventDefault();
     if (event.ctrlKey || event.metaKey) {
-      if (state.simRunning) setRunning(false, true);
-      else startSimulationRun(true);
+      if (state.simRunning || state.bake.isBaking) simulationController.finishBake("manual");
+      else simulationController.startBake(true);
     }
-    else if (!state.simRunning) runStep();
+    else if (!state.simRunning) simulationController.step();
   }
+}
+
+function keyDeviceMatchesEvent(instance, event) {
+  if (instance?.name !== TYPE.KEY) return false;
+  const binding = String(instance.internalData?.key || "Space").trim().toLowerCase();
+  if (!binding) return false;
+  const key = String(event.key || "").toLowerCase();
+  const code = String(event.code || "").toLowerCase();
+  return binding === key
+    || binding === code
+    || binding === `key${key}`
+    || (binding === "space" && (key === " " || key === "spacebar" || code === "space"));
+}
+
+function previewKeyInteraction(event, phase, source) {
+  if (event.repeat || isKeyboardInteractionBlocked()) return;
+  if (event.key === " " || event.key === "Spacebar") return;
+  if (!(project.root.instances ?? []).some((instance) => keyDeviceMatchesEvent(instance, event))) return;
+  const keyLabel = event.key === " " ? "Space" : event.key || event.code;
+  simulationController.startCausalPreview(`key ${keyLabel} ${phase}`, source);
 }
 
 libraryController = createLibraryController({
@@ -2757,6 +2629,8 @@ libraryController = createLibraryController({
   cancelPlacement,
   closeBottomMenu,
   render,
+  scheduleCanvasRender,
+  getCanvasRect,
   touch,
   saveCurrentProject
 });
@@ -2769,7 +2643,7 @@ $("#import-project").addEventListener("click", () => $("#import-file").click());
 $("#import-file").addEventListener("change", async (event) => {
   const file = event.target.files?.[0]; if (!file) return;
   if (!confirmDiscardChanges("Import this project?")) { event.target.value = ""; return; }
-  try { project = await readProjectFile(file); project._revision = 0; state.projectSaved = false; simulator = new Simulator(project); resetEditorStateForProject(); renderer.fit(project); renderLibrary(); render(); if (state.simRunning) setRunning(true); notify("Project imported."); setStatus("Project imported successfully."); }
+  try { project = await readProjectFile(file); project._revision = 0; state.projectSaved = false; simulator = new Simulator(project); resetEditorStateForProject(); renderer.fit(project); renderLibrary(); render(); notify("Project imported."); setStatus("Project imported successfully."); }
   catch (error) { notify(`Import failed: ${error.message}`, true); }
   event.target.value = "";
 });
@@ -2820,23 +2694,34 @@ $("#canvas-inspect-button").addEventListener("click", (event) => {
   if (instance) openInstanceInspector(instance);
 });
 $("#fit-view").addEventListener("click", () => { renderer.fit(project); state.viewCameras[viewKey()] = { ...renderer.camera }; render(); });
-$("#run-sim").addEventListener("click", () => {
+$("#bake-sim").addEventListener("click", () => {
   audioContext ||= new AudioContext();
   audioContext.resume();
-  if (state.simRunning) setRunning(false, true);
-  else startSimulationRun(true);
+  if (state.simRunning || state.bake.isBaking) simulationController.finishBake("manual");
+  else simulationController.startBake(true);
 });
-$("#bake-sim").addEventListener("click", () => finishSimulationBake("manual"));
-$("#clear-bake").addEventListener("click", clearSimulationBake);
-$("#step-sim").addEventListener("click", () => { audioContext ||= new AudioContext(); audioContext.resume(); runStep(); });
-$("#start-sim").addEventListener("click", () => jumpToSimulationBoundary(-1));
-$("#macro-prev-sim").addEventListener("click", () => macroStep(-1));
-$("#macro-next-sim").addEventListener("click", () => macroStep(1));
-$("#end-sim").addEventListener("click", () => jumpToSimulationBoundary(1));
+$("#clear-bake").addEventListener("click", () => simulationController.clearBake());
+$("#step-sim").addEventListener("change", (event) => {
+  event.target.blur();
+  simulationController.jumpToStep(event.target.value);
+});
+$("#step-sim").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    event.target.blur();
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    event.target.value = String(state.stepCount);
+    event.target.blur();
+  }
+});
+$("#macro-prev-sim").addEventListener("click", () => simulationController.macroStep(-1));
+$("#macro-next-sim").addEventListener("click", () => simulationController.macroStep(1));
 $("#sim-speed").addEventListener("change", (event) => updateSimulationSpeed(event.target.value));
 $("#step-scrubber").addEventListener("input", (event) => {
   if (state.simRunning) return;
-  restoreSimulationFrame(event.target.value);
+  simulationController.restoreFrame(event.target.value);
 });
 $("#close-help").addEventListener("click", closeHelp);
 $("#help-modal").addEventListener("click", (event) => { if (event.target === event.currentTarget) closeHelp(); });
@@ -2976,15 +2861,19 @@ window.addEventListener("pointerdown", (event) => {
 });
 window.addEventListener("keydown", (event) => {
   if (event.target.matches("input, textarea, select")) return;
+  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
   project.keyValues[event.code] = true;
   project.keyValues[event.key] = true;
-  if (state.simRunning && !event.ctrlKey && !event.metaKey && event.key !== " " && event.key !== "Spacebar") runStep();
+  previewKeyInteraction(event, "pressed", source);
+  if (state.simRunning && !event.ctrlKey && !event.metaKey && event.key !== " " && event.key !== "Spacebar") simulationController.runStep();
 });
 window.addEventListener("keyup", (event) => {
   if (event.target.matches("input, textarea, select")) return;
+  const source = { snapshot: simulator.snapshot, step: simulator.stepCount };
   project.keyValues[event.code] = false;
   project.keyValues[event.key] = false;
-  if (state.simRunning && !event.ctrlKey && !event.metaKey && event.key !== " " && event.key !== "Spacebar") runStep();
+  previewKeyInteraction(event, "released", source);
+  if (state.simRunning && !event.ctrlKey && !event.metaKey && event.key !== " " && event.key !== "Spacebar") simulationController.runStep();
 });
 
 $("#context-menu").addEventListener("click", (event) => {
@@ -3037,20 +2926,18 @@ async function hydrateProjectFromServer() {
     renderer.fit(project);
     renderLibrary();
     render();
-    if (state.simRunning) setRunning(true);
     setStatus("Loaded the latest saved project from JSON storage.");
   } catch {
     // The browser cache remains the immediate-start fallback when the API is not running.
   }
 }
 
-resetSimulationBake();
+simulationController.resetBake();
 renderLibrary();
 renderer.fit(project);
 render();
 setStatus(state.status);
-if (state.simRunning) setRunning(true);
 void hydrateProjectFromServer();
 
 // Small debug surface for local smoke tests and future E2E tests.
-globalThis.digitalLogicSim = { get project() { return project; }, get state() { return state; }, step: runStep, place: beginPlacement };
+globalThis.digitalLogicSim = { get project() { return project; }, get state() { return state; }, step: () => simulationController.runStep(), place: beginPlacement };

@@ -2,6 +2,11 @@
   "schema": "digital-logic-sim-web/examples/1",
   "projects": [
     {
+      "file": "bake-controls-lab.json",
+      "name": "Bake Controls Lab",
+      "href": "examples/projects/bake-controls-lab.json"
+    },
+    {
       "file": "basic-alu.json",
       "name": "Basic ALU Lab",
       "href": "examples/projects/basic-alu.json"
@@ -10,6 +15,11 @@
       "file": "full-adder.json",
       "name": "1-bit Full Adder",
       "href": "examples/projects/full-adder.json"
+    },
+    {
+      "file": "indefinite-clock-lab.json",
+      "name": "Indefinite Bake Lab",
+      "href": "examples/projects/indefinite-clock-lab.json"
     },
     {
       "file": "simple-alu.json",

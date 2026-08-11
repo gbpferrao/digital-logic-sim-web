@@ -1,0 +1,101 @@
+{
+  "schema": "digital-logic-sim-web/1",
+  "storageId": "indefinite-clock-lab",
+  "name": "Indefinite Bake Lab",
+  "createdAt": "2026-08-10T00:00:00.000Z",
+  "updatedAt": "2026-08-10T00:00:00.000Z",
+  "root": {
+    "id": "root",
+    "name": "Indefinite Bake Lab",
+    "type": "custom",
+    "kind": "custom",
+    "size": { "x": 600, "y": 360 },
+    "colour": "#202b3a",
+    "nameLocation": "top",
+    "inputPins": [],
+    "outputPins": [],
+    "instances": [
+      { "id": "loop", "name": "CLOCK LOOP", "position": { "x": -80, "y": 0 }, "label": "COMPOSED CLOCK LOOP" },
+      { "id": "clock-led", "name": "LED", "position": { "x": 190, "y": 0 }, "label": "NEVER STABLE" }
+    ],
+    "wires": [
+      { "id": "loop-led", "source": { "owner": "loop", "pin": "clock" }, "target": { "owner": "clock-led", "pin": "0" } }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "title",
+        "type": "label",
+        "text": "INDEFINITE / MANUAL BAKE LAB",
+        "position": { "x": -220, "y": -150 },
+        "width": 400,
+        "height": 26,
+        "fontSize": 14,
+        "colour": "#f3d36b",
+        "background": "#352e18"
+      },
+      {
+        "id": "instructions",
+        "type": "text",
+        "text": "The reusable CLOCK LOOP intentionally never reaches a stable visible state.\n\nRUN starts recording but should remain active.\nUse STEP while paused, or RUN then PAUSE.\nClick BAKE to register the current history manually.\nUse CLEAR to return to step zero and try again.\nThe scrubber lets you inspect the recorded clock phases.",
+        "position": { "x": -220, "y": 90 },
+        "width": 420,
+        "height": 150,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      },
+      {
+        "id": "composition-note",
+        "type": "label",
+        "text": "CLOCK LOOP is a reusable composed chip",
+        "position": { "x": -170, "y": -90 },
+        "width": 340,
+        "height": 22,
+        "fontSize": 10,
+        "colour": "#9bc8ff",
+        "background": "#253040"
+      }
+    ]
+  },
+  "customChips": {
+    "CLOCK LOOP": {
+      "id": "chip-clock-loop",
+      "name": "CLOCK LOOP",
+      "type": "custom",
+      "kind": "custom",
+      "size": { "x": 260, "y": 160 },
+      "colour": "#7358ad",
+      "nameLocation": "top",
+      "inputPins": [],
+      "outputPins": [
+        { "id": "clock", "name": "CLOCK", "bits": 1, "direction": "output", "x": 130, "y": 0, "colour": "green" }
+      ],
+      "interfaceBindings": {
+        "inputs": [],
+        "outputs": [ { "publicId": "clock", "instanceId": "loop-out", "pinId": "0", "direction": "output" } ]
+      },
+      "instances": [
+        { "id": "loop-clock", "name": "CLOCK", "position": { "x": -60, "y": 0 }, "label": "CLOCK" },
+        { "id": "loop-out", "name": "OUT-1", "position": { "x": 80, "y": 0 }, "label": "CLOCK", "interfaceId": "clock" }
+      ],
+      "wires": [
+        { "id": "clock-out", "source": { "owner": "loop-clock", "pin": "0" }, "target": { "owner": "loop-out", "pin": "0" } }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": []
+    }
+  },
+  "settings": {
+    "snapping": true,
+    "straightWires": false,
+    "grid": true,
+    "simulationPaused": true,
+    "stepsPerSecond": 8,
+    "stepsPerClock": 2
+  },
+  "inputValues": {},
+  "keyValues": {}
+}
