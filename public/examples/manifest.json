@@ -22,6 +22,11 @@
       "href": "examples/projects/indefinite-clock-lab.json"
     },
     {
+      "file": "multiplexer-2-1.json",
+      "name": "2:1 Multiplexer",
+      "href": "examples/projects/multiplexer-2-1.json"
+    },
+    {
       "file": "simple-alu.json",
       "name": "Simple 1-bit ALU",
       "href": "examples/projects/simple-alu.json"
@@ -69,6 +74,11 @@
       "href": "examples/chips/hex-to-7seg.json"
     },
     {
+      "file": "mux-2-1.json",
+      "name": "MUX 2:1",
+      "href": "examples/chips/mux-2-1.json"
+    },
+    {
       "file": "mux-4-1.json",
       "name": "MUX 4:1",
       "href": "examples/chips/mux-4-1.json"
@@ -77,6 +87,11 @@
       "file": "ripple-adder-4.json",
       "name": "RIPPLE ADDER 4",
       "href": "examples/chips/ripple-adder-4.json"
+    },
+    {
+      "file": "test.json",
+      "name": "test",
+      "href": "examples/chips/test.json"
     }
   ]
 }

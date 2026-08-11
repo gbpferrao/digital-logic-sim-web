@@ -29,7 +29,7 @@ The shared tokens live in the final `:root` block in `src/styles.css`.
 | `--ui-control-border` | `#66666a` | Normal control border |
 | `--ui-control-border-hover` | `#919196` | Hover/focus border |
 
-The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the subdued `#2b2e33`, while every fifth grid line uses the slightly brighter `#353940`. The world fill is intentionally close to the minor grid now, so the canvas feels cohesive while the two grid levels remain readable.
+The canvas grid uses a deliberate two-level contrast against `--world`: minor grid lines use the subdued `#2b2e33`, while every fifth grid line uses the slightly brighter `#353940`. The world fill is intentionally close to the minor grid now, so the canvas feels cohesive while the two grid levels remain readable. When zoom drops below 40%, minor lines are hidden because their 20-world-unit spacing becomes less than 8 viewport pixels; the major grid remains as the scale reference.
 
 Light popup surfaces use the same grayscale scale in a separate set of tokens:
 

@@ -22,7 +22,7 @@ Its reusable parts are:
 - `MUX 4:1`: selects one of the four operation results.
 - carry gating: exposes carry only for the ADD operation.
 
-The runnable example is [basic-alu.json](storage/projects/basic-alu.json).
+The runnable example is [basic-alu.json](../../storage/projects/basic-alu.json).
 
 ## More sophisticated ALU
 
@@ -34,9 +34,9 @@ It exposes:
 - `ZERO`: high when the four-bit result is zero.
 - `OVERFLOW`: signed two's-complement overflow for ADD, computed from carry-in/carry-out of the most significant bit.
 
-The additional reusable datapath component [ripple-adder-4.json](storage/chips/ripple-adder-4.json) is included separately for reuse, even though the ALU uses four `ALU 1-BIT` slices directly so its logic and arithmetic paths remain visible together.
+The additional reusable datapath component [ripple-adder-4.json](../../storage/chips/ripple-adder-4.json) is included separately for reuse, even though the ALU uses four `ALU 1-BIT` slices directly so its logic and arithmetic paths remain visible together.
 
-The runnable example is [sophisticated-alu.json](storage/projects/sophisticated-alu.json).
+The runnable example is [sophisticated-alu.json](../../storage/projects/sophisticated-alu.json).
 
 ## JSON layout
 

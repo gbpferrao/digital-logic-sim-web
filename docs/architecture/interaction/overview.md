@@ -3,7 +3,7 @@
 Date: 2026-08-10  
 Scope: canvas selection, box selection, chip/annotation dragging, wire gestures, middle-button pan, Alt-pan, Alt-right zoom drag, wheel zoom, library placement, pointer capture, overlays, and interaction tests.
 
-This document consolidates four independent medium-effort delegated reviews of the current implementation. The two detailed evidence reports are [`INTERACTION-AUDIT.md`](INTERACTION-AUDIT.md) and [`INTERACTION-PAN-ZOOM-AUDIT.md`](INTERACTION-PAN-ZOOM-AUDIT.md).
+This document consolidates four independent medium-effort delegated reviews of the current implementation. The two detailed evidence reports are [`selection.md`](selection.md) and [`pan-zoom.md`](pan-zoom.md).
 
 ## Executive conclusion
 
@@ -167,7 +167,7 @@ Repair direction: either explicitly support touch navigation, or narrow the cust
 
 Existing tests cover domain normalization, simulation, storage, and saved examples. They do not cover click selection, box selection, drag thresholds, pointer capture, pan, wheel zoom, cancellation, double-click, or overlay boundaries.
 
-Evidence: `test/` and `ARCHITECTURE.md:299-301`.
+Evidence: `test/` and [`../system.md`](../system.md), around the interaction boundary section.
 
 Repair direction: add a pure transition/interaction-session test layer first, then a small browser smoke suite for real Pointer Events and pointer capture.
 

@@ -33,6 +33,11 @@ const XRAY_MAX_WIRES = 240;
 const CANVAS_STROKE_SCALE = 2;
 const CANVAS_WIRE_SCALE = .75;
 const MIN_VIEWPORT_STROKE = 1;
+export const GRID_MINOR_MIN_SCREEN_SPACING = 8;
+
+export function isMinorGridVisible(zoom = 1) {
+  return Number(zoom) * GRID >= GRID_MINOR_MIN_SCREEN_SPACING;
+}
 
 function rgba(hex, alpha = 1) {
   const value = hex.replace("#", "");
@@ -412,12 +417,17 @@ export class WorldRenderer {
     const startX = Math.floor(left / GRID) * GRID;
     const startY = Math.floor(top / GRID) * GRID;
     ctx.lineWidth = 1 / this.camera.zoom;
+    const minorVisible = isMinorGridVisible(this.camera.zoom);
     for (let x = startX; x <= right; x += GRID) {
-      ctx.strokeStyle = Math.round(x / GRID) % 5 === 0 ? GRID_COLOURS.highlight : GRID_COLOURS.line;
+      const major = Math.round(x / GRID) % 5 === 0;
+      if (!major && !minorVisible) continue;
+      ctx.strokeStyle = major ? GRID_COLOURS.highlight : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
     }
     for (let y = startY; y <= bottom; y += GRID) {
-      ctx.strokeStyle = Math.round(y / GRID) % 5 === 0 ? GRID_COLOURS.highlight : GRID_COLOURS.line;
+      const major = Math.round(y / GRID) % 5 === 0;
+      if (!major && !minorVisible) continue;
+      ctx.strokeStyle = major ? GRID_COLOURS.highlight : GRID_COLOURS.line;
       ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
     }
   }

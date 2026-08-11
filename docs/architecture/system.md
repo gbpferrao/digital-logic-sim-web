@@ -142,7 +142,7 @@ WorldRenderer owns a canvas and exposes:
 - wirePoints and endpointPosition
 - findPin, findJunction, findInstance, findAnnotation, findWire, findWirePoint, and resize-handle queries
 
-When `editorState.xray` is enabled, the renderer adds a clipped, read-only recursive projection for custom instances. The projection follows every finite nesting level below the current root, with 160 child instances and 240 wires per level plus a cycle guard. It does not alter hit testing, selection, simulation, or project ownership; the full rationale and flow are in [XRAY-ARCHITECTURE.md](XRAY-ARCHITECTURE.md).
+When `editorState.xray` is enabled, the renderer adds a clipped, read-only recursive projection for custom instances. The projection follows every finite nesting level below the current root, with 160 child instances and 240 wires per level plus a cycle guard. It does not alter hit testing, selection, simulation, or project ownership; the full rationale and flow are in [xray.md](xray.md).
 
 The renderer is intentionally imperative and canvas-based. The editor supplies project data plus an editorState snapshot; the renderer does not mutate the project.
 Canvas object strokes are authored in world units and scale with zoom, with a

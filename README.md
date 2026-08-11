@@ -53,7 +53,7 @@ The port is designed around the same behavior spine as the reference application
 
 **chip descriptions -> placed instances -> pin connections -> signal propagation -> built-in or custom-chip processing -> visible state**
 
-The interface palette and the boundary between grayscale UI chrome and semantic circuit colors are documented in [`COLOR-SYSTEM.md`](COLOR-SYSTEM.md).
+The documentation is grouped by the question it answers in [`docs/README.md`](docs/README.md). The interface palette and the boundary between grayscale UI chrome and semantic circuit colors are documented in [`docs/design/color-system.md`](docs/design/color-system.md).
 
 ## Included workflows
 
@@ -62,6 +62,7 @@ The interface palette and the boundary between grayscale UI chrome and semantic 
 - BAKE is the single official simulation action: it starts a recorded bake, closes automatically when the visible state stabilizes, or becomes STOP while an indefinite circuit is still evolving. CLEAR discards it. The previous/next visible-step buttons, exact step field, and scrubber operate only on the current bake. The Step control shows the exact engine tick, while the scrubber represents meaningful visual checkpoints. The project menu opens a centered Help dialog with the most important shortcuts and commands.
 - Simulate recursive custom chips, tri-state signals, clocks, pulses, RAM, ROM, displays, buses, conversion chips, and the built-in input/output devices.
 - Use the primitive LOGIC collection: AND, OR, NOT, NAND, NOR, XOR, XNOR, and BUFFER.
+- Inspect the from-scratch [2:1 multiplexer](docs/examples/multiplexer.md), built from NOT, two AND gates, and OR with one composite-chip layer.
 - Transient notifications appear above the secondary status bar, stack newest-first, and dismiss automatically or through their close icon.
 
 ## Interaction reference
@@ -90,11 +91,11 @@ The web project schema is `digital-logic-sim-web/1`. A project contains its root
 
 Custom-chip interfaces are authored as ordinary movable `IN-*` and `OUT-*` nodes. Saving a chip preserves those nodes, their labels, positions, and wires. When the chip is reused, the parent-facing ports are derived from them and bridge the parent signal into the internal `IN` node or out of the internal `OUT` node. Older fixed-pin chip JSONs are upgraded automatically when normalized, so existing ALU, adder, and display examples remain usable.
 
-The repository includes inspectable examples in [`storage/projects`](storage/projects): `bake-controls-lab.json`, `basic-alu.json`, `full-adder.json`, `indefinite-clock-lab.json`, `simple-alu.json`, `sophisticated-alu.json`, `step-showcase.json`, and `tiny-hex-display.json`. Their reusable chip JSON files live in [`storage/chips`](storage/chips), and the static build publishes copies under [`public/examples`](public/examples) for download/import.
+The repository includes inspectable examples in [`storage/projects`](storage/projects): `bake-controls-lab.json`, `basic-alu.json`, `full-adder.json`, `indefinite-clock-lab.json`, `multiplexer-2-1.json`, `simple-alu.json`, `sophisticated-alu.json`, `step-showcase.json`, and `tiny-hex-display.json`. Their reusable chip JSON files live in [`storage/chips`](storage/chips), and the static build publishes copies under [`public/examples`](public/examples) for download/import.
 
-The storage endpoints and file layout are documented in [`storage/README.md`](storage/README.md).
+The storage endpoints and file layout are documented in [`docs/reference/storage.md`](docs/reference/storage.md).
 
-The focused design contracts live in [`SIMULATION-BAKE-ARCHITECTURE.md`](SIMULATION-BAKE-ARCHITECTURE.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`COLOR-SYSTEM.md`](COLOR-SYSTEM.md), [`XRAY-ARCHITECTURE.md`](XRAY-ARCHITECTURE.md), and [`PERFORMANCE.md`](PERFORMANCE.md).
+The focused design and implementation contracts live in [`docs/architecture/`](docs/architecture/): the system architecture, simulation bake lifecycle, X-ray projection, browser performance, and interaction audits. Example-specific explanations live in [`docs/examples/`](docs/examples/).
 
 ## Source reference
 

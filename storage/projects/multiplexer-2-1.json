@@ -1,0 +1,952 @@
+{
+  "schema": "digital-logic-sim-web/1",
+  "storageId": "multiplexer-2-1",
+  "name": "2:1 Multiplexer",
+  "createdAt": "2026-08-10T12:00:00.000Z",
+  "updatedAt": "2026-08-11T00:26:06.605Z",
+  "root": {
+    "id": "root",
+    "name": "2:1 Multiplexer",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 760,
+      "y": 440
+    },
+    "colour": "#202b3a",
+    "nameLocation": "top",
+    "inputPins": [],
+    "outputPins": [],
+    "instances": [
+      {
+        "id": "input-d0",
+        "name": "IN-1",
+        "position": {
+          "x": -840,
+          "y": -80
+        },
+        "rotation": 0,
+        "label": "D0 = 1",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "input-d1",
+        "name": "IN-1",
+        "position": {
+          "x": -840,
+          "y": 20
+        },
+        "rotation": 0,
+        "label": "D1 = 0",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "input-select",
+        "name": "IN-1",
+        "position": {
+          "x": -550,
+          "y": -220
+        },
+        "rotation": 0,
+        "label": "SELECT = 0",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "mux",
+        "name": "MUX 2:1",
+        "position": {
+          "x": -120,
+          "y": 20
+        },
+        "rotation": 0,
+        "label": "ONE-OF-TWO SELECTOR",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "output-led",
+        "name": "LED",
+        "position": {
+          "x": 310,
+          "y": -220
+        },
+        "rotation": 0,
+        "label": "SELECTED OUT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "output-pin",
+        "name": "OUT-1",
+        "position": {
+          "x": 530,
+          "y": 20
+        },
+        "rotation": 0,
+        "label": "OUT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "input-d0-mux",
+        "source": {
+          "owner": "input-d0",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "input-d1-mux",
+        "source": {
+          "owner": "input-d1",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "d1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "input-select-mux",
+        "source": {
+          "owner": "input-select",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "mux",
+          "pin": "select"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "mux-led",
+        "source": {
+          "owner": "mux",
+          "pin": "out"
+        },
+        "target": {
+          "owner": "output-led",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "mux-output",
+        "source": {
+          "owner": "mux",
+          "pin": "out"
+        },
+        "target": {
+          "owner": "output-pin",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "mux-project-title",
+        "type": "label",
+        "text": "2:1 MULTIPLEXER — SELECT ONE INPUT",
+        "position": {
+          "x": -210,
+          "y": -340
+        },
+        "width": 620,
+        "height": 28,
+        "fontSize": 14,
+        "colour": "#f3d36b",
+        "background": "#352e18"
+      },
+      {
+        "id": "mux-project-help",
+        "type": "text",
+        "text": "D0 and D1 are the data inputs.\nSELECT = 0 sends D0 to OUT.\nSELECT = 1 sends D1 to OUT.\nToggle SELECT, then step or bake to watch the LED change.",
+        "position": {
+          "x": -760,
+          "y": 280
+        },
+        "width": 620,
+        "height": 110,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ],
+    "interfaceBindings": {
+      "inputs": [],
+      "outputs": []
+    },
+    "fit": null
+  },
+  "customChips": {
+    "MUX 2:1": {
+      "id": "chip-mux-2-1",
+      "name": "MUX 2:1",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 360,
+        "y": 240
+      },
+      "colour": "#647488",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "d0",
+          "name": "D0",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": -80,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "d1",
+          "name": "D1",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": 20,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "select",
+          "name": "SELECT",
+          "bits": 1,
+          "direction": "input",
+          "x": -320,
+          "y": 120,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out",
+          "name": "OUT",
+          "bits": 1,
+          "direction": "output",
+          "x": 420,
+          "y": 20,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "not-select",
+          "name": "NOT",
+          "position": {
+            "x": -40,
+            "y": 120
+          },
+          "rotation": 0,
+          "label": "NOT SELECT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "and-d0",
+          "name": "AND",
+          "position": {
+            "x": 40,
+            "y": -60
+          },
+          "rotation": 0,
+          "label": "D0 & !SELECT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "and-d1",
+          "name": "AND",
+          "position": {
+            "x": 40,
+            "y": 80
+          },
+          "rotation": 0,
+          "label": "D1 & SELECT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "or-out",
+          "name": "OR",
+          "position": {
+            "x": 200,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "SELECTED OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d0",
+          "name": "IN-1",
+          "position": {
+            "x": -220,
+            "y": -80
+          },
+          "rotation": 0,
+          "label": "D0",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d0",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-d1",
+          "name": "IN-1",
+          "position": {
+            "x": -220,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "D1",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "d1",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-input-select",
+          "name": "IN-1",
+          "position": {
+            "x": -220,
+            "y": 120
+          },
+          "rotation": 0,
+          "label": "SELECT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "select",
+          "outputPinColours": {}
+        },
+        {
+          "id": "interface-output-out",
+          "name": "OUT-1",
+          "position": {
+            "x": 320,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out",
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "d0-and",
+          "source": {
+            "owner": "interface-input-d0",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "and-d0",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "select-not",
+          "source": {
+            "owner": "interface-input-select",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "not-select",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "not-d0-and",
+          "source": {
+            "owner": "not-select",
+            "pin": "1"
+          },
+          "target": {
+            "owner": "and-d0",
+            "pin": "1"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "d1-and",
+          "source": {
+            "owner": "interface-input-d1",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "and-d1",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "select-d1-and",
+          "source": {
+            "owner": "interface-input-select",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "and-d1",
+            "pin": "1"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "d0-or",
+          "source": {
+            "owner": "and-d0",
+            "pin": "2"
+          },
+          "target": {
+            "owner": "or-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "d1-or",
+          "source": {
+            "owner": "and-d1",
+            "pin": "2"
+          },
+          "target": {
+            "owner": "or-out",
+            "pin": "1"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "or-out-interface",
+          "source": {
+            "owner": "or-out",
+            "pin": "2"
+          },
+          "target": {
+            "owner": "interface-output-out",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "mux-title",
+          "type": "label",
+          "text": "2:1 MULTIPLEXER",
+          "position": {
+            "x": -190,
+            "y": -170
+          },
+          "width": 380,
+          "height": 26,
+          "fontSize": 14,
+          "colour": "#f3d36b",
+          "background": "#352e18"
+        },
+        {
+          "id": "mux-formula",
+          "type": "text",
+          "text": "OUT = (D0 AND NOT SELECT) OR (D1 AND SELECT)\nSELECT=0 chooses D0; SELECT=1 chooses D1.",
+          "position": {
+            "x": -190,
+            "y": 180
+          },
+          "width": 480,
+          "height": 60,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "d0",
+            "instanceId": "interface-input-d0",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "d1",
+            "instanceId": "interface-input-d1",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "select",
+            "instanceId": "interface-input-select",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out",
+            "instanceId": "interface-output-out",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -320,
+          "y": -160,
+          "w": 740,
+          "h": 360
+        }
+      }
+    },
+    "test": {
+      "id": "chip-486127f5",
+      "name": "test",
+      "type": "custom",
+      "kind": "custom",
+      "size": {
+        "x": 640,
+        "y": 440
+      },
+      "colour": "#7358ad",
+      "nameLocation": "top",
+      "inputPins": [
+        {
+          "id": "in-0",
+          "name": "D0 = 1",
+          "bits": 1,
+          "direction": "input",
+          "x": -940,
+          "y": -80,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "in-1",
+          "name": "D1 = 0",
+          "bits": 1,
+          "direction": "input",
+          "x": -940,
+          "y": 20,
+          "valueDisplay": "off",
+          "colour": "gray"
+        },
+        {
+          "id": "in-2",
+          "name": "SELECT = 0",
+          "bits": 1,
+          "direction": "input",
+          "x": -940,
+          "y": -220,
+          "valueDisplay": "off",
+          "colour": "gray"
+        }
+      ],
+      "outputPins": [
+        {
+          "id": "out-0",
+          "name": "OUT",
+          "bits": 1,
+          "direction": "output",
+          "x": 630,
+          "y": 20,
+          "valueDisplay": "off",
+          "colour": "green"
+        }
+      ],
+      "instances": [
+        {
+          "id": "input-d0",
+          "name": "IN-1",
+          "position": {
+            "x": -840,
+            "y": -80
+          },
+          "rotation": 0,
+          "label": "D0 = 1",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in-0",
+          "outputPinColours": {}
+        },
+        {
+          "id": "input-d1",
+          "name": "IN-1",
+          "position": {
+            "x": -840,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "D1 = 0",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in-1",
+          "outputPinColours": {}
+        },
+        {
+          "id": "input-select",
+          "name": "IN-1",
+          "position": {
+            "x": -550,
+            "y": -220
+          },
+          "rotation": 0,
+          "label": "SELECT = 0",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "in-2",
+          "outputPinColours": {}
+        },
+        {
+          "id": "mux",
+          "name": "MUX 2:1",
+          "position": {
+            "x": -120,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "ONE-OF-TWO SELECTOR",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "output-led",
+          "name": "LED",
+          "position": {
+            "x": 310,
+            "y": -220
+          },
+          "rotation": 0,
+          "label": "SELECTED OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": null,
+          "outputPinColours": {}
+        },
+        {
+          "id": "output-pin",
+          "name": "OUT-1",
+          "position": {
+            "x": 530,
+            "y": 20
+          },
+          "rotation": 0,
+          "label": "OUT",
+          "internalData": {},
+          "linkedBusPairId": null,
+          "interfaceId": "out-0",
+          "outputPinColours": {}
+        }
+      ],
+      "wires": [
+        {
+          "id": "input-d0-mux",
+          "source": {
+            "owner": "input-d0",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "mux",
+            "pin": "d0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "input-d1-mux",
+          "source": {
+            "owner": "input-d1",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "mux",
+            "pin": "d1"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "input-select-mux",
+          "source": {
+            "owner": "input-select",
+            "pin": "0"
+          },
+          "target": {
+            "owner": "mux",
+            "pin": "select"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "mux-led",
+          "source": {
+            "owner": "mux",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "output-led",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        },
+        {
+          "id": "mux-output",
+          "source": {
+            "owner": "mux",
+            "pin": "out"
+          },
+          "target": {
+            "owner": "output-pin",
+            "pin": "0"
+          },
+          "points": [],
+          "colour": null
+        }
+      ],
+      "junctions": [],
+      "displays": [],
+      "annotations": [
+        {
+          "id": "mux-project-title",
+          "type": "label",
+          "text": "2:1 MULTIPLEXER — SELECT ONE INPUT",
+          "position": {
+            "x": -210,
+            "y": -340
+          },
+          "width": 620,
+          "height": 28,
+          "fontSize": 14,
+          "colour": "#f3d36b",
+          "background": "#352e18"
+        },
+        {
+          "id": "mux-project-help",
+          "type": "text",
+          "text": "D0 and D1 are the data inputs.\nSELECT = 0 sends D0 to OUT.\nSELECT = 1 sends D1 to OUT.\nToggle SELECT, then step or bake to watch the LED change.",
+          "position": {
+            "x": -760,
+            "y": 280
+          },
+          "width": 620,
+          "height": 110,
+          "fontSize": 11,
+          "colour": "#d7eaff",
+          "background": "#2f3338"
+        }
+      ],
+      "interfaceBindings": {
+        "inputs": [
+          {
+            "publicId": "in-0",
+            "instanceId": "input-d0",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "in-1",
+            "instanceId": "input-d1",
+            "pinId": "0",
+            "direction": "input"
+          },
+          {
+            "publicId": "in-2",
+            "instanceId": "input-select",
+            "pinId": "0",
+            "direction": "input"
+          }
+        ],
+        "outputs": [
+          {
+            "publicId": "out-0",
+            "instanceId": "output-pin",
+            "pinId": "0",
+            "direction": "output"
+          }
+        ]
+      },
+      "fit": {
+        "version": 1,
+        "bounds": {
+          "x": -940,
+          "y": -300,
+          "w": 1570,
+          "h": 540
+        }
+      }
+    }
+  },
+  "collections": [
+    {
+      "name": "LOGIC",
+      "chips": [
+        "AND",
+        "OR",
+        "NOT",
+        "NAND",
+        "NOR",
+        "XOR",
+        "XNOR",
+        "BUFFER"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "chips": [
+        "CLOCK",
+        "PULSE",
+        "KEY",
+        "3-STATE BUFFER"
+      ]
+    },
+    {
+      "name": "IN/OUT",
+      "chips": [
+        "IN-1",
+        "IN-4",
+        "IN-8",
+        "OUT-1",
+        "OUT-4",
+        "OUT-8"
+      ]
+    },
+    {
+      "name": "MERGE/SPLIT",
+      "chips": [
+        "1-4BIT",
+        "1-8BIT",
+        "4-8BIT",
+        "4-1BIT",
+        "8-4BIT",
+        "8-1BIT"
+      ]
+    },
+    {
+      "name": "BUS",
+      "chips": [
+        "BUS-1",
+        "BUS-4",
+        "BUS-8"
+      ]
+    },
+    {
+      "name": "DISPLAY",
+      "chips": [
+        "7-SEGMENT",
+        "DOT DISPLAY",
+        "RGB DISPLAY",
+        "LED"
+      ]
+    },
+    {
+      "name": "MEMORY",
+      "chips": [
+        "ROM 256x16",
+        "dev.RAM-8"
+      ]
+    },
+    {
+      "name": "AUDIO",
+      "chips": [
+        "BUZZER"
+      ]
+    }
+  ],
+  "collectionOrder": [
+    "LOGIC",
+    "BASIC",
+    "IN/OUT",
+    "MERGE/SPLIT",
+    "BUS",
+    "DISPLAY",
+    "MEMORY",
+    "AUDIO",
+    "CUSTOM"
+  ],
+  "starred": [
+    "IN/OUT",
+    "MUX 2:1"
+  ],
+  "settings": {
+    "snapping": true,
+    "straightWires": false,
+    "grid": true,
+    "simulationPaused": true,
+    "stepsPerSecond": 8,
+    "stepsPerClock": 8
+  },
+  "inputValues": {
+    "input-d0": 1,
+    "input-d1": 0,
+    "input-select": 0
+  },
+  "keyValues": {
+    "KeyZ": false,
+    "z": false,
+    "ControlLeft": true,
+    "Control": true,
+    "KeyS": true,
+    "s": true
+  }
+}

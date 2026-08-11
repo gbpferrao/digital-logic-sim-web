@@ -205,8 +205,8 @@ test("GitHub Pages is a static import/export distribution", async () => {
   assert.ok(workflow.includes('VITE_STATIC_MODE: "true"'));
   assert.ok(vite.includes('mode === "pages"'));
   assert.ok(storage.includes("if (STATIC_MODE) return null"));
-  assert.equal(manifest.projects.length, 8);
-  assert.equal(manifest.chips.length, 7);
+  assert.equal(manifest.projects.length, 9);
+  assert.equal(manifest.chips.length, 8);
 });
 
 test("downloaded web chip JSON imports as an editable circuit", async () => {
