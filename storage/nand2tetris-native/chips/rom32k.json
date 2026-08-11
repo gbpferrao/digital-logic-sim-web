@@ -1,0 +1,54 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "ROM32K",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-ROM32K",
+    "name": "ROM32K",
+    "type": "ROM32K",
+    "kind": "builtin",
+    "size": {
+      "x": 260,
+      "y": 100
+    },
+    "colour": "#857654",
+    "nameLocation": "centre",
+    "gate": null,
+    "inputPins": [
+      {
+        "id": "0",
+        "name": "ADDRESS",
+        "bits": 15,
+        "direction": "input",
+        "x": -130,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "1",
+        "name": "OUT",
+        "bits": 16,
+        "direction": "output",
+        "x": 130,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": "rom",
+    "memorySize": 32768,
+    "addressBits": 15,
+    "wordBits": 16,
+    "constantValue": null,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

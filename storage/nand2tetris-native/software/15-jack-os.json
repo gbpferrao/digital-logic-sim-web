@@ -1,0 +1,17 @@
+{
+  "schema": "digital-logic-sim-web/learning-stage/1",
+  "track": "nand2tetris",
+  "kind": "software-stage",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "id": "15-jack-os",
+  "name": "Jack OS",
+  "predecessor": "Jack compiler",
+  "capability": "Provide memory, math, screen, keyboard, output, and string services in the teaching runtime.",
+  "implementation": "not-a-canvas-chip",
+  "requiredEngine": [
+    "OS library modules",
+    "device model",
+    "program loader"
+  ],
+  "dlsBoundary": "Not implemented as a canvas chip; it belongs to the companion language/runtime track."
+}

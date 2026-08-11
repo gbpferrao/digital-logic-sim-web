@@ -1,0 +1,64 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "3-STATE BUFFER",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-3-STATE BUFFER",
+    "name": "3-STATE BUFFER",
+    "type": "3-STATE BUFFER",
+    "kind": "builtin",
+    "size": {
+      "x": 40,
+      "y": 100
+    },
+    "colour": "#9b8653",
+    "nameLocation": "centre",
+    "gate": null,
+    "inputPins": [
+      {
+        "id": "0",
+        "name": "IN",
+        "bits": 1,
+        "direction": "input",
+        "x": -60,
+        "y": 10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "1",
+        "name": "ENABLE",
+        "bits": 1,
+        "direction": "input",
+        "x": -60,
+        "y": -10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "2",
+        "name": "OUT",
+        "bits": 1,
+        "direction": "output",
+        "x": 60,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": null,
+    "memorySize": null,
+    "addressBits": null,
+    "wordBits": null,
+    "constantValue": null,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

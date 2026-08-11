@@ -1,0 +1,16 @@
+{
+  "schema": "digital-logic-sim-web/learning-stage/1",
+  "track": "nand2tetris",
+  "kind": "software-stage",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "id": "10-hack-assembly",
+  "name": "Hack assembly",
+  "predecessor": "N2T COMPUTER",
+  "capability": "Write symbolic A- and C-instructions for the Hack CPU.",
+  "implementation": "learning-artifact",
+  "requiredEngine": [
+    "CPU instruction contract",
+    "ROM program loading"
+  ],
+  "dlsBoundary": "The browser simulator can display and eventually execute this layer, but it is not a canvas chip."
+}

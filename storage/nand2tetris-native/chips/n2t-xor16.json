@@ -1,0 +1,1080 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "N2T XOR16",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "description": {
+    "id": "chip-n2t-xor16",
+    "name": "N2T XOR16",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 640,
+      "y": 560
+    },
+    "colour": "#706aa4",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "a",
+        "name": "A",
+        "bits": 16,
+        "direction": "input",
+        "x": -480,
+        "y": -60,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "bits": 16,
+        "direction": "input",
+        "x": -480,
+        "y": 60,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "out",
+        "name": "OUT",
+        "bits": 16,
+        "direction": "output",
+        "x": 480,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "interface-input-a",
+        "name": "IN-16",
+        "position": {
+          "x": -380,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "A",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "a",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-b",
+        "name": "IN-16",
+        "position": {
+          "x": -380,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "B",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "b",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-out",
+        "name": "OUT-16",
+        "position": {
+          "x": 380,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "OUT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "out",
+        "outputPinColours": {}
+      },
+      {
+        "id": "split-a",
+        "name": "16-1BIT",
+        "position": {
+          "x": -190,
+          "y": -120
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "split-b",
+        "name": "16-1BIT",
+        "position": {
+          "x": -190,
+          "y": 120
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "merge",
+        "name": "1-16BIT",
+        "position": {
+          "x": 190,
+          "y": 0
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-0",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -900
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-1",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -780
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-2",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -660
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-3",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -540
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-4",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -420
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-5",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -300
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-6",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -180
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-7",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-8",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-9",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 180
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-10",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 300
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-11",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 420
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-12",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 540
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-13",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 660
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-14",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 780
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      },
+      {
+        "id": "gate-15",
+        "name": "XOR",
+        "position": {
+          "x": 0,
+          "y": 900
+        },
+        "rotation": 0,
+        "label": "",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": null,
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "a-source",
+        "source": {
+          "owner": "interface-input-a",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "split-a",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-source",
+        "source": {
+          "owner": "interface-input-b",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "split-b",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-0",
+        "source": {
+          "owner": "split-a",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "gate-0",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-0",
+        "source": {
+          "owner": "split-b",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "gate-0",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-0",
+        "source": {
+          "owner": "gate-0",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-1",
+        "source": {
+          "owner": "split-a",
+          "pin": "15"
+        },
+        "target": {
+          "owner": "gate-1",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-1",
+        "source": {
+          "owner": "split-b",
+          "pin": "15"
+        },
+        "target": {
+          "owner": "gate-1",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-1",
+        "source": {
+          "owner": "gate-1",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-2",
+        "source": {
+          "owner": "split-a",
+          "pin": "14"
+        },
+        "target": {
+          "owner": "gate-2",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-2",
+        "source": {
+          "owner": "split-b",
+          "pin": "14"
+        },
+        "target": {
+          "owner": "gate-2",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-2",
+        "source": {
+          "owner": "gate-2",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "2"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-3",
+        "source": {
+          "owner": "split-a",
+          "pin": "13"
+        },
+        "target": {
+          "owner": "gate-3",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-3",
+        "source": {
+          "owner": "split-b",
+          "pin": "13"
+        },
+        "target": {
+          "owner": "gate-3",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-3",
+        "source": {
+          "owner": "gate-3",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "3"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-4",
+        "source": {
+          "owner": "split-a",
+          "pin": "12"
+        },
+        "target": {
+          "owner": "gate-4",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-4",
+        "source": {
+          "owner": "split-b",
+          "pin": "12"
+        },
+        "target": {
+          "owner": "gate-4",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-4",
+        "source": {
+          "owner": "gate-4",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "4"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-5",
+        "source": {
+          "owner": "split-a",
+          "pin": "11"
+        },
+        "target": {
+          "owner": "gate-5",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-5",
+        "source": {
+          "owner": "split-b",
+          "pin": "11"
+        },
+        "target": {
+          "owner": "gate-5",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-5",
+        "source": {
+          "owner": "gate-5",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "5"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-6",
+        "source": {
+          "owner": "split-a",
+          "pin": "10"
+        },
+        "target": {
+          "owner": "gate-6",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-6",
+        "source": {
+          "owner": "split-b",
+          "pin": "10"
+        },
+        "target": {
+          "owner": "gate-6",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-6",
+        "source": {
+          "owner": "gate-6",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "6"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-7",
+        "source": {
+          "owner": "split-a",
+          "pin": "9"
+        },
+        "target": {
+          "owner": "gate-7",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-7",
+        "source": {
+          "owner": "split-b",
+          "pin": "9"
+        },
+        "target": {
+          "owner": "gate-7",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-7",
+        "source": {
+          "owner": "gate-7",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "7"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-8",
+        "source": {
+          "owner": "split-a",
+          "pin": "8"
+        },
+        "target": {
+          "owner": "gate-8",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-8",
+        "source": {
+          "owner": "split-b",
+          "pin": "8"
+        },
+        "target": {
+          "owner": "gate-8",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-8",
+        "source": {
+          "owner": "gate-8",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "8"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-9",
+        "source": {
+          "owner": "split-a",
+          "pin": "7"
+        },
+        "target": {
+          "owner": "gate-9",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-9",
+        "source": {
+          "owner": "split-b",
+          "pin": "7"
+        },
+        "target": {
+          "owner": "gate-9",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-9",
+        "source": {
+          "owner": "gate-9",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "9"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-10",
+        "source": {
+          "owner": "split-a",
+          "pin": "6"
+        },
+        "target": {
+          "owner": "gate-10",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-10",
+        "source": {
+          "owner": "split-b",
+          "pin": "6"
+        },
+        "target": {
+          "owner": "gate-10",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-10",
+        "source": {
+          "owner": "gate-10",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "10"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-11",
+        "source": {
+          "owner": "split-a",
+          "pin": "5"
+        },
+        "target": {
+          "owner": "gate-11",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-11",
+        "source": {
+          "owner": "split-b",
+          "pin": "5"
+        },
+        "target": {
+          "owner": "gate-11",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-11",
+        "source": {
+          "owner": "gate-11",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "11"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-12",
+        "source": {
+          "owner": "split-a",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "gate-12",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-12",
+        "source": {
+          "owner": "split-b",
+          "pin": "4"
+        },
+        "target": {
+          "owner": "gate-12",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-12",
+        "source": {
+          "owner": "gate-12",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "12"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-13",
+        "source": {
+          "owner": "split-a",
+          "pin": "3"
+        },
+        "target": {
+          "owner": "gate-13",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-13",
+        "source": {
+          "owner": "split-b",
+          "pin": "3"
+        },
+        "target": {
+          "owner": "gate-13",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-13",
+        "source": {
+          "owner": "gate-13",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "13"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-14",
+        "source": {
+          "owner": "split-a",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "gate-14",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-14",
+        "source": {
+          "owner": "split-b",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "gate-14",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-14",
+        "source": {
+          "owner": "gate-14",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "14"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "a-15",
+        "source": {
+          "owner": "split-a",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "gate-15",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "b-15",
+        "source": {
+          "owner": "split-b",
+          "pin": "1"
+        },
+        "target": {
+          "owner": "gate-15",
+          "pin": "1"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-15",
+        "source": {
+          "owner": "gate-15",
+          "pin": "2"
+        },
+        "target": {
+          "owner": "merge",
+          "pin": "15"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "merge-out",
+        "source": {
+          "owner": "merge",
+          "pin": "16"
+        },
+        "target": {
+          "owner": "interface-output-out",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "annotation-n2t-xor16",
+        "type": "text",
+        "text": "Sixteen one-bit XOR chips operate in parallel.",
+        "position": {
+          "x": -240,
+          "y": -1050
+        },
+        "width": 480,
+        "height": 70,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ],
+    "interfaceBindings": {
+      "inputs": [
+        {
+          "publicId": "a",
+          "instanceId": "interface-input-a",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "b",
+          "instanceId": "interface-input-b",
+          "pinId": "0",
+          "direction": "input"
+        }
+      ],
+      "outputs": [
+        {
+          "publicId": "out",
+          "instanceId": "interface-output-out",
+          "pinId": "0",
+          "direction": "output"
+        }
+      ]
+    },
+    "fit": {
+      "version": 1,
+      "bounds": {
+        "x": -480,
+        "y": -980,
+        "w": 960,
+        "h": 1960
+      }
+    }
+  },
+  "dependencyNames": [],
+  "dependencies": {},
+  "variant": "native-primitives"
+}

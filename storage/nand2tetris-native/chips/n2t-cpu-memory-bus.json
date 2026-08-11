@@ -1,0 +1,353 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "N2T CPU-MEMORY-BUS",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "description": {
+    "id": "chip-n2t-cpu-memory-bus",
+    "name": "N2T CPU-MEMORY-BUS",
+    "type": "custom",
+    "kind": "custom",
+    "size": {
+      "x": 800,
+      "y": 440
+    },
+    "colour": "#7358ad",
+    "nameLocation": "top",
+    "inputPins": [
+      {
+        "id": "cpuOutM",
+        "name": "CPU OUT M",
+        "bits": 16,
+        "direction": "input",
+        "x": -180,
+        "y": -180,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cpuAddress",
+        "name": "CPU ADDRESS",
+        "bits": 15,
+        "direction": "input",
+        "x": -180,
+        "y": -60,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "cpuWrite",
+        "name": "CPU WRITE",
+        "bits": 1,
+        "direction": "input",
+        "x": -180,
+        "y": 60,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "memoryOut",
+        "name": "MEMORY OUT",
+        "bits": 16,
+        "direction": "input",
+        "x": -180,
+        "y": 180,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "memoryIn",
+        "name": "MEMORY IN",
+        "bits": 16,
+        "direction": "output",
+        "x": 180,
+        "y": -180,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "memoryAddress",
+        "name": "MEMORY ADDRESS",
+        "bits": 15,
+        "direction": "output",
+        "x": 180,
+        "y": -60,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "memoryLoad",
+        "name": "MEMORY LOAD",
+        "bits": 1,
+        "direction": "output",
+        "x": 180,
+        "y": 60,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "cpuInM",
+        "name": "CPU IN M",
+        "bits": 16,
+        "direction": "output",
+        "x": 180,
+        "y": 180,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [
+      {
+        "id": "interface-input-cpuoutm",
+        "name": "IN-16",
+        "position": {
+          "x": -80,
+          "y": -180
+        },
+        "rotation": 0,
+        "label": "CPU OUT M",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "cpuOutM",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-cpuaddress",
+        "name": "IN-16",
+        "position": {
+          "x": -80,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "CPU ADDRESS",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "cpuAddress",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-cpuwrite",
+        "name": "IN-1",
+        "position": {
+          "x": -80,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "CPU WRITE",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "cpuWrite",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-input-memoryout",
+        "name": "IN-16",
+        "position": {
+          "x": -80,
+          "y": 180
+        },
+        "rotation": 0,
+        "label": "MEMORY OUT",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "memoryOut",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-memoryin",
+        "name": "OUT-16",
+        "position": {
+          "x": 80,
+          "y": -180
+        },
+        "rotation": 0,
+        "label": "MEMORY IN",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "memoryIn",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-memoryaddress",
+        "name": "OUT-16",
+        "position": {
+          "x": 80,
+          "y": -60
+        },
+        "rotation": 0,
+        "label": "MEMORY ADDRESS",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "memoryAddress",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-memoryload",
+        "name": "OUT-1",
+        "position": {
+          "x": 80,
+          "y": 60
+        },
+        "rotation": 0,
+        "label": "MEMORY LOAD",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "memoryLoad",
+        "outputPinColours": {}
+      },
+      {
+        "id": "interface-output-cpuinm",
+        "name": "OUT-16",
+        "position": {
+          "x": 80,
+          "y": 180
+        },
+        "rotation": 0,
+        "label": "CPU IN M",
+        "internalData": {},
+        "linkedBusPairId": null,
+        "interfaceId": "cpuInM",
+        "outputPinColours": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "cpu-out-memory-in",
+        "source": {
+          "owner": "interface-input-cpuoutm",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "interface-output-memoryin",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cpu-address-memory-address",
+        "source": {
+          "owner": "interface-input-cpuaddress",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "interface-output-memoryaddress",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "cpu-write-memory-load",
+        "source": {
+          "owner": "interface-input-cpuwrite",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "interface-output-memoryload",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      },
+      {
+        "id": "memory-out-cpu-in",
+        "source": {
+          "owner": "interface-input-memoryout",
+          "pin": "0"
+        },
+        "target": {
+          "owner": "interface-output-cpuinm",
+          "pin": "0"
+        },
+        "points": [],
+        "colour": null
+      }
+    ],
+    "junctions": [],
+    "displays": [],
+    "annotations": [
+      {
+        "id": "annotation-n2t-cpu-memory-bus",
+        "type": "text",
+        "text": "The explicit data/control boundary between CPU and memory devices.",
+        "position": {
+          "x": -240,
+          "y": -330
+        },
+        "width": 480,
+        "height": 70,
+        "fontSize": 11,
+        "colour": "#d7eaff",
+        "background": "#2f3338"
+      }
+    ],
+    "interfaceBindings": {
+      "inputs": [
+        {
+          "publicId": "cpuOutM",
+          "instanceId": "interface-input-cpuoutm",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "cpuAddress",
+          "instanceId": "interface-input-cpuaddress",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "cpuWrite",
+          "instanceId": "interface-input-cpuwrite",
+          "pinId": "0",
+          "direction": "input"
+        },
+        {
+          "publicId": "memoryOut",
+          "instanceId": "interface-input-memoryout",
+          "pinId": "0",
+          "direction": "input"
+        }
+      ],
+      "outputs": [
+        {
+          "publicId": "memoryIn",
+          "instanceId": "interface-output-memoryin",
+          "pinId": "0",
+          "direction": "output"
+        },
+        {
+          "publicId": "memoryAddress",
+          "instanceId": "interface-output-memoryaddress",
+          "pinId": "0",
+          "direction": "output"
+        },
+        {
+          "publicId": "memoryLoad",
+          "instanceId": "interface-output-memoryload",
+          "pinId": "0",
+          "direction": "output"
+        },
+        {
+          "publicId": "cpuInM",
+          "instanceId": "interface-output-cpuinm",
+          "pinId": "0",
+          "direction": "output"
+        }
+      ]
+    },
+    "fit": {
+      "version": 1,
+      "bounds": {
+        "x": -180,
+        "y": -260,
+        "w": 360,
+        "h": 520
+      }
+    }
+  },
+  "dependencyNames": [],
+  "dependencies": {},
+  "variant": "native-primitives"
+}

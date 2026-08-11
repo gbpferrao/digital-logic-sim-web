@@ -24,5 +24,7 @@ The GitHub Pages build sets `VITE_STATIC_MODE=true`. In that mode `src/storage.j
 never calls `/api`; Save writes the cleaned project to the browser's
 `digital-logic-sim-web:project` cache, and JSON export/import is the portable
 sharing path. The bundled files in `public/examples/` are copied from
-`storage/projects/` and `storage/chips/` during `npm run build`, so the hosted
-site does not need a backend or writable repository.
+`storage/projects/`, `storage/chips/`, and both Nand2Tetris tracks during
+`npm run build`, so the hosted site does not need a backend or writable
+repository. `storage/nand2tetris/` is the NAND-derived teaching track;
+`storage/nand2tetris-native/` is its native-primitives companion.

@@ -1,0 +1,43 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "CONST-1-16",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-CONST-1-16",
+    "name": "CONST-1-16",
+    "type": "CONST-1-16",
+    "kind": "builtin",
+    "size": {
+      "x": 80,
+      "y": 60
+    },
+    "colour": "#9b8653",
+    "nameLocation": "hidden",
+    "gate": null,
+    "inputPins": [],
+    "outputPins": [
+      {
+        "id": "0",
+        "name": "OUT",
+        "bits": 16,
+        "direction": "output",
+        "x": 60,
+        "y": 0,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": "constant",
+    "memorySize": null,
+    "addressBits": null,
+    "wordBits": 16,
+    "constantValue": 1,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

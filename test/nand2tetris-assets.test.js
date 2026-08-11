@@ -7,9 +7,14 @@ import { readProjectFile } from "../src/io/project-import.js";
 import { Simulator } from "../src/simulation.js";
 
 const root = path.join(process.cwd(), "storage", "nand2tetris");
+const nativeRoot = path.join(process.cwd(), "storage", "nand2tetris-native");
 
 async function readJson(relative) {
   return JSON.parse(await readFile(path.join(root, relative), "utf8"));
+}
+
+async function readNativeJson(relative) {
+  return JSON.parse(await readFile(path.join(nativeRoot, relative), "utf8"));
 }
 
 function outputBit(simulator, id, pin = "0") {
@@ -95,6 +100,105 @@ test("Nand2Tetris Boolean composites use native NAND leaves without redundant wr
         assert.equal((description.instances ?? []).some(instance => instance.name === "N2T NAND"), false, `${directory}/${file} should not use N2T NAND as a nested implementation`);
       }
     }
+  }
+});
+
+test("the native-primitives Nand2Tetris variant replaces exact basic wrappers and preserves contracts", async () => {
+  const manifest = await readNativeJson("manifest.json");
+  assert.equal(manifest.variant, "native-primitives");
+  assert.equal(manifest.sourceTrack, "nand2tetris");
+  assert.equal(manifest.hardwareStages.length, 11);
+  assert.equal(manifest.softwareStages.length, 8);
+  assert.equal(manifest.chips.filter(entry => !entry.native).length, 59);
+  assert.equal(manifest.chips.filter(entry => entry.native).length, 19);
+  assert.deepEqual(
+    manifest.nativeSubstitutions.map(({ from, name }) => [from, name]),
+    [
+      ["N2T NAND", "NAND"], ["N2T NOT", "NOT"], ["N2T AND", "AND"], ["N2T OR", "OR"],
+      ["N2T XOR", "XOR"], ["N2T NOR", "NOR"], ["N2T XNOR", "XNOR"],
+      ["N2T BUFFER", "BUFFER"], ["N2T TRI-STATE", "3-STATE BUFFER"]
+    ]
+  );
+
+  const nativePins = {
+    NAND: new Set(["0", "1", "2"]),
+    NOT: new Set(["0", "1"]),
+    AND: new Set(["0", "1", "2"]),
+    OR: new Set(["0", "1", "2"]),
+    XOR: new Set(["0", "1", "2"]),
+    NOR: new Set(["0", "1", "2"]),
+    XNOR: new Set(["0", "1", "2"]),
+    BUFFER: new Set(["0", "1"]),
+    "3-STATE BUFFER": new Set(["0", "1", "2"])
+  };
+  const replacedNames = new Set(Object.keys({
+    "N2T NAND": true,
+    "N2T NOT": true,
+    "N2T AND": true,
+    "N2T OR": true,
+    "N2T XOR": true,
+    "N2T NOR": true,
+    "N2T XNOR": true,
+    "N2T BUFFER": true,
+    "N2T TRI-STATE": true
+  }));
+
+  for (const entry of manifest.chips) {
+    const raw = await readNativeJson(entry.file);
+    assert.equal(raw.description.name, entry.name);
+    assert.deepEqual(raw.dependencyNames, Object.keys(raw.dependencies));
+    const descriptions = [raw.description, ...Object.values(raw.dependencies ?? {})];
+    for (const description of descriptions) {
+      const instances = new Map((description.instances ?? []).map(instance => [String(instance.id), instance]));
+      for (const instance of description.instances ?? []) {
+        assert.equal(replacedNames.has(instance.name), false, `${entry.file} still uses ${instance.name} as an internal instance`);
+        const validPins = nativePins[instance.name];
+        if (!validPins) continue;
+        for (const wire of description.wires ?? []) {
+          for (const endpoint of [wire.source, wire.target]) {
+            if (String(endpoint.owner) !== String(instance.id)) continue;
+            assert.ok(validPins.has(String(endpoint.pin)), `${entry.file}/${description.name} has an invalid ${instance.name} pin ${endpoint.pin}`);
+          }
+        }
+      }
+      for (const instance of description.instances ?? []) {
+        if (!nativePins[instance.name]) continue;
+        assert.ok(instances.has(String(instance.id)));
+      }
+    }
+  }
+
+  for (const file of ["projects/nand2tetris-bit-lab.json", "projects/nand2tetris-hardware-lab.json", "projects/nand2tetris-computer-lab.json"]) {
+    const project = normalizeProject(await readNativeJson(file));
+    assert.equal(project.variant, "native-primitives");
+    const missing = project.root.instances.filter(instance => !getDescription(project, instance.name));
+    assert.deepEqual(missing, [], `${file} should resolve every direct child`);
+    assert.doesNotThrow(() => new Simulator(project).step(), file);
+  }
+});
+
+test("the native-primitives variant keeps composed behavior executable", async () => {
+  const source = await readNativeJson("projects/nand2tetris-hardware-lab.json");
+  const customChips = normalizeProject(source).customChips;
+
+  for (const [a, b, sel, expected] of [[0, 1, 0, 0], [0, 1, 1, 1], [1, 0, 0, 1], [1, 0, 1, 0]]) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T MUX", [
+      { id: "a", bits: 1 }, { id: "b", bits: 1 }, { id: "sel", bits: 1 }
+    ], [{ id: "out", bits: 1 }], { a, b, sel });
+    const simulator = new Simulator(project);
+    simulator.step();
+    assert.equal(outputBit(simulator, outputInstances[0].id), expected, `native MUX(${a},${b},${sel})`);
+  }
+
+  for (let a = 0; a <= 1; a += 1) for (let b = 0; b <= 1; b += 1) for (let cin = 0; cin <= 1; cin += 1) {
+    const { project, outputInstances } = compositeTestProject(customChips, "N2T FULL ADDER", [
+      { id: "a", bits: 1 }, { id: "b", bits: 1 }, { id: "cin", bits: 1 }
+    ], [{ id: "sum", bits: 1 }, { id: "carry", bits: 1 }], { a, b, cin });
+    const simulator = new Simulator(project);
+    simulator.step();
+    const total = a + b + cin;
+    assert.equal(outputBit(simulator, outputInstances[0].id), total & 1, `native sum ${a}${b}${cin}`);
+    assert.equal(outputBit(simulator, outputInstances[1].id), Number(total > 1), `native carry ${a}${b}${cin}`);
   }
 });
 

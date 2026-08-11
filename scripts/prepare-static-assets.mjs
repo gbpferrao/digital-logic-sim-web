@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 await import("./build-nand2tetris-assets.mjs");
+await import("./build-nand2tetris-native-assets.mjs");
 const publicExamples = path.join(root, "public", "examples");
 const sourceDirectories = {
   projects: path.join(root, "storage", "projects"),
@@ -37,6 +38,15 @@ manifest.nand2tetris = {
   file: "nand2tetris/manifest.json",
   href: "examples/nand2tetris/manifest.json",
   name: "Nand2Tetris chip progression"
+};
+
+const nand2tetrisNativeSource = path.join(root, "storage", "nand2tetris-native");
+const nand2tetrisNativeTarget = path.join(publicExamples, "nand2tetris-native");
+await cp(nand2tetrisNativeSource, nand2tetrisNativeTarget, { recursive: true });
+manifest.nand2tetrisNative = {
+  file: "nand2tetris-native/manifest.json",
+  href: "examples/nand2tetris-native/manifest.json",
+  name: "Nand2Tetris progression (native primitives)"
 };
 
 await writeFile(path.join(publicExamples, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");

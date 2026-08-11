@@ -1,0 +1,114 @@
+{
+  "schema": "digital-logic-sim-web/chip/1",
+  "name": "HACK CPU",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "native": true,
+  "description": {
+    "id": "builtin-HACK CPU",
+    "name": "HACK CPU",
+    "type": "HACK CPU",
+    "kind": "builtin",
+    "size": {
+      "x": 320,
+      "y": 180
+    },
+    "colour": "#9b8653",
+    "nameLocation": "centre",
+    "gate": null,
+    "inputPins": [
+      {
+        "id": "0",
+        "name": "IN M",
+        "bits": 16,
+        "direction": "input",
+        "x": -160,
+        "y": 30,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "1",
+        "name": "INSTRUCTION",
+        "bits": 16,
+        "direction": "input",
+        "x": -160,
+        "y": 10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "2",
+        "name": "RESET",
+        "bits": 1,
+        "direction": "input",
+        "x": -160,
+        "y": -10,
+        "valueDisplay": "off",
+        "colour": "gray"
+      },
+      {
+        "id": "3",
+        "name": "CLOCK",
+        "bits": 1,
+        "direction": "input",
+        "x": -160,
+        "y": -30,
+        "valueDisplay": "off",
+        "colour": "gray"
+      }
+    ],
+    "outputPins": [
+      {
+        "id": "4",
+        "name": "OUT M",
+        "bits": 16,
+        "direction": "output",
+        "x": 160,
+        "y": 30,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "5",
+        "name": "WRITE M",
+        "bits": 1,
+        "direction": "output",
+        "x": 160,
+        "y": 10,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "6",
+        "name": "ADDRESS M",
+        "bits": 15,
+        "direction": "output",
+        "x": 160,
+        "y": -10,
+        "valueDisplay": "off",
+        "colour": "green"
+      },
+      {
+        "id": "7",
+        "name": "PC",
+        "bits": 15,
+        "direction": "output",
+        "x": 160,
+        "y": -30,
+        "valueDisplay": "off",
+        "colour": "green"
+      }
+    ],
+    "instances": [],
+    "wires": [],
+    "displays": [],
+    "special": "hackCpu",
+    "memorySize": null,
+    "addressBits": null,
+    "wordBits": null,
+    "constantValue": null,
+    "builtin": true
+  },
+  "dependencyNames": [],
+  "dependencies": {}
+}

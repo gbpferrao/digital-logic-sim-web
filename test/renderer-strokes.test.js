@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry } from "../src/renderer.js";
+import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry, xrayWireAlpha } from "../src/renderer.js";
 import { BUILTINS, TYPE } from "../src/model.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
@@ -14,6 +14,14 @@ test("wire strokes preserve their reduced world width and floor when zoomed out"
   assert.equal(wireStroke(2, 1), 3);
   assert.equal(wireStroke(2, 4), 3);
   assert.equal(wireStroke(2, .25), 4);
+});
+
+test("xray continuation wires share one signal opacity contract", () => {
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 1), .96);
+  assert.equal(xrayWireAlpha({ bits: 0, tri: 0 }, 1), .74);
+  assert.equal(xrayWireAlpha({ bits: 0, tri: 1 }, 1), .48);
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, .66), .6336);
+  assert.equal(xrayWireAlpha({ bits: 1, tri: 0 }, 2), .96);
 });
 
 test("minor grid lines disappear once their screen spacing becomes cramped", () => {
@@ -45,7 +53,8 @@ test("xray bridges composite public ports into their movable interface nodes", (
     interfaceBindings: {
       inputs: [{ publicId: "in", instanceId: "interface-input-in", pinId: "0", direction: "input" }],
       outputs: [{ publicId: "out", instanceId: "interface-output-out", pinId: "0", direction: "output" }]
-    }
+    },
+    wires: [{ id: "out-wire", source: { owner: "driver", pin: "2" }, target: { owner: "interface-output-out", pin: "0" }, points: [] }]
   };
   const project = { root: description, customChips: {} };
   const inputBridge = xrayInterfaceBridgeGeometry(project, description, description.interfaceBindings.inputs[0], .5);
@@ -58,8 +67,33 @@ test("xray bridges composite public ports into their movable interface nodes", (
   assert.ok(inputBridge.internalPoint.x > inputBridge.publicPoint.x);
   assert.ok(outputBridge.framePoint.x < outputBridge.outerPoint.x);
   assert.ok(outputBridge.internalPoint.x < outputBridge.publicPoint.x);
+  assert.deepEqual(outputBridge.signalEndpoint, { owner: "driver", pin: "2" });
   assert.equal(inputBridge.scale, .5);
   assert.equal(outputBridge.scale, .5);
+});
+
+test("xray does not redraw interface-bound public pins at the frame edge", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.camera = { zoom: 1 };
+  let pinDots = 0;
+  const ctx = {
+    save() {}, restore() {}, beginPath() {}, arc() { pinDots += 1; }, fill() {}, fillText() {}
+  };
+  const description = {
+    kind: "custom",
+    size: { x: 200, y: 120 },
+    inputPins: [{ id: "in", name: "IN", direction: "input", x: -100, y: -20 }],
+    outputPins: [{ id: "out", name: "OUT", direction: "output", x: 100, y: 20 }],
+    interfaceBindings: {
+      inputs: [{ publicId: "in", instanceId: "interface-in", pinId: "0", direction: "input" }],
+      outputs: []
+    },
+    instances: [],
+    wires: []
+  };
+
+  renderer.drawXrayRootPins(ctx, description);
+  assert.equal(pinDots, 1, "only the unbound legacy/public fallback pin should remain");
 });
 
 test("xray hover resolves the deepest visible chip name", () => {
@@ -118,4 +152,41 @@ test("xray hover resolves the deepest visible chip name", () => {
     if (previousResizeObserver) globalThis.ResizeObserver = previousResizeObserver;
     else delete globalThis.ResizeObserver;
   }
+});
+
+test("xray interface tails stay in the wire layer before child bodies", () => {
+  const renderer = Object.create(WorldRenderer.prototype);
+  renderer.camera = { zoom: 1 };
+  renderer.lastState = { preview: false };
+  const order = [];
+  renderer.geometryFor = () => ({
+    instances: [{
+      instance: { id: "interface-in", name: TYPE.IN_1, position: { x: 0, y: 0 }, rotation: 0 },
+      description: { kind: "input" },
+      box: { x: -10, y: -10, w: 20, h: 20 }
+    }],
+    wires: []
+  });
+  renderer.drawXrayInterfaceBridgeStubs = () => order.push("stubs");
+  renderer.drawXrayWires = () => order.push("wires");
+  renderer.drawXrayInterfaceBridges = () => order.push("bridges");
+  renderer.drawXrayInterfaceNodeWire = () => order.push("interface-wire");
+  renderer.drawXrayInstance = () => order.push("instance");
+  renderer.drawXrayRootPins = () => order.push("root-pins");
+  const ctx = {
+    save() {}, restore() {}, beginPath() {}, roundRect() {}, clip() {}, fillRect() {}, translate() {}, scale() {}, stroke() {}
+  };
+  const description = {
+    kind: "custom",
+    type: TYPE.CUSTOM,
+    size: { x: 180, y: 120 },
+    fit: { version: 1, bounds: { x: -90, y: -60, w: 180, h: 120 } },
+    instances: [{ id: "interface-in", name: TYPE.IN_1, position: { x: 0, y: 0 }, rotation: 0 }],
+    inputPins: [],
+    outputPins: [],
+    wires: []
+  };
+
+  renderer.drawXrayComposite(ctx, { root: description, customChips: {} }, description, null, 1, ["outer"], []);
+  assert.deepEqual(order, ["stubs", "wires", "bridges", "interface-wire", "instance"]);
 });

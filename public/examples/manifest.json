@@ -93,5 +93,10 @@
     "file": "nand2tetris/manifest.json",
     "href": "examples/nand2tetris/manifest.json",
     "name": "Nand2Tetris chip progression"
+  },
+  "nand2tetrisNative": {
+    "file": "nand2tetris-native/manifest.json",
+    "href": "examples/nand2tetris-native/manifest.json",
+    "name": "Nand2Tetris progression (native primitives)"
   }
 }
