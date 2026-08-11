@@ -229,42 +229,42 @@ register("N2T NAND", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput(
 }, { colour: COLOUR.logic, note: "The primitive used as the construction starting point for the Nand2Tetris hardware track." });
 
 register("N2T NOT", [logicInput("in", "IN")], [logicOutput("out", "OUT")], (ctx) => {
-  const nand = child(ctx, "nand", "N2T NAND", 0, 0);
-  connectInput(ctx, "in", "in", nand, "a");
-  connectInput(ctx, "in-copy", "in", nand, "b");
-  connectOutput(ctx, "out", nand, "out", "out");
+  const nand = child(ctx, "nand", TYPE.NAND, 0, 0);
+  connectInput(ctx, "in", "in", nand, "0");
+  connectInput(ctx, "in-copy", "in", nand, "1");
+  connectOutput(ctx, "out", nand, "2", "out");
 }, { colour: COLOUR.logic, note: "NOT is NAND with the same signal connected to both inputs." });
 
 register("N2T AND", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput("out", "OUT")], (ctx) => {
-  const nand = child(ctx, "nand", "N2T NAND", 0, -50);
+  const nand = child(ctx, "nand", TYPE.NAND, 0, -50);
   const not = child(ctx, "not", "N2T NOT", 120, -50);
-  connectInput(ctx, "a", "a", nand, "a");
-  connectInput(ctx, "b", "b", nand, "b");
-  connect(ctx, "nand-not", nand, "out", not, "in");
+  connectInput(ctx, "a", "a", nand, "0");
+  connectInput(ctx, "b", "b", nand, "1");
+  connect(ctx, "nand-not", nand, "2", not, "in");
   connectOutput(ctx, "out", not, "out", "out");
 }, { colour: COLOUR.logic, note: "AND = NOT(NAND)." });
 
 register("N2T OR", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput("out", "OUT")], (ctx) => {
   const na = child(ctx, "not-a", "N2T NOT", -80, -60);
   const nb = child(ctx, "not-b", "N2T NOT", -80, 60);
-  const nand = child(ctx, "nand", "N2T NAND", 100, 0);
+  const nand = child(ctx, "nand", TYPE.NAND, 100, 0);
   connectInput(ctx, "a", "a", na, "in");
   connectInput(ctx, "b", "b", nb, "in");
-  connect(ctx, "na-nand", na, "out", nand, "a");
-  connect(ctx, "nb-nand", nb, "out", nand, "b");
-  connectOutput(ctx, "out", nand, "out", "out");
+  connect(ctx, "na-nand", na, "out", nand, "0");
+  connect(ctx, "nb-nand", nb, "out", nand, "1");
+  connectOutput(ctx, "out", nand, "2", "out");
 }, { colour: COLOUR.logic, note: "OR follows from De Morgan: NOT(NOT A NAND NOT B)." });
 
 register("N2T XOR", [logicInput("a", "A"), logicInput("b", "B")], [logicOutput("out", "OUT")], (ctx) => {
   const or = child(ctx, "or", "N2T OR", -120, -60);
-  const nand = child(ctx, "nand", "N2T NAND", -120, 60);
+  const nand = child(ctx, "nand", TYPE.NAND, -120, 60);
   const and = child(ctx, "and", "N2T AND", 100, 0);
   connectInput(ctx, "a-or", "a", or, "a");
   connectInput(ctx, "b-or", "b", or, "b");
-  connectInput(ctx, "a-nand", "a", nand, "a");
-  connectInput(ctx, "b-nand", "b", nand, "b");
+  connectInput(ctx, "a-nand", "a", nand, "0");
+  connectInput(ctx, "b-nand", "b", nand, "1");
   connect(ctx, "or-and", or, "out", and, "a");
-  connect(ctx, "nand-and", nand, "out", and, "b");
+  connect(ctx, "nand-and", nand, "2", and, "b");
   connectOutput(ctx, "out", and, "out", "out");
 }, { colour: COLOUR.logic, note: "XOR = (A OR B) AND NOT(A AND B), expressed using the NAND-derived parts." });
 

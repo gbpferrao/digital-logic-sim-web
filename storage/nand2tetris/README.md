@@ -15,7 +15,7 @@ This folder is the simulator-facing companion to the chip progression plan. It f
 
 The custom chips are ordinary nested simulator descriptions. The teaching path includes explicit `DMUX16`, `NEG16`, `REGISTER16`, `COUNTER`, instruction ROM/register/decoder layers, control layers, a CPU-memory bus, an address decoder, a composed CPU, and a composed CPU-memory boundary. The generator lays them out from dependency leaves toward the root using their actual minimum interaction bounds, then parks explanatory notes outside the circuit. New engine primitives remain limited to contracts that are awkward or needlessly expensive to reproduce at the current canvas level: rising-edge `DFF`, explicit constants, bounded 16-bit memories, ROM32K, screen/keyboard devices, and a native Hack CPU reference.
 
-The native Hack CPU and native memory devices are retained as fast reference contracts. They are not silently used by the `N2T CPU` or `N2T CPU-MEMORY` teaching compositions, except at the documented RAM, screen, keyboard, and ROM leaves.
+The native NAND is used directly as the leaf inside the NAND-derived Boolean compositions. `N2T NAND` is still retained as the standalone Stage 00 teaching chip, but it is no longer nested inside every later gate. The native Hack CPU and native memory devices are retained as fast reference contracts. They are not silently used by the `N2T CPU` or `N2T CPU-MEMORY` teaching compositions, except at the documented RAM, screen, keyboard, and ROM leaves.
 
 ## Software boundary
 

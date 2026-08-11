@@ -19,7 +19,7 @@
         "name": "A",
         "bits": 1,
         "direction": "input",
-        "x": -940,
+        "x": -540,
         "y": -60,
         "valueDisplay": "off",
         "colour": "gray"
@@ -29,7 +29,7 @@
         "name": "B",
         "bits": 1,
         "direction": "input",
-        "x": -940,
+        "x": -540,
         "y": 60,
         "valueDisplay": "off",
         "colour": "gray"
@@ -41,7 +41,7 @@
         "name": "OUT",
         "bits": 1,
         "direction": "output",
-        "x": 940,
+        "x": 540,
         "y": 0,
         "valueDisplay": "off",
         "colour": "green"
@@ -52,7 +52,7 @@
         "id": "interface-input-a",
         "name": "IN-1",
         "position": {
-          "x": -840,
+          "x": -440,
           "y": -60
         },
         "rotation": 0,
@@ -66,7 +66,7 @@
         "id": "interface-input-b",
         "name": "IN-1",
         "position": {
-          "x": -840,
+          "x": -440,
           "y": 60
         },
         "rotation": 0,
@@ -80,7 +80,7 @@
         "id": "interface-output-out",
         "name": "OUT-1",
         "position": {
-          "x": 840,
+          "x": 440,
           "y": 0
         },
         "rotation": 0,
@@ -92,9 +92,9 @@
       },
       {
         "id": "nand",
-        "name": "N2T NAND",
+        "name": "NAND",
         "position": {
-          "x": -480,
+          "x": -280,
           "y": 0
         },
         "rotation": 0,
@@ -108,7 +108,7 @@
         "id": "not",
         "name": "N2T NOT",
         "position": {
-          "x": 280,
+          "x": 80,
           "y": 0
         },
         "rotation": 0,
@@ -128,7 +128,7 @@
         },
         "target": {
           "owner": "nand",
-          "pin": "a"
+          "pin": "0"
         },
         "points": [],
         "colour": null
@@ -141,7 +141,7 @@
         },
         "target": {
           "owner": "nand",
-          "pin": "b"
+          "pin": "1"
         },
         "points": [],
         "colour": null
@@ -150,7 +150,7 @@
         "id": "nand-not",
         "source": {
           "owner": "nand",
-          "pin": "out"
+          "pin": "2"
         },
         "target": {
           "owner": "not",
@@ -182,7 +182,7 @@
         "text": "AND = NOT(NAND).",
         "position": {
           "x": -240,
-          "y": -290
+          "y": -210
         },
         "width": 480,
         "height": 70,
@@ -218,21 +218,20 @@
     "fit": {
       "version": 1,
       "bounds": {
-        "x": -940,
-        "y": -220,
-        "w": 1880,
-        "h": 440
+        "x": -540,
+        "y": -140,
+        "w": 1080,
+        "h": 280
       }
     }
   },
   "dependencyNames": [
-    "N2T NAND",
     "N2T NOT"
   ],
   "dependencies": {
-    "N2T NAND": {
-      "id": "chip-n2t-nand",
-      "name": "N2T NAND",
+    "N2T NOT": {
+      "id": "chip-n2t-not",
+      "name": "N2T NOT",
       "type": "custom",
       "kind": "custom",
       "size": {
@@ -243,22 +242,12 @@
       "nameLocation": "top",
       "inputPins": [
         {
-          "id": "a",
-          "name": "A",
+          "id": "in",
+          "name": "IN",
           "bits": 1,
           "direction": "input",
           "x": -260,
-          "y": -60,
-          "valueDisplay": "off",
-          "colour": "gray"
-        },
-        {
-          "id": "b",
-          "name": "B",
-          "bits": 1,
-          "direction": "input",
-          "x": -260,
-          "y": 60,
+          "y": 0,
           "valueDisplay": "off",
           "colour": "gray"
         }
@@ -277,31 +266,17 @@
       ],
       "instances": [
         {
-          "id": "interface-input-a",
+          "id": "interface-input-in",
           "name": "IN-1",
           "position": {
             "x": -160,
-            "y": -60
+            "y": 0
           },
           "rotation": 0,
-          "label": "A",
+          "label": "IN",
           "internalData": {},
           "linkedBusPairId": null,
-          "interfaceId": "a",
-          "outputPinColours": {}
-        },
-        {
-          "id": "interface-input-b",
-          "name": "IN-1",
-          "position": {
-            "x": -160,
-            "y": 60
-          },
-          "rotation": 0,
-          "label": "B",
-          "internalData": {},
-          "linkedBusPairId": null,
-          "interfaceId": "b",
+          "interfaceId": "in",
           "outputPinColours": {}
         },
         {
@@ -335,9 +310,9 @@
       ],
       "wires": [
         {
-          "id": "a",
+          "id": "in",
           "source": {
-            "owner": "interface-input-a",
+            "owner": "interface-input-in",
             "pin": "0"
           },
           "target": {
@@ -348,9 +323,9 @@
           "colour": null
         },
         {
-          "id": "b",
+          "id": "in-copy",
           "source": {
-            "owner": "interface-input-b",
+            "owner": "interface-input-in",
             "pin": "0"
           },
           "target": {
@@ -378,184 +353,12 @@
       "displays": [],
       "annotations": [
         {
-          "id": "annotation-n2t-nand",
-          "type": "text",
-          "text": "The primitive used as the construction starting point for the Nand2Tetris hardware track.",
-          "position": {
-            "x": -240,
-            "y": -210
-          },
-          "width": 480,
-          "height": 70,
-          "fontSize": 11,
-          "colour": "#d7eaff",
-          "background": "#2f3338"
-        }
-      ],
-      "interfaceBindings": {
-        "inputs": [
-          {
-            "publicId": "a",
-            "instanceId": "interface-input-a",
-            "pinId": "0",
-            "direction": "input"
-          },
-          {
-            "publicId": "b",
-            "instanceId": "interface-input-b",
-            "pinId": "0",
-            "direction": "input"
-          }
-        ],
-        "outputs": [
-          {
-            "publicId": "out",
-            "instanceId": "interface-output-out",
-            "pinId": "0",
-            "direction": "output"
-          }
-        ]
-      },
-      "fit": {
-        "version": 1,
-        "bounds": {
-          "x": -260,
-          "y": -140,
-          "w": 520,
-          "h": 280
-        }
-      }
-    },
-    "N2T NOT": {
-      "id": "chip-n2t-not",
-      "name": "N2T NOT",
-      "type": "custom",
-      "kind": "custom",
-      "size": {
-        "x": 640,
-        "y": 440
-      },
-      "colour": "#706aa4",
-      "nameLocation": "top",
-      "inputPins": [
-        {
-          "id": "in",
-          "name": "IN",
-          "bits": 1,
-          "direction": "input",
-          "x": -460,
-          "y": 0,
-          "valueDisplay": "off",
-          "colour": "gray"
-        }
-      ],
-      "outputPins": [
-        {
-          "id": "out",
-          "name": "OUT",
-          "bits": 1,
-          "direction": "output",
-          "x": 460,
-          "y": 0,
-          "valueDisplay": "off",
-          "colour": "green"
-        }
-      ],
-      "instances": [
-        {
-          "id": "interface-input-in",
-          "name": "IN-1",
-          "position": {
-            "x": -360,
-            "y": 0
-          },
-          "rotation": 0,
-          "label": "IN",
-          "internalData": {},
-          "linkedBusPairId": null,
-          "interfaceId": "in",
-          "outputPinColours": {}
-        },
-        {
-          "id": "interface-output-out",
-          "name": "OUT-1",
-          "position": {
-            "x": 360,
-            "y": 0
-          },
-          "rotation": 0,
-          "label": "OUT",
-          "internalData": {},
-          "linkedBusPairId": null,
-          "interfaceId": "out",
-          "outputPinColours": {}
-        },
-        {
-          "id": "nand",
-          "name": "N2T NAND",
-          "position": {
-            "x": 0,
-            "y": 0
-          },
-          "rotation": 0,
-          "label": "",
-          "internalData": {},
-          "linkedBusPairId": null,
-          "interfaceId": null,
-          "outputPinColours": {}
-        }
-      ],
-      "wires": [
-        {
-          "id": "in",
-          "source": {
-            "owner": "interface-input-in",
-            "pin": "0"
-          },
-          "target": {
-            "owner": "nand",
-            "pin": "a"
-          },
-          "points": [],
-          "colour": null
-        },
-        {
-          "id": "in-copy",
-          "source": {
-            "owner": "interface-input-in",
-            "pin": "0"
-          },
-          "target": {
-            "owner": "nand",
-            "pin": "b"
-          },
-          "points": [],
-          "colour": null
-        },
-        {
-          "id": "out",
-          "source": {
-            "owner": "nand",
-            "pin": "out"
-          },
-          "target": {
-            "owner": "interface-output-out",
-            "pin": "0"
-          },
-          "points": [],
-          "colour": null
-        }
-      ],
-      "junctions": [],
-      "displays": [],
-      "annotations": [
-        {
           "id": "annotation-n2t-not",
           "type": "text",
           "text": "NOT is NAND with the same signal connected to both inputs.",
           "position": {
             "x": -240,
-            "y": -250
+            "y": -150
           },
           "width": 480,
           "height": 70,
@@ -585,10 +388,10 @@
       "fit": {
         "version": 1,
         "bounds": {
-          "x": -460,
-          "y": -180,
-          "w": 920,
-          "h": 360
+          "x": -260,
+          "y": -80,
+          "w": 520,
+          "h": 160
         }
       }
     }

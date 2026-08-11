@@ -62,6 +62,42 @@ test("Nand2Tetris bundle contains the complete hardware progression and software
   }
 });
 
+test("Nand2Tetris Boolean composites use native NAND leaves without redundant wrapper layers", async () => {
+  const logicChips = [
+    ["N2T NOT", "n2t-not.json"],
+    ["N2T AND", "n2t-and.json"],
+    ["N2T OR", "n2t-or.json"],
+    ["N2T XOR", "n2t-xor.json"]
+  ];
+  for (const [name, file] of logicChips) {
+    const chip = await readJson(`chips/${file}`);
+    assert.equal(chip.description.name, name);
+    assert.equal(chip.description.instances.some(instance => instance.name === "N2T NAND"), false, `${name} should not nest the wrapper`);
+    const nativeNands = chip.description.instances.filter(instance => instance.name === TYPE.NAND);
+    assert.ok(nativeNands.length > 0, `${name} should use native NAND`);
+    const nandIds = new Set(nativeNands.map(instance => String(instance.id)));
+    for (const wire of chip.description.wires) {
+      for (const endpoint of [wire.source, wire.target]) {
+        if (nandIds.has(String(endpoint.owner))) assert.ok(["0", "1", "2"].includes(String(endpoint.pin)), `${name} has a non-native NAND pin endpoint`);
+      }
+    }
+  }
+
+  for (const directory of ["chips", "projects"]) {
+    for (const file of await readdir(path.join(root, directory))) {
+      if (!file.endsWith(".json")) continue;
+      const raw = await readJson(`${directory}/${file}`);
+      const descriptions = [];
+      if (raw.description) descriptions.push(raw.description);
+      if (raw.root) descriptions.push(raw.root);
+      descriptions.push(...Object.values(raw.customChips ?? {}), ...Object.values(raw.dependencies ?? {}));
+      for (const description of descriptions) {
+        assert.equal((description.instances ?? []).some(instance => instance.name === "N2T NAND"), false, `${directory}/${file} should not use N2T NAND as a nested implementation`);
+      }
+    }
+  }
+});
+
 test("Nand2Tetris compositions are collision-free after leaf-to-root layout", async () => {
   for (const file of ["projects/nand2tetris-bit-lab.json", "projects/nand2tetris-hardware-lab.json", "projects/nand2tetris-computer-lab.json"]) {
     const project = normalizeProject(await readJson(file));

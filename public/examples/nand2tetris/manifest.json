@@ -239,16 +239,13 @@
       "name": "N2T NOT",
       "file": "chips/n2t-not.json",
       "native": false,
-      "dependencies": [
-        "N2T NAND"
-      ]
+      "dependencies": []
     },
     {
       "name": "N2T AND",
       "file": "chips/n2t-and.json",
       "native": false,
       "dependencies": [
-        "N2T NAND",
         "N2T NOT"
       ]
     },
@@ -257,8 +254,7 @@
       "file": "chips/n2t-or.json",
       "native": false,
       "dependencies": [
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -268,7 +264,6 @@
       "dependencies": [
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -278,8 +273,7 @@
       "native": false,
       "dependencies": [
         "N2T OR",
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -290,7 +284,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -312,7 +305,6 @@
       "native": false,
       "dependencies": [
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -323,7 +315,6 @@
       "native": false,
       "dependencies": [
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -333,8 +324,7 @@
       "native": false,
       "dependencies": [
         "N2T OR",
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -344,7 +334,6 @@
       "dependencies": [
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -357,7 +346,6 @@
         "N2T MUX4WAY",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -369,7 +357,6 @@
       "dependencies": [
         "N2T DMUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -380,7 +367,6 @@
       "dependencies": [
         "N2T DMUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T DMUX4WAY"
       ]
@@ -390,8 +376,7 @@
       "file": "chips/n2t-not16.json",
       "native": false,
       "dependencies": [
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -400,7 +385,6 @@
       "native": false,
       "dependencies": [
         "N2T AND",
-        "N2T NAND",
         "N2T NOT"
       ]
     },
@@ -410,8 +394,7 @@
       "native": false,
       "dependencies": [
         "N2T OR",
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -422,7 +405,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -433,7 +415,6 @@
       "dependencies": [
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -445,7 +426,6 @@
       "dependencies": [
         "N2T DMUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -457,7 +437,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -470,7 +449,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -484,7 +462,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -499,7 +476,6 @@
         "N2T XOR",
         "N2T OR",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND"
       ]
     },
@@ -510,7 +486,6 @@
       "dependencies": [
         "N2T NOT16",
         "N2T NOT",
-        "N2T NAND",
         "N2T ADD16",
         "N2T FULL ADDER",
         "N2T HALF ADDER",
@@ -527,7 +502,6 @@
         "N2T NEG16",
         "N2T NOT16",
         "N2T NOT",
-        "N2T NAND",
         "N2T ADD16",
         "N2T FULL ADDER",
         "N2T HALF ADDER",
@@ -545,7 +519,6 @@
         "N2T NEG16",
         "N2T NOT16",
         "N2T NOT",
-        "N2T NAND",
         "N2T ADD16",
         "N2T FULL ADDER",
         "N2T HALF ADDER",
@@ -563,7 +536,6 @@
         "N2T MUX16",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR",
         "N2T NOT16",
@@ -582,7 +554,6 @@
       "dependencies": [
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -595,7 +566,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -609,7 +579,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -623,7 +592,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -637,7 +605,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -652,7 +619,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR",
         "N2T INC16",
@@ -674,7 +640,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR",
         "N2T INC16",
@@ -751,7 +716,6 @@
         "N2T BIT",
         "N2T MUX",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -761,8 +725,7 @@
       "file": "chips/n2t-constant-generator.json",
       "native": false,
       "dependencies": [
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -783,8 +746,7 @@
       "native": false,
       "dependencies": [
         "N2T INSTRUCTION DECODER",
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -794,8 +756,7 @@
       "dependencies": [
         "N2T CONTROL-SIGNAL-DECODER",
         "N2T INSTRUCTION DECODER",
-        "N2T NOT",
-        "N2T NAND"
+        "N2T NOT"
       ]
     },
     {
@@ -806,7 +767,6 @@
         "N2T CONTROL-SIGNAL-DECODER",
         "N2T INSTRUCTION DECODER",
         "N2T NOT",
-        "N2T NAND",
         "N2T OR",
         "N2T AND"
       ]
@@ -819,7 +779,6 @@
         "N2T CONTROL-SIGNAL-DECODER",
         "N2T INSTRUCTION DECODER",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR",
         "N2T MUX8WAY",
@@ -835,7 +794,6 @@
         "N2T CONTROL-SIGNAL-DECODER",
         "N2T INSTRUCTION DECODER",
         "N2T NOT",
-        "N2T NAND",
         "N2T ALU-CONTROL",
         "N2T WRITE-DESTINATION-CONTROL",
         "N2T OR",
@@ -870,7 +828,6 @@
       "native": false,
       "dependencies": [
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR"
       ]
@@ -888,7 +845,6 @@
       "dependencies": [
         "N2T MEMORY-ADDRESS-DECODER",
         "N2T NOT",
-        "N2T NAND",
         "N2T AND",
         "N2T OR",
         "N2T RAM16K",
@@ -908,7 +864,6 @@
         "N2T CONTROL-SIGNAL-DECODER",
         "N2T INSTRUCTION DECODER",
         "N2T NOT",
-        "N2T NAND",
         "N2T ALU-CONTROL",
         "N2T WRITE-DESTINATION-CONTROL",
         "N2T OR",

@@ -19,6 +19,10 @@ The outer chips are ordinary JSON compositions. The engine adds only the contrac
 - `N2T CPU` is the teaching path: it composes the instruction decoder, constant generator, ALU-control, destination-control, jump-control, A/D registers, ALU, and PC. Its visible contract is `IN M`, `INSTRUCTION`, `RESET`, `CLOCK` to `OUT M`, `WRITE M`, `ADDRESS M`, `PC`.
 - `N2T CPU-MEMORY` composes the address decoder and device-selection path. Its RAM, screen, and keyboard leaves still use bounded native device contracts, while `N2T CPU-MEMORY-BUS` makes the CPU/device flow explicit.
 
+`N2T NAND` remains a standalone Stage 00 teaching chip so the NAND foundation can be opened and inspected. Higher-level Boolean teaching chips use the native `NAND` leaf directly. This keeps the NAND-derived construction visible without inserting an extra wrapper scope into every `N2T NOT`, `N2T AND`, `N2T OR`, and `N2T XOR` instance. The native leaf uses pin IDs `0`, `1`, and `2`; the standalone wrapper keeps its own public `a`, `b`, and `out` interface.
+
+The same audit found transparent native-device wrappers such as `N2T TRI-STATE`, `N2T RAM8` through `N2T RAM16K`, `N2T ROM32K`, `N2T SCREEN`, `N2T KEYBOARD`, and `N2T MEMORY`. They are retained for now because their named interface and explanatory boundary can be pedagogically useful. They are review candidates, not accidental dependencies of the Boolean graph; any future collapse must preserve their public pin contracts and internal-data semantics.
+
 Stateful processors commit only during the simulator's commit pass. The settling passes expose the current state without mutating it; a rising edge commits once per simulation tick; the final settling pass makes the new state visible. This is the same snapshot/restore boundary used by Bake and the scrubber, so a DFF or CPU can be scrubbed without a second special timeline model.
 
 ## Asset topology
