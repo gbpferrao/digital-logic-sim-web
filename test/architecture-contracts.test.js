@@ -162,6 +162,20 @@ test("xray controls are a view contract rather than a second editing mode", asyn
   assert.match(renderer, /path\.includes\(identity\)/);
 });
 
+test("free wire endpoints take priority over route handles on both sides", async () => {
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  const renderer = await readFile(path.join(process.cwd(), "src", "renderer.js"), "utf8");
+  const hitTarget = main.indexOf("function canvasHitTarget");
+  const endpoint = main.indexOf("const wireEndpoint = renderer.findWireEndpoint", hitTarget);
+  const routePoint = main.indexOf("const point = renderer.findWirePoint", hitTarget);
+  assert.ok(hitTarget >= 0);
+  assert.ok(endpoint >= 0);
+  assert.ok(routePoint >= 0);
+  assert.ok(endpoint < routePoint, "both loose endpoints should win before route-point handles");
+  assert.match(renderer, /\["source", wire\.source, points\[0\]\]/);
+  assert.match(renderer, /\["target", wire\.target, points\[points\.length - 1\]\]/);
+});
+
 test("direct signal tweaks preview while idle and append during an open bake", async () => {
   const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
   const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");

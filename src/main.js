@@ -2312,12 +2312,12 @@ function canvasHitTarget(world) {
     if (selectedAnnotation?.type === "text" && renderer.findAnnotationResizeHandle(project, world) === selectedAnnotation) {
       return { kind: "annotation-resize", value: selectedAnnotation };
     }
+    const wireEndpoint = renderer.findWireEndpoint(project, world, 12);
+    if (wireEndpoint) return { kind: "wire-end", value: wireEndpoint };
     if (state.wireEdit) {
       const point = renderer.findWirePoint(project, world, 12, state.wireEdit.wireId);
       if (point) return { kind: "wire-point", value: point };
     }
-    const wireEndpoint = renderer.findWireEndpoint(project, world, 12);
-    if (wireEndpoint) return { kind: "wire-end", value: wireEndpoint };
     const pin = renderer.findPin(project, world);
     if (pin) return { kind: "pin", value: pin };
     const junction = renderer.findJunction(project, world);
