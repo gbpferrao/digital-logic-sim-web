@@ -851,6 +851,23 @@ function completeWire(endpoint) {
   finishWirePlacement();
 }
 
+function completeActiveWireAtCursor() {
+  if (!state.wireStart) return;
+  const target = wireTargetAt(state.mouseWorld);
+  if (target.endpoint) {
+    if (target.wire) completeWireToWire(target.wire, state.mouseWorld);
+    else completeWire(target.endpoint);
+    return;
+  }
+  const start = renderer.endpointPosition(project, state.wireStart);
+  const end = snap(state.mouseWorld);
+  if (!state.wirePoints.length && Math.hypot(end.x - start.x, end.y - start.y) <= 1) {
+    setStatus("Move the pointer or add a route point before placing the wire.");
+    return;
+  }
+  completeWire(createFreeEndpoint(end, state.wireStart.bits));
+}
+
 function wireSplitAt(wire, world) {
   if (!wire) return null;
   const existing = renderer.closestWireSegment(project, wire, world);
@@ -2847,6 +2864,11 @@ function handleKeyDown(event) {
   if (isTextEntry) return;
   updatePointerModifiers(event);
   const key = event.key.toLowerCase();
+  if (event.key === "Enter" && state.wireStart) {
+    event.preventDefault();
+    completeActiveWireAtCursor();
+    return;
+  }
   if (event.key === "Enter" && state.wireEdit) { exitWireEdit(true); setStatus("Wire edit mode ended."); return; }
   if ((event.ctrlKey || event.metaKey) && key === "s") { event.preventDefault(); saveCurrentProject(); return; }
   if ((event.ctrlKey || event.metaKey) && key === "n") { event.preventDefault(); resetProject(); return; }

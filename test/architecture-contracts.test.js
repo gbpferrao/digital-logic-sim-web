@@ -181,6 +181,13 @@ test("free wire endpoints take priority over route handles on both sides", async
   assert.match(renderer, /\["target", wire\.target, points\[points\.length - 1\]\]/);
 });
 
+test("click-started wires have explicit Enter commit and Escape cancel paths", async () => {
+  const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
+  assert.match(main, /function completeActiveWireAtCursor\(\)/);
+  assert.match(main, /if \(event\.key === "Enter" && state\.wireStart\) \{[\s\S]*?completeActiveWireAtCursor\(\);/);
+  assert.match(main, /state\.wireStart \|\| state\.wireEdit \|\| state\.selectionBox/);
+});
+
 test("direct signal tweaks preview while idle and append during an open bake", async () => {
   const main = await readFile(path.join(process.cwd(), "src", "main.js"), "utf8");
   const controller = await readFile(path.join(process.cwd(), "src", "simulation-controller.js"), "utf8");

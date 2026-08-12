@@ -268,7 +268,7 @@ The first two phases of the plan are now implemented in the canvas path:
 - Box selection now includes annotations as well as chips.
 - Canvas-level window pointer fallbacks and the old `activePointer*`/`wireGesture` pointer ownership state are removed.
 
-Wire gestures now also support free endpoints. Starting a drag from empty canvas creates a wire with an explicit `free` endpoint position, so the wire can be drawn before either end is attached to a pin. The renderer draws each loose endpoint as a node and `canvasHitTarget()` returns either one as `wire-end`; dragging either endpoint updates that endpoint position in place instead of starting another wire. Free endpoints are passive in the simulator and become input/output endpoints only when a wire is completed against a compatible pin.
+Wire gestures now also support free endpoints. Starting a drag from empty canvas creates a wire with an explicit `free` endpoint position, so the wire can be drawn before either end is attached to a pin. A click-started wire remains active under the cursor until Enter commits it to a compatible target or to a new free endpoint; Escape cancels it. The renderer draws each loose endpoint as a node and `canvasHitTarget()` returns either one as `wire-end`; dragging either endpoint updates that endpoint position in place instead of starting another wire. Free endpoints are passive in the simulator and become input/output endpoints only when a wire is completed against a compatible pin.
 
 The pure session tests are in `test/interaction-session.test.js`. The remaining verification gap is live browser Pointer Event smoke testing; the available environment has no browser runtime, so this should be checked manually in the running app when available.
 
