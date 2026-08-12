@@ -5,7 +5,7 @@ import test from "node:test";
 import { createJsonRepository } from "../server/json-repository.mjs";
 import { COLORS } from "../src/domain/catalog.js";
 import { readProjectFile } from "../src/io/project-import.js";
-import { BUILTINS, MIN_CHIP_SIZE, TYPE, chipBoundingBox, chipBoundsSize, collectionGroupsFor, createProject, customFromRoot, instanceFor, instancePinPosition, interfaceBindingsFor, normalizeProject } from "../src/model.js";
+import { BUILTINS, MIN_CHIP_SIZE, TYPE, chipBoundingBox, chipBoundsSize, collectionGroupsFor, createProject, customFromRoot, instanceFor, instancePinPosition, interfaceBindingsFor, normalizeProject, reusableProjectionGeometry } from "../src/model.js";
 
 test("collection groups preserve saved order and always expose custom chips", () => {
   const project = normalizeProject({
@@ -99,6 +99,21 @@ test("custom chips preserve movable interface nodes and derive their public port
   assert.equal(roundTrip.instances.find((item) => item.id === input.id).position.y, -20);
   assert.equal(roundTrip.instances.find((item) => item.id === output.id).position.y, 20);
   assert.equal(interfaceBindingsFor(roundTrip, "input")[0].publicId, custom.inputPins[0].id);
+
+  const parent = createProject("parent");
+  parent.customChips[custom.name] = custom;
+  const composite = { id: "composite", name: custom.name, position: { x: 240, y: 180 }, rotation: 0 };
+  const projection = reusableProjectionGeometry(custom);
+  assert.ok(projection);
+  for (const direction of ["input", "output"]) {
+    const binding = interfaceBindingsFor(custom, direction)[0];
+    const publicPin = direction === "input" ? custom.inputPins[0] : custom.outputPins[0];
+    const interfaceInstance = custom.instances.find((item) => String(item.id) === binding.instanceId);
+    const hiddenPoint = instancePinPosition({ ...parent, root: custom }, interfaceInstance, binding.pinId);
+    const publicPoint = instancePinPosition(parent, composite, publicPin.id);
+    const projectedHiddenY = projection.translate.y + hiddenPoint.y * projection.scale;
+    assert.ok(Math.abs(publicPoint.y - composite.position.y - projectedHiddenY) < 1e-9, `${direction} group port should share the hidden interface height`);
+  }
 });
 
 test("legacy fixed custom pins migrate into terminal nodes and internal wire endpoints", () => {

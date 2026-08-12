@@ -486,7 +486,10 @@ export function instancePinPosition(project, instance, pinId) {
   const pinLocal = busFlipped
     ? { x: -pinDesc.x, y: pinDesc.y }
     : { x: pinDesc.x, y: pinDesc.y };
-  const reusableLocal = desc.kind === TYPE.CUSTOM ? reusablePoint(desc, pinLocal) : pinLocal;
+  const interfacePort = desc.kind === TYPE.CUSTOM ? interfaceBindingFor(desc, pinId) : null;
+  const reusableLocal = desc.kind === TYPE.CUSTOM
+    ? interfacePort ? reusableInterfacePoint(desc, pinLocal) : reusablePoint(desc, pinLocal)
+    : pinLocal;
   const local = rotatePoint(reusableLocal, instance.rotation);
   return { x: instance.position.x + local.x, y: instance.position.y + local.y };
 }
@@ -543,6 +546,42 @@ export function reusablePoint(description, point) {
   const y = Number(point?.y) || 0;
   if (!fit) return { x, y };
   return { x: x - (fit.x + fit.w / 2), y: y - (fit.y + fit.h / 2) };
+}
+
+// X-ray maps a reusable description into the inset frame inside its visible
+// body. Interface ports are still exposed at the body's outer edge, so their
+// vertical coordinate needs the same projection as the hidden IN/OUT node.
+export function reusableProjectionGeometry(description) {
+  const visualSize = chipVisualSize(description);
+  const fit = reusableFitBounds(description);
+  const inset = Math.max(8, Math.min(14, Math.min(visualSize.x, visualSize.y) * .12));
+  const frame = {
+    x: -visualSize.x / 2 + inset,
+    y: -visualSize.y / 2 + inset,
+    w: Math.max(16, visualSize.x - inset * 2),
+    h: Math.max(16, visualSize.y - inset * 2)
+  };
+  const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
+  if (!Number.isFinite(scale) || scale <= 0) return null;
+  return {
+    visualSize,
+    fit,
+    frame,
+    scale,
+    translate: {
+      x: frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale,
+      y: frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale
+    }
+  };
+}
+
+export function reusableInterfacePoint(description, point) {
+  const normalized = reusablePoint(description, point);
+  if (description?.kind !== TYPE.CUSTOM) return normalized;
+  const projection = reusableProjectionGeometry(description);
+  if (!projection) return normalized;
+  const y = Number(point?.y) || 0;
+  return { x: normalized.x, y: projection.translate.y + y * projection.scale };
 }
 
 function descriptionPinPosition(description, pin) {

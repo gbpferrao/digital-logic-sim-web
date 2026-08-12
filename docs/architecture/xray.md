@@ -49,7 +49,8 @@ The per-level budgets keep large descriptions readable, while the cycle guard pr
    `IN`/`OUT` interface instances are hidden as proxy bodies and labels. The
    public group port is bridged directly to the real internal interface-pin
    coordinate, so the signal remains one continuous path without an extra
-   interface-node tail.
+   interface-node tail. The group entry and exit ports use the same vertical
+   fit projection as their hidden interface pins, keeping both sides level.
 4. Recurse through every finite level while the cycle guard and per-level budgets allow.
 5. Restore the normal canvas context and draw the ordinary caption/selection treatment.
 

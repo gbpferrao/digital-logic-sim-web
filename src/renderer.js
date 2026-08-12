@@ -12,7 +12,8 @@ import {
   annotationBoundingBox,
   chipBoundsSize,
   chipVisualSize,
-  reusableFitBounds,
+  reusableInterfacePoint,
+  reusableProjectionGeometry,
   reusablePoint,
   rootPinPosition,
   rotatePoint
@@ -267,27 +268,7 @@ function pointInBox(point, box, padding = 0) {
 }
 
 function xrayFrameGeometry(description) {
-  const visualSize = chipVisualSize(description);
-  const fit = reusableFitBounds(description);
-  const inset = Math.max(8, Math.min(14, Math.min(visualSize.x, visualSize.y) * .12));
-  const frame = {
-    x: -visualSize.x / 2 + inset,
-    y: -visualSize.y / 2 + inset,
-    w: Math.max(16, visualSize.x - inset * 2),
-    h: Math.max(16, visualSize.y - inset * 2)
-  };
-  const scale = Math.min(frame.w / Math.max(1, fit.w), frame.h / Math.max(1, fit.h));
-  if (!Number.isFinite(scale) || scale <= 0) return null;
-  return {
-    visualSize,
-    fit,
-    frame,
-    scale,
-    translate: {
-      x: frame.x + (frame.w - fit.w * scale) / 2 - fit.x * scale,
-      y: frame.y + (frame.h - fit.h * scale) / 2 - fit.y * scale
-    }
-  };
+  return reusableProjectionGeometry(description);
 }
 
 function chipHoverName(instance, description) {
@@ -311,7 +292,7 @@ export function xrayInterfaceBridgeGeometry(project, description, binding, scale
     y: Number(publicPin.y) || 0
   };
   const internalPoint = instancePinPosition({ ...project, root: description }, interfaceInstance, binding.pinId);
-  const outerPoint = reusablePoint(description, publicPoint);
+  const outerPoint = reusableInterfacePoint(description, publicPoint);
   const safeScale = Number.isFinite(Number(scale)) && Number(scale) > 0 ? Number(scale) : 1;
   return {
     binding,

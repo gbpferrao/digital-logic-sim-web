@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { adaptiveGridStep, canvasStroke, clampZoom, isMinorGridVisible, MIN_ZOOM, wireStroke, WorldRenderer, xrayInterfaceBridgeGeometry, xrayWireAlpha } from "../src/renderer.js";
-import { BUILTINS, FREE_ENDPOINT_OWNER, TYPE, createProject, instanceFor } from "../src/model.js";
+import { BUILTINS, FREE_ENDPOINT_OWNER, TYPE, createProject, instanceFor, reusableProjectionGeometry } from "../src/model.js";
 
 test("canvas object strokes use world width with a one-pixel viewport floor", () => {
   assert.equal(canvasStroke(1, 1), 2);
@@ -186,6 +186,10 @@ test("xray bridges composite public ports into their movable interface nodes", (
   assert.deepEqual(outputBridge.signalEndpoint, { owner: "driver", pin: "2" });
   assert.equal(inputBridge.scale, .5);
   assert.equal(outputBridge.scale, .5);
+  const projection = reusableProjectionGeometry(description);
+  assert.ok(projection);
+  assert.ok(Math.abs(inputBridge.outerPoint.y - (projection.translate.y + inputBridge.internalPoint.y * projection.scale)) < 1e-9);
+  assert.ok(Math.abs(outputBridge.outerPoint.y - (projection.translate.y + outputBridge.internalPoint.y * projection.scale)) < 1e-9);
 });
 
 test("xray does not redraw interface-bound public pins at the frame edge", () => {
