@@ -168,10 +168,15 @@ test("free wire endpoints take priority over route handles on both sides", async
   const hitTarget = main.indexOf("function canvasHitTarget");
   const endpoint = main.indexOf("const wireEndpoint = renderer.findWireEndpoint", hitTarget);
   const routePoint = main.indexOf("const point = renderer.findWirePoint", hitTarget);
+  const pointerDown = main.slice(main.indexOf("function handlePointerDown"), main.indexOf("function handlePointerMove"));
+  const pointerUp = main.slice(main.indexOf("function handlePointerUp"), main.indexOf("function handleKeyDown"));
   assert.ok(hitTarget >= 0);
   assert.ok(endpoint >= 0);
   assert.ok(routePoint >= 0);
   assert.ok(endpoint < routePoint, "both loose endpoints should win before route-point handles");
+  assert.ok(pointerDown.indexOf('if (hit.kind === "wire-end")') < pointerDown.indexOf("if (state.wireStart)"), "endpoint drag should win over a stale wire-start gesture");
+  assert.ok(pointerUp.indexOf("if (state.wireEndpointDrag)") < pointerUp.indexOf("if (state.wireStart &&"), "endpoint drag should finish before wire completion");
+  assert.match(main, /function enterWireEdit\(wire\)[\s\S]*?setTool\("select"\)/);
   assert.match(renderer, /\["source", wire\.source, points\[0\]\]/);
   assert.match(renderer, /\["target", wire\.target, points\[points\.length - 1\]\]/);
 });

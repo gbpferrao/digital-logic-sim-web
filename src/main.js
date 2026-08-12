@@ -963,6 +963,7 @@ function enterWireEdit(wire) {
     return;
   }
   cancelCanvasInteractionBeforeEdit();
+  setTool("select");
   state.wireStart = null;
   state.wirePoints = [];
   state.wireTarget = null;
@@ -1077,6 +1078,10 @@ function startWireEndpointDrag(hit, world) {
   const side = hit?.side;
   if (!wire || !["source", "target"].includes(side) || !isFreeEndpoint(wire[side])) return;
   if (state.wireEdit && String(state.wireEdit.wireId) !== String(wire.id)) exitWireEdit();
+  state.wireStart = null;
+  state.wirePoints = [];
+  state.wireTarget = null;
+  state.wireTargetValid = null;
   selectWire(wire);
   state.selectedWirePointKeys.clear();
   const startPosition = {
@@ -2471,13 +2476,13 @@ function handlePointerDown(event) {
     render();
     return;
   }
-  if (state.wireStart) {
-    beginCanvasPointer(event, hit.kind === "empty" ? "wire-route-press" : "wire-target-press", { originWorld: world, target: hit.value });
-    return;
-  }
   if (hit.kind === "wire-end") {
     beginCanvasPointer(event, "wire-end-press", { originWorld: world, target: hit.value });
     startWireEndpointDrag(hit.value, world);
+    return;
+  }
+  if (state.wireStart) {
+    beginCanvasPointer(event, hit.kind === "empty" ? "wire-route-press" : "wire-target-press", { originWorld: world, target: hit.value });
     return;
   }
   if (hit.kind === "wire-point") {
@@ -2687,6 +2692,17 @@ function handlePointerUp(event) {
     render();
     return;
   }
+  if (state.wireEndpointDrag) {
+    if (state.wireEndpointDrag.moved) {
+      state.undo.push(state.wireEndpointDrag.before);
+      state.redo.length = 0;
+      touch("Loose wire endpoint moved.");
+    }
+    state.wireEndpointDrag = null;
+    finishPointer();
+    render();
+    return;
+  }
   if (state.wireStart && ["wire-start-press", "wire-target-press", "wire-route-press", "wire-free-start-press"].includes(session.kind)) {
     const target = wireTargetAt(world);
     state.wireTarget = target.endpoint;
@@ -2706,17 +2722,6 @@ function handlePointerUp(event) {
       state.wireTargetValid = null;
       setStatus("Wire remains active.");
     }
-    finishPointer();
-    render();
-    return;
-  }
-  if (state.wireEndpointDrag) {
-    if (state.wireEndpointDrag.moved) {
-      state.undo.push(state.wireEndpointDrag.before);
-      state.redo.length = 0;
-      touch("Loose wire endpoint moved.");
-    }
-    state.wireEndpointDrag = null;
     finishPointer();
     render();
     return;
